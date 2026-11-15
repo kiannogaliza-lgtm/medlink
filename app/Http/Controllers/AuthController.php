@@ -10,27 +10,17 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        $role = $request->input('role', 'resident');
-        if (!in_array($role, ['resident', 'nurse'])) {
-            $role = 'resident';
-        }
-
-        $isResident = ($role === 'resident');
+        $role = 'resident'; // Public registration is strictly for residents only
+        $isResident = true;
 
         $rules = [
-            'role'         => ['required', 'in:resident,nurse'],
             'first_name'   => ['required', 'string', 'max:255'],
             'last_name'    => ['required', 'string', 'max:255'],
             'phone_number' => ['required', 'regex:/^09[0-9]{9}$/', 'unique:users'],
             'age'          => ['required', 'integer', 'min:0', 'max:130'],
             'password'     => ['required', 'string', 'min:8', 'confirmed'],
+            'id_photo'     => ['required', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
         ];
-
-        if ($isResident) {
-            $rules['id_photo'] = ['required', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'];
-        } else {
-            $rules['id_photo'] = ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'];
-        }
 
         $validated = $request->validate($rules, [
             'phone_number.regex' => 'The phone number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',

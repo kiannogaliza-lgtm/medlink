@@ -127,6 +127,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/bhw/walkin', [\App\Http\Controllers\WalkinController::class, 'store'])->name('bhw.walkin.store');
     Route::get('/bhw/walkin/recent', [\App\Http\Controllers\WalkinController::class, 'recent'])->name('bhw.walkin.recent');
 
+    // BHW Nurse Account Management
+    Route::get('/bhw/nurses', [\App\Http\Controllers\BhwDashboardController::class, 'nursesList'])->name('bhw.nurses.index');
+    Route::post('/bhw/nurses', [\App\Http\Controllers\BhwDashboardController::class, 'storeNurse'])->name('bhw.nurses.store');
+    Route::delete('/bhw/nurses/{user}', [\App\Http\Controllers\BhwDashboardController::class, 'destroyNurse'])->name('bhw.nurses.destroy');
+
     // BHW Home Service 
     Route::patch('/bhw/home-services/{homeService}/accept', [\App\Http\Controllers\BhwDashboardController::class, 'acceptHomeService'])->name('bhw.home-services.accept');
     Route::patch('/bhw/home-services/{homeService}/approve', [\App\Http\Controllers\BhwDashboardController::class, 'approveHomeService'])->name('bhw.home-services.approve');

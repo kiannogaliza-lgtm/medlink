@@ -36,6 +36,8 @@
             announcementsStoreUrl: {!! json_encode(route('announcements.store')) !!},
             medicineRequests: {!! json_encode($medicineDeliveryRequests ?? []) !!},
             medicineReturns: {!! json_encode($medicineReturns ?? []) !!},
+            nurseAccounts: {!! json_encode($nurseAccounts ?? []) !!},
+            createNurseUrl: {!! json_encode(route('bhw.nurses.store')) !!},
         };
     </script>
     <div id="app"></div>

@@ -66,7 +66,7 @@
             <div class="text-center mb-7">
                 <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold uppercase tracking-wider mb-3">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    Resident &amp; Staff Registration
+                    Resident Registration
                 </div>
                 <h1 class="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Create your account</h1>
                 <p class="text-slate-500 text-xs sm:text-sm mt-1.5 font-medium">Join MEDLINK to access Barangay Honrado health services online</p>
@@ -89,33 +89,7 @@
             {{-- Form --}}
             <form action="{{ url('/register') }}" method="POST" class="space-y-5" enctype="multipart/form-data">
                 @csrf
-                
-                {{-- Role Selection --}}
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5">Register as</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="cursor-pointer relative">
-                            <input type="radio" name="role" value="resident" class="peer sr-only" {{ old('role', 'resident') === 'resident' ? 'checked' : '' }} onchange="onRoleChange('resident')">
-                            <div class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 font-semibold text-xs sm:text-sm transition-all 
-                                        peer-checked:border-emerald-500 peer-checked:bg-emerald-50/80 peer-checked:text-emerald-700 peer-checked:shadow-sm hover:bg-slate-100">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                </svg>
-                                <span>Resident</span>
-                            </div>
-                        </label>
-                        <label class="cursor-pointer relative">
-                            <input type="radio" name="role" value="nurse" class="peer sr-only" {{ old('role') === 'nurse' ? 'checked' : '' }} onchange="onRoleChange('nurse')">
-                            <div class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 font-semibold text-xs sm:text-sm transition-all 
-                                        peer-checked:border-emerald-500 peer-checked:bg-emerald-50/80 peer-checked:text-emerald-700 peer-checked:shadow-sm hover:bg-slate-100">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                </svg>
-                                <span>Nurse</span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
+                <input type="hidden" name="role" value="resident">
 
                 {{-- First and Last Name --}}
                 <div class="grid sm:grid-cols-2 gap-4">

@@ -308,7 +308,9 @@
                    :announcements="announcements"
                    :announcements-store-url="announcementsStoreUrl"
                    :medicine-requests="medicineRequests"
-                   :medicine-returns="medicineReturns" />
+                   :medicine-returns="medicineReturns"
+                   :nurse-accounts="nurseAccounts"
+                   :create-nurse-url="createNurseUrl" />
       </div>
 
       <!-- Floating help button -->
@@ -330,6 +332,7 @@ import Notifications from '../resident/Notifications.vue';
 import BhwAnnouncements from './BhwAnnouncements.vue';
 import MedicineDeliveryRequests from './MedicineDeliveryRequests.vue';
 import ReturnedMedicines from './ReturnedMedicines.vue';
+import NurseManagement from './NurseManagement.vue';
 
 const props = defineProps({
   user: {
@@ -411,6 +414,14 @@ const props = defineProps({
   medicineReturns: {
     type: Array,
     default: () => []
+  },
+  nurseAccounts: {
+    type: Array,
+    default: () => []
+  },
+  createNurseUrl: {
+    type: String,
+    default: '/bhw/nurses'
   }
 });
 
@@ -574,6 +585,7 @@ const tabs = computed(() => [
   { id: 'services', name: 'Home Services', badge: assignedHomeServicesCount.value, icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>', component: HomeServices },
   { id: 'medicine-requests', name: 'Medicine Delivery', badge: pendingMedicineRequestsCount.value, icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m-4-4h8" /></svg>', component: MedicineDeliveryRequests },
   { id: 'reports', name: 'Reports', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>', component: Reports },
+  { id: 'nurses', name: 'Nurse Accounts', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>', component: NurseManagement },
   { id: 'announcements', name: 'Schedule Announcements', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>', component: BhwAnnouncements },
   { id: 'notifications', name: 'Notifications', badge: unreadCount.value, icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>', component: Notifications },
 ]);
@@ -603,6 +615,9 @@ const activeTabName = computed(() => {
   }
   if (currentTab.value === 'reports') {
       return 'My Reports';
+  }
+  if (currentTab.value === 'nurses') {
+      return 'Nurse Account Management';
   }
   if (currentTab.value === 'announcements') {
       return 'Schedule Announcements';

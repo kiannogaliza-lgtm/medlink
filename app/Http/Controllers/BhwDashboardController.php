@@ -325,6 +325,11 @@ class BhwDashboardController extends Controller
                 ];
             });
 
+        // Nurse Accounts list
+        $nurseAccounts = \App\Models\User::where('role', 'nurse')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return view('dashboards.bhw', compact(
             'dashboardData',
             'myAssignedServices',
@@ -342,7 +347,8 @@ class BhwDashboardController extends Controller
             'notificationSummary',
             'announcements',
             'medicineDeliveryRequests',
-            'medicineReturns'
+            'medicineReturns',
+            'nurseAccounts'
         ));
     }
     
@@ -456,6 +462,65 @@ class BhwDashboardController extends Controller
             'success' => true, 
             'message' => 'Service marked as completed successfully.'
         ]);
+    }
+
+    /**
+     * Return list of nurse accounts for BHW
+     */
+    public function nursesList()
+    {
+        $nurses = \App\Models\User::where('role', 'nurse')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return response()->json(['success' => true, 'nurses' => $nurses]);
+    }
+
+    /**
+     * Store a newly created nurse account created by BHW
+     */
+    public function storeNurse(Request $request)
+    {
+        $validated = $request->validate([
+            'first_name'   => ['required', 'string', 'max:255'],
+            'last_name'    => ['required', 'string', 'max:255'],
+            'phone_number' => ['required', 'regex:/^09[0-9]{9}$/', 'unique:users,phone_number'],
+            'age'          => ['nullable', 'integer', 'min:18', 'max:130'],
+            'password'     => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'phone_number.regex' => 'The phone number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',
+        ]);
+
+        $age = isset($validated['age']) && $validated['age'] !== null ? (int) $validated['age'] : null;
+
+        $nurse = \App\Models\User::create([
+            'first_name'   => $validated['first_name'],
+            'last_name'    => $validated['last_name'],
+            'phone_number' => $validated['phone_number'],
+            'age'          => $age,
+            'age_category' => \App\Models\User::resolveAgeCategory($age),
+            'role'         => 'nurse',
+            'status'       => 'active',
+            'password'     => \Illuminate\Support\Facades\Hash::make($validated['password']),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Nurse account for {$nurse->first_name} {$nurse->last_name} created successfully.",
+            'nurse'   => $nurse,
+        ]);
+    }
+
+    /**
+     * Delete a nurse account
+     */
+    public function destroyNurse(\App\Models\User $user)
+    {
+        if ($user->role !== 'nurse') {
+            return response()->json(['success' => false, 'message' => 'User is not a nurse.'], 403);
+        }
+
+        $user->delete();
+        return response()->json(['success' => true, 'message' => 'Nurse account deleted successfully.']);
     }
 
     /**
