@@ -54,16 +54,39 @@
           </div>
         </div>
 
-        <!-- Home Address -->
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">Home Address</label>
-          <div class="relative">
-             <svg class="w-5 h-5 absolute left-3 top-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-               <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-               <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-             </svg>
-            <textarea v-model="form.address" rows="2" required placeholder="Complete address with landmarks"
-                      class="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] transition-all"></textarea>
+        <!-- Address Details: Purok & Landmark -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Purok</label>
+            <div class="relative">
+              <select v-model="form.purok" required
+                      class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] transition-all bg-white appearance-none cursor-pointer">
+                <option value="">Select Purok...</option>
+                <option value="Purok 1">Purok 1</option>
+                <option value="Purok 2">Purok 2</option>
+                <option value="Purok 3">Purok 3</option>
+                <option value="Purok 4">Purok 4</option>
+                <option value="Purok 5">Purok 5</option>
+                <option value="Purok 6">Purok 6</option>
+                <option value="Purok 7">Purok 7</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Landmark</label>
+            <div class="relative">
+              <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <input v-model="form.landmark" type="text" placeholder="Near chapel, basketball court, etc."
+                     class="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] transition-all bg-white">
+            </div>
           </div>
         </div>
 
@@ -124,7 +147,8 @@ const form = ref({
   service_type: '',
   preferred_date: '',
   preferred_time: '',
-  address: '',
+  purok: '',
+  landmark: '',
   contact_number: props.user.phone || '',
   reason_symptoms: ''
 });
@@ -197,11 +221,18 @@ const submitRequest = async () => {
   flash.value = null;
 
   try {
+    const combinedAddress = [
+      form.value.purok,
+      form.value.landmark ? `Landmark: ${form.value.landmark}` : '',
+      'Barangay Honrado'
+    ].filter(Boolean).join(', ');
+
     const body = new FormData();
     body.append('_token', getCsrf());
     Object.keys(form.value).forEach(key => {
       body.append(key, form.value[key]);
     });
+    body.append('address', combinedAddress);
 
     const res = await fetch(props.homeServiceStoreUrl, {
       method: 'POST',
@@ -217,7 +248,8 @@ const submitRequest = async () => {
         service_type: '',
         preferred_date: '',
         preferred_time: '',
-        address: '',
+        purok: '',
+        landmark: '',
         contact_number: props.user.phone || '',
         reason_symptoms: ''
       };

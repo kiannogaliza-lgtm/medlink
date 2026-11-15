@@ -60,9 +60,6 @@
             <a href="#services" class="text-sm font-semibold text-slate-200 hover:text-emerald-400 transition-colors drop-shadow">
                 Services
             </a>
-            <a href="#stats" class="text-sm font-semibold text-slate-200 hover:text-emerald-400 transition-colors drop-shadow">
-                Community Data
-            </a>
         </nav>
 
         {{-- 3. Right Space Spacer (Keeps center menu balanced) --}}
@@ -82,7 +79,6 @@
         <a href="#about-us" class="block text-sm font-semibold text-slate-200 hover:text-emerald-400">About Us</a>
         <a href="#gallery" class="block text-sm font-semibold text-slate-200 hover:text-emerald-400">Health Center Photos</a>
         <a href="#services" class="block text-sm font-semibold text-slate-200 hover:text-emerald-400">Services</a>
-        <a href="#stats" class="block text-sm font-semibold text-slate-200 hover:text-emerald-400">Community Data</a>
     </div>
 </header>
 
@@ -146,30 +142,6 @@
         <div class="flex items-center gap-2 text-xs text-slate-300/70 font-medium">
             <span class="material-icons-outlined text-emerald-400" style="font-size: 16px;">verified</span>
             <span>Medicine requests need nurse approval before release. Managed by Honrado Health Center.</span>
-        </div>
-
-    </div>
-</section>
-
-{{-- ══════════════════════════════════════════════════════════════
-     COMMUNITY STATS STRIP
-══════════════════════════════════════════════════════════════ --}}
-<section id="stats" class="w-full bg-white text-slate-900 border-t border-slate-200 py-12 px-4 sm:px-8">
-    <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-4 sm:divide-x sm:divide-slate-200 text-center">
-        
-        <div class="px-6">
-            <div class="font-display text-4xl sm:text-5xl font-black text-slate-900">73</div>
-            <div class="mt-1 text-sm text-slate-500 font-medium">Residents surveyed in<br><strong class="text-slate-800">Barangay Honrado</strong></div>
-        </div>
-
-        <div class="px-6">
-            <div class="font-display text-4xl sm:text-5xl font-black text-emerald-600">72.6%</div>
-            <div class="mt-1 text-sm text-slate-500 font-medium">Said checking medicines online<br><strong class="text-slate-800">would save them a trip</strong></div>
-        </div>
-
-        <div class="px-6">
-            <div class="font-display text-4xl sm:text-5xl font-black text-blue-600">45.2%</div>
-            <div class="mt-1 text-sm text-slate-500 font-medium">Believe MEDLINK will improve<br><strong class="text-slate-800">healthcare access in the community</strong></div>
         </div>
 
     </div>
