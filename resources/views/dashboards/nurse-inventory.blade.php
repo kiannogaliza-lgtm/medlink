@@ -175,13 +175,21 @@
                     <span class="material-icons-outlined">close</span>
                 </button>
             </div>
-            <form method="POST" action="{{ route('medicines.store') }}">
+            <form method="POST" action="{{ route('medicines.store') }}" onsubmit="finalizeAddMedicineName()">
                 @csrf
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Medicine Name</label>
-                        <input type="text" name="name" required placeholder="e.g. Paracetamol 500mg"
-                            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Medicine Name</label>
+                            <input type="text" name="name" id="add-name" required placeholder="e.g. Paracetamol"
+                                class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1" id="add-strength-label">Dosage / Strength</label>
+                            <input type="text" id="add-strength" placeholder="e.g. 500mg, 120mg/5mL, 60mL"
+                                oninput="syncAddFullName()"
+                                class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -304,14 +312,22 @@
                     <span class="material-icons-outlined">close</span>
                 </button>
             </div>
-            <form method="POST" id="edit-form">
+            <form method="POST" id="edit-form" onsubmit="finalizeEditMedicineName()">
                 @csrf
                 @method('PUT')
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Medicine Name</label>
-                        <input type="text" name="name" id="edit-name" required
-                            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Medicine Name</label>
+                            <input type="text" name="name" id="edit-name" required
+                                class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1" id="edit-strength-label">Dosage / Strength</label>
+                            <input type="text" id="edit-strength" placeholder="e.g. 500mg, 120mg/5mL, 60mL"
+                                oninput="syncEditFullName()"
+                                class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -451,15 +467,71 @@
 
 @section('scripts')
 <script>
-    function handleUnitChange(selectEl, targetInputId) {
+    function handleUnitChange(selectEl, targetInputId, prefix) {
         const input = document.getElementById(targetInputId);
-        if (!input) return;
-        const val = (selectEl.value || '').toLowerCase();
-        if (val === 'bottles') {
-            input.value = 1;
-        } else if (!input.value || input.value === '1') {
-            input.value = 5;
+        if (input) {
+            const val = (selectEl.value || '').toLowerCase();
+            if (val === 'bottles') {
+                input.value = 1;
+            } else if (!input.value || input.value === '1') {
+                input.value = 5;
+            }
         }
+
+        // Adjust strength placeholder and helper based on unit
+        const p = prefix || (targetInputId.startsWith('add') ? 'add' : 'edit');
+        const strengthInput = document.getElementById(`${p}-strength`);
+        const strengthLabel = document.getElementById(`${p}-strength-label`);
+        const unitVal = (selectEl.value || '').toLowerCase();
+        
+        if (strengthInput && strengthLabel) {
+            if (unitVal === 'bottles') {
+                strengthLabel.innerHTML = 'Dosage / Strength <span class="text-xs text-blue-600 font-normal">(e.g. 125mg/5mL, 60mL)</span>';
+                strengthInput.placeholder = 'e.g. 125mg/5mL, 60mL';
+            } else {
+                strengthLabel.innerHTML = 'Dosage / Strength <span class="text-xs text-blue-600 font-normal">(e.g. 500mg)</span>';
+                strengthInput.placeholder = 'e.g. 500mg, 250mg';
+            }
+        }
+        
+        if (p === 'add') {
+            syncAddDosageText();
+        } else {
+            syncEditDosageText();
+        }
+    }
+
+    function finalizeAddMedicineName() {
+        const nameInput = document.getElementById('add-name');
+        const strengthInput = document.getElementById('add-strength');
+        if (nameInput && strengthInput && strengthInput.value.trim()) {
+            const str = strengthInput.value.trim();
+            // Append strength if not already in the name
+            if (!nameInput.value.toLowerCase().includes(str.toLowerCase())) {
+                nameInput.value = `${nameInput.value.trim()} ${str}`;
+            }
+        }
+    }
+
+    function finalizeEditMedicineName() {
+        const nameInput = document.getElementById('edit-name');
+        const strengthInput = document.getElementById('edit-strength');
+        if (nameInput && strengthInput && strengthInput.value.trim()) {
+            const str = strengthInput.value.trim();
+            // Append strength if not already in the name
+            if (!nameInput.value.toLowerCase().includes(str.toLowerCase())) {
+                nameInput.value = `${nameInput.value.trim()} ${str}`;
+            }
+        }
+    }
+
+    function syncAddFullName() {
+        // Automatically ensure dosage instruction hints match bottle/tablet units
+        syncAddDosageText();
+    }
+
+    function syncEditFullName() {
+        syncEditDosageText();
     }
 
     // ADD Modal
@@ -474,8 +546,20 @@
         const times = document.getElementById('add-dosage-times').value;
         const days = document.getElementById('add-dosage-days').value || 1;
         const textInput = document.getElementById('add-dosage-text');
+        const unit = (document.getElementById('add-unit')?.value || '').toLowerCase();
+        const strength = document.getElementById('add-strength')?.value?.trim();
+        
+        let unitText = 'dose';
+        if (unit === 'bottles') {
+            unitText = strength && strength.toLowerCase().includes('ml') ? 'take prescribed mL' : '1 bottle / dose';
+        } else if (unit === 'tablets') {
+            unitText = '1 tablet';
+        } else if (unit === 'capsules') {
+            unitText = '1 capsule';
+        }
+
         if (times && times > 0) {
-            textInput.value = `${days} day(s) ${times} times a day`;
+            textInput.value = `${days} day(s) ${times} times a day (${unitText})`;
         }
     }
 
@@ -483,25 +567,48 @@
         const times = document.getElementById('edit-dosage-times').value;
         const days = document.getElementById('edit-dosage-days').value || 1;
         const textInput = document.getElementById('edit-dosage');
+        const unit = (document.getElementById('edit-unit')?.value || '').toLowerCase();
+        const strength = document.getElementById('edit-strength')?.value?.trim();
+
+        let unitText = 'dose';
+        if (unit === 'bottles') {
+            unitText = strength && strength.toLowerCase().includes('ml') ? 'take prescribed mL' : '1 bottle / dose';
+        } else if (unit === 'tablets') {
+            unitText = '1 tablet';
+        } else if (unit === 'capsules') {
+            unitText = '1 capsule';
+        }
+
         if (times && times > 0) {
-            textInput.value = `${days} day(s) ${times} times a day`;
+            textInput.value = `${days} day(s) ${times} times a day (${unitText})`;
         }
     }
 
     // EDIT Modal
     function openEditModal(id, name, category, stock, unit, reorder, release_date, expiration_date, request_limit, dosage, times_per_day, dosage_days, min_age, max_age) {
         document.getElementById('edit-form').action = '/nurse/medicines/' + id;
-        document.getElementById('edit-name').value = name;
+        
+        // Extract strength if present at the end of name (e.g. "Paracetamol 500mg" or "Amoxicillin 125mg/5mL")
+        let cleanName = name;
+        let extractedStrength = '';
+        const strengthMatch = name.match(/(\d+\s*(?:mg(?:\/\d+\s*ml)?|ml|g))/i);
+        if (strengthMatch) {
+            extractedStrength = strengthMatch[1];
+        }
+
+        document.getElementById('edit-name').value = cleanName;
+        document.getElementById('edit-strength').value = extractedStrength;
         document.getElementById('edit-category').value = category;
         document.getElementById('edit-stock').value = stock;
         document.getElementById('edit-unit').value = unit;
+        handleUnitChange(document.getElementById('edit-unit'), 'edit-request-limit', 'edit');
         document.getElementById('edit-dosage-times').value = times_per_day || '';
         document.getElementById('edit-dosage-days').value = dosage_days || 1;
         document.getElementById('edit-dosage').value = dosage || '';
         document.getElementById('edit-min-age').value = min_age !== null && min_age !== undefined ? min_age : '';
         document.getElementById('edit-max-age').value = max_age !== null && max_age !== undefined ? max_age : '';
         document.getElementById('edit-reorder').value = reorder;
-        document.getElementById('edit-request-limit').value = request_limit || 5;
+        document.getElementById('edit-request-limit').value = request_limit || (unit === 'bottles' ? 1 : 5);
         document.getElementById('edit-release-date').value = release_date || '';
         document.getElementById('edit-expiration-date').value = expiration_date || '';
         document.getElementById('edit-modal').classList.add('active');
