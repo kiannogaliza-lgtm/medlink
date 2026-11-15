@@ -250,6 +250,9 @@
                 <a href="{{ route('nurse.reports') }}" class="sidebar-link @if(request()->routeIs('nurse.reports')) active @endif">
                     <span class="material-icons-outlined" style="font-size:20px;">assessment</span> <span>Reports</span>
                 </a>
+                <a href="{{ route('nurse.delivery-reports') }}" class="sidebar-link @if(request()->routeIs('nurse.delivery-reports*')) active @endif">
+                    <span class="material-icons-outlined" style="font-size:20px;">local_shipping</span> <span>Delivery Reports</span>
+                </a>
                 <a href="{{ route('nurse.announcements') }}" class="sidebar-link @if(request()->routeIs('nurse.announcements*')) active @endif">
                     <span class="material-icons-outlined" style="font-size:20px;">campaign</span> <span>Schedule Announcements</span>
                 </a>

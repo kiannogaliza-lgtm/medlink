@@ -63,6 +63,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/nurse/inventory', [NurseDashboardController::class, 'inventory'])->name('nurse.inventory');
     Route::get('/nurse/returned-medicines', [NurseDashboardController::class, 'returnedMedicines'])->name('nurse.returns');
     Route::get('/nurse/reports', [ReportsController::class, 'index'])->name('nurse.reports');
+    Route::get('/nurse/delivery-reports', [\App\Http\Controllers\DeliveryReportController::class, 'index'])->name('nurse.delivery-reports');
     Route::get('/nurse/patient-verification', [PatientVerificationController::class, 'index'])->name('nurse.patient-verification');
     Route::patch('/nurse/patient-verification/{user}/verify', [PatientVerificationController::class, 'verify'])->name('patient.verify');
     Route::patch('/nurse/patient-verification/{user}/reject', [PatientVerificationController::class, 'reject'])->name('patient.reject');
