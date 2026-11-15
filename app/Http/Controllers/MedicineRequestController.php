@@ -87,27 +87,6 @@ class MedicineRequestController extends Controller
             return redirect()->back()->withErrors(['patient_age' => $msg])->withInput();
         }
 
-        // Check if resident already has any active pickup or delivery request across all medicines
-        $activeAnyRequest = MedicineRequest::where('user_id', auth()->id())
-            ->whereIn('status', ['Pending', 'Accepted'])
-            ->first();
-
-        if ($activeAnyRequest) {
-            if ($activeAnyRequest->delivery_method === 'pickup' && $validated['delivery_method'] === 'delivery') {
-                $msg = "You already requested Pickup at Health Center for {$activeAnyRequest->item_service}. Home Delivery is blocked until dosage is finished.";
-                if ($request->expectsJson()) {
-                    return response()->json(['message' => $msg], 422);
-                }
-                return redirect()->back()->withErrors(['delivery_method' => $msg])->withInput();
-            } elseif ($activeAnyRequest->delivery_method === 'delivery' && $validated['delivery_method'] === 'pickup') {
-                $msg = "You already requested Home Delivery for {$activeAnyRequest->item_service}. Pickup is blocked until delivery and dosage are completed.";
-                if ($request->expectsJson()) {
-                    return response()->json(['message' => $msg], 422);
-                }
-                return redirect()->back()->withErrors(['delivery_method' => $msg])->withInput();
-            }
-        }
-
         // Check if resident already has a pending or accepted request for this medicine
         $pendingOrAccepted = MedicineRequest::where('user_id', auth()->id())
             ->where(function ($q) use ($medicine) {

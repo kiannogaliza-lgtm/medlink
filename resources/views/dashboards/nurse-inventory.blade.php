@@ -195,7 +195,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Unit</label>
-                            <select name="unit" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer">
+                            <select name="unit" id="add-unit" required onchange="handleUnitChange(this, 'add-request-limit')" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer">
                                 <option value="">Select...</option>
                                 <option value="tablets">Tablets</option>
                                 <option value="capsules">Capsules</option>
@@ -265,7 +265,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Request Limit / Patient</label>
-                            <input type="number" name="request_limit" required min="1" placeholder="5" value="5"
+                            <input type="number" name="request_limit" id="add-request-limit" required min="1" placeholder="5" value="5"
                                 class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                                 title="Maximum quantity a resident can request at one time">
                         </div>
@@ -324,7 +324,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Unit</label>
-                            <select name="unit" id="edit-unit" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer">
+                            <select name="unit" id="edit-unit" required onchange="handleUnitChange(this, 'edit-request-limit')" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer">
                                 <option value="tablets">Tablets</option>
                                 <option value="capsules">Capsules</option>
                                 <option value="bottles">Bottles</option>
@@ -451,6 +451,17 @@
 
 @section('scripts')
 <script>
+    function handleUnitChange(selectEl, targetInputId) {
+        const input = document.getElementById(targetInputId);
+        if (!input) return;
+        const val = (selectEl.value || '').toLowerCase();
+        if (val === 'bottles') {
+            input.value = 1;
+        } else if (!input.value || input.value === '1') {
+            input.value = 5;
+        }
+    }
+
     // ADD Modal
     function openAddModal() {
         document.getElementById('add-modal').classList.add('active');

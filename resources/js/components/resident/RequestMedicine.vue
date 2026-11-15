@@ -439,49 +439,42 @@ const isCurrentPatientAgeValid = computed(() => {
   return true;
 });
 
-// Check if the resident has ANY active request or running dosage under 'pickup' or 'delivery'
-const activePickupRequest = computed(() => {
+// Check if the resident has an active request for the selected medicine
+const activeMedicineRequest = computed(() => {
+  if (!selectedMed.value) return null;
   return props.myMedicineRequests.find(r => 
-    r.delivery_method === 'pickup' && ['Pending', 'Accepted'].includes(r.status)
+    (r.medicine_id === selectedMed.value.id || (r.medicine_name && r.medicine_name.toLowerCase() === selectedMed.value.name.toLowerCase())) &&
+    ['Pending', 'Accepted'].includes(r.status)
   ) || null;
 });
 
-const activeDeliveryRequest = computed(() => {
-  return props.myMedicineRequests.find(r => 
-    r.delivery_method === 'delivery' && ['Pending', 'Accepted'].includes(r.status)
-  ) || null;
-});
-
-// If the resident already requested Pickup (for ANY medicine), Home Delivery is blocked!
-// If the resident already requested Home Delivery (for ANY medicine), Pickup is blocked!
+// Blocks are specific to the medicine and its dosage status
 const isPickupBlocked = computed(() => {
-  // If specific medicine is on dosage cooldown or blocked
   if (selectedMed.value?.pickup_blocked) return true;
-  // If user already requested Home Delivery for ANY medicine, Pickup is blocked
-  if (activeDeliveryRequest.value) return true;
+  if (activeMedicineRequest.value) return true;
   return false;
 });
 
 const isDeliveryBlocked = computed(() => {
-  // If specific medicine is on dosage cooldown or blocked
   if (selectedMed.value?.delivery_blocked) return true;
-  // If user already requested Pickup for ANY medicine, Home Delivery is blocked
-  if (activePickupRequest.value) return true;
+  if (activeMedicineRequest.value) return true;
   return false;
 });
 
 const pickupBlockReason = computed(() => {
   if (selectedMed.value?.pickup_block_reason) return selectedMed.value.pickup_block_reason;
-  if (activeDeliveryRequest.value) {
-    return `Home Delivery was already requested (${activeDeliveryRequest.value.medicine_name}). Pickup is blocked until delivery and dosage are completed.`;
+  if (activeMedicineRequest.value) {
+    const method = activeMedicineRequest.value.delivery_method === 'delivery' ? 'Home Delivery' : 'Pickup';
+    return `You already have an active ${method} request (${activeMedicineRequest.value.status}) for ${selectedMed.value.name}.`;
   }
   return '';
 });
 
 const deliveryBlockReason = computed(() => {
   if (selectedMed.value?.delivery_block_reason) return selectedMed.value.delivery_block_reason;
-  if (activePickupRequest.value) {
-    return `Pickup at Health Center was already requested (${activePickupRequest.value.medicine_name}). Home Delivery is blocked until dosage is finished.`;
+  if (activeMedicineRequest.value) {
+    const method = activeMedicineRequest.value.delivery_method === 'delivery' ? 'Home Delivery' : 'Pickup';
+    return `You already have an active ${method} request (${activeMedicineRequest.value.status}) for ${selectedMed.value.name}.`;
   }
   return '';
 });
