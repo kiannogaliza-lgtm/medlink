@@ -196,6 +196,10 @@
             </div>
 
             <div class="flex items-center gap-2.5">
+                <a href="{{ route('nurse.consultations.export-excel', ['disease' => $diseaseFilter, 'search' => $search]) }}" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer" title="Export consultations to Excel">
+                    <span class="material-icons-outlined" style="font-size:16px;">table_view</span>
+                    <span>Export Excel</span>
+                </a>
                 <button onclick="window.print()" class="px-3.5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer" title="Print official summary report for Health Office">
                     <span class="material-icons-outlined" style="font-size:16px;">print</span>
                     <span>Print Summary</span>

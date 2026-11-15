@@ -63,7 +63,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/nurse/inventory', [NurseDashboardController::class, 'inventory'])->name('nurse.inventory');
     Route::get('/nurse/returned-medicines', [NurseDashboardController::class, 'returnedMedicines'])->name('nurse.returns');
     Route::get('/nurse/reports', [ReportsController::class, 'index'])->name('nurse.reports');
+    Route::get('/nurse/reports/export-excel', [ReportsController::class, 'exportExcel'])->name('nurse.reports.export-excel');
     Route::get('/nurse/delivery-reports', [\App\Http\Controllers\DeliveryReportController::class, 'index'])->name('nurse.delivery-reports');
+    Route::get('/nurse/delivery-reports/export-excel', [\App\Http\Controllers\DeliveryReportController::class, 'exportExcel'])->name('nurse.delivery-reports.export-excel');
     Route::get('/nurse/patient-verification', [PatientVerificationController::class, 'index'])->name('nurse.patient-verification');
     Route::patch('/nurse/patient-verification/{user}/verify', [PatientVerificationController::class, 'verify'])->name('patient.verify');
     Route::patch('/nurse/patient-verification/{user}/reject', [PatientVerificationController::class, 'reject'])->name('patient.reject');
@@ -146,11 +148,13 @@ Route::middleware(['auth'])->group(function () {
 
     // Consultations & Communicable Disease Cases (Dengue, HIV, TB, etc.)
     Route::get('/nurse/consultations', [\App\Http\Controllers\ConsultationController::class, 'index'])->name('nurse.consultations');
+    Route::get('/nurse/consultations/export-excel', [\App\Http\Controllers\ConsultationController::class, 'exportExcel'])->name('nurse.consultations.export-excel');
     Route::post('/nurse/consultations', [\App\Http\Controllers\ConsultationController::class, 'store'])->name('nurse.consultations.store');
     Route::delete('/nurse/consultations/{consultation}', [\App\Http\Controllers\ConsultationController::class, 'destroy'])->name('nurse.consultations.destroy');
 
     // Children & Infant Vaccinations (1st, 2nd, succeeding doses)
     Route::get('/nurse/vaccinations', [\App\Http\Controllers\ChildVaccinationController::class, 'index'])->name('nurse.vaccinations');
+    Route::get('/nurse/vaccinations/export-excel', [\App\Http\Controllers\ChildVaccinationController::class, 'exportExcel'])->name('nurse.vaccinations.export-excel');
     Route::post('/nurse/vaccinations', [\App\Http\Controllers\ChildVaccinationController::class, 'store'])->name('nurse.vaccinations.store');
     Route::delete('/nurse/vaccinations/{childVaccination}', [\App\Http\Controllers\ChildVaccinationController::class, 'destroy'])->name('nurse.vaccinations.destroy');
 

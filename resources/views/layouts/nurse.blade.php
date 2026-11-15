@@ -219,13 +219,16 @@
                 </button>
             </div>
 
-            <nav class="flex-1 px-3 mt-4 space-y-1">
+            <nav class="flex-1 px-3 mt-3 space-y-1 overflow-y-auto">
+                <div class="px-3 pt-1 pb-1 text-[11px] font-bold uppercase tracking-wider text-cyan-200/70">Overview</div>
                 <a href="{{ route('dashboard') }}" class="sidebar-link @if(request()->routeIs('dashboard')) active @endif">
                     <span class="material-icons-outlined" style="font-size:20px;">dashboard</span> <span>Dashboard</span>
                 </a>
                 <a href="{{ route('nurse.patient-verification') }}" class="sidebar-link @if(request()->routeIs('nurse.patient-verification')) active @endif">
                     <span class="material-icons-outlined" style="font-size:20px;">how_to_reg</span> <span>Patient Verification</span>
                 </a>
+
+                <div class="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-cyan-200/70">Medicine & Inventory</div>
                 <a href="{{ route('nurse.medicine-requests') }}" class="sidebar-link @if(request()->routeIs('nurse.medicine-requests*')) active @endif">
                     <span class="material-icons-outlined" style="font-size:20px;">medication_liquid</span> <span>Medicine Requests</span>
                     @if($pendingMed > 0)
@@ -238,6 +241,8 @@
                 <a href="{{ route('nurse.returns') }}" class="sidebar-link @if(request()->routeIs('nurse.returns*')) active @endif">
                     <span class="material-icons-outlined" style="font-size:20px;">assignment_return</span> <span>Returned Medicines</span>
                 </a>
+
+                <div class="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-cyan-200/70">Health Services</div>
                 <a href="{{ route('nurse.home-services') }}" class="sidebar-link @if(request()->routeIs('nurse.home-services*')) active @endif">
                     <span class="material-icons-outlined" style="font-size:20px;">home</span> <span>Home Services</span>
                 </a>
@@ -247,6 +252,8 @@
                 <a href="{{ route('nurse.vaccinations') }}" class="sidebar-link @if(request()->routeIs('nurse.vaccinations*')) active @endif">
                     <span class="material-icons-outlined" style="font-size:20px;">child_care</span> <span>Child Vaccinations</span>
                 </a>
+
+                <div class="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-cyan-200/70">Management & Reports</div>
                 <a href="{{ route('nurse.reports') }}" class="sidebar-link @if(request()->routeIs('nurse.reports')) active @endif">
                     <span class="material-icons-outlined" style="font-size:20px;">assessment</span> <span>Reports</span>
                 </a>

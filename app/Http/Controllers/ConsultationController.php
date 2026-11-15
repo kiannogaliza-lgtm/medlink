@@ -144,6 +144,95 @@ class ConsultationController extends Controller
     }
 
     /**
+     * Export consultations & disease monitoring records to Excel.
+     */
+    public function exportExcel(Request $request)
+    {
+        $diseaseFilter = $request->query('disease', 'all');
+        $search = $request->query('search', '');
+
+        $query = Consultation::latest('consultation_date');
+
+        if ($diseaseFilter !== 'all' && !empty($diseaseFilter)) {
+            $query->where('disease_case', $diseaseFilter);
+        }
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('patient_name', 'like', "%{$search}%")
+                  ->orWhere('disease_case', 'like', "%{$search}%")
+                  ->orWhere('diagnosis', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%");
+            });
+        }
+
+        $consultations = $query->get();
+
+        $rowsHtml = '';
+        foreach ($consultations as $c) {
+            $date = $c->consultation_date ? $c->consultation_date->format('Y-m-d') : 'N/A';
+            $rowsHtml .= '<tr>
+                <td style="font-weight:bold;">' . htmlspecialchars($c->patient_name ?? 'N/A') . '</td>
+                <td style="text-align:center;">' . ($c->patient_age ?? 'N/A') . '</td>
+                <td style="text-align:center;">' . htmlspecialchars($c->patient_gender ?? 'N/A') . '</td>
+                <td>' . htmlspecialchars($c->address ?? 'N/A') . '</td>
+                <td style="font-weight:bold; color:#0369a1;">' . htmlspecialchars($c->disease_case ?? 'General') . '</td>
+                <td>' . htmlspecialchars($c->symptoms ?? 'None') . '</td>
+                <td>' . htmlspecialchars($c->diagnosis ?? 'None') . '</td>
+                <td>' . htmlspecialchars($c->treatment_notes ?? 'None') . '</td>
+                <td style="text-align:center;">' . $date . '</td>
+                <td>' . htmlspecialchars($c->attending_nurse ?? 'Health Center Staff') . '</td>
+                <td style="text-align:center;">' . htmlspecialchars($c->status ?? 'Completed') . '</td>
+            </tr>';
+        }
+
+        $html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+            <meta http-equiv="content-type" content="text/plain; charset=UTF-8"/>
+            <style>
+                body { font-family: Calibri, Arial, sans-serif; color: #1e293b; }
+                table { border-collapse: collapse; width: 100%; }
+                th { background-color: #0c2d48; color: #ffffff; font-weight: bold; padding: 10px 14px; border: 1px solid #cbd5e1; text-align: left; font-size: 13px; }
+                td { padding: 8px 12px; border: 1px solid #e2e8f0; font-size: 12px; }
+                tr:nth-child(even) td { background-color: #f8fafc; }
+            </style>
+        </head>
+        <body>
+            <h3 style="color:#0c2d48; margin-bottom:4px;">MEDLINK BARANGAY HEALTH SYSTEM &mdash; Consultations & Disease Monitoring Report</h3>
+            <p style="font-size:11px; color:#64748b; margin-top:0; margin-bottom:16px;">
+                Filter: ' . htmlspecialchars(ucfirst($diseaseFilter)) . ' | Generated: ' . Carbon::now()->format('F d, Y h:i A') . '
+            </p>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Address / Purok</th>
+                        <th>Disease Case</th>
+                        <th>Symptoms</th>
+                        <th>Diagnosis</th>
+                        <th>Treatment Notes</th>
+                        <th>Consultation Date</th>
+                        <th>Attending Nurse</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>' . ($rowsHtml ?: '<tr><td colspan="11" style="text-align:center;">No consultation records found.</td></tr>') . '</tbody>
+            </table>
+        </body>
+        </html>';
+
+        $filename = 'Consultations_Report_' . Carbon::now()->format('Ymd_His') . '.xls';
+
+        return response("\xEF\xBB\xBF" . $html, 200, [
+            'Content-Type'        => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control'       => 'max-age=0',
+        ]);
+    }
+
+    /**
      * Delete a consultation record.
      */
     public function destroy(Consultation $consultation)

@@ -101,8 +101,8 @@
         </div>
           
 
-        <!-- Row 3: Phone & Address -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Row 3: Phone Number, Purok & Landmark -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
             <div class="relative">
@@ -123,13 +123,34 @@
             </p>
           </div>
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Address</label>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Purok</label>
+            <div class="relative">
+              <select v-model="form.purok"
+                      class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] transition-all bg-gray-50 focus:bg-white appearance-none cursor-pointer">
+                <option value="">Select Purok</option>
+                <option value="Purok 1">Purok 1</option>
+                <option value="Purok 2">Purok 2</option>
+                <option value="Purok 3">Purok 3</option>
+                <option value="Purok 4">Purok 4</option>
+                <option value="Purok 5">Purok 5</option>
+                <option value="Purok 6">Purok 6</option>
+                <option value="Purok 7">Purok 7</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Landmark</label>
             <div class="relative">
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <input v-model="form.address" type="text" placeholder="Barangay Honrado"
+              <input v-model="form.landmark" type="text" placeholder="Near chapel, basketball court, etc."
                      class="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] transition-all bg-gray-50 focus:bg-white">
             </div>
           </div>
@@ -256,7 +277,8 @@ const form = reactive({
   gender: '',
   agecategory: '',
   phone_number: '',
-  address: 'Barangay Honrado',
+  purok: '',
+  landmark: '',
   purpose: '',
   symptoms: '',
 });
@@ -313,7 +335,8 @@ const clearForm = () => {
   form.gender = '';
   form.phone_number = '';
   form.agecategory = '';
-  form.address = 'Barangay Honrado';
+  form.purok = '';
+  form.landmark = '';
   form.purpose = '';
   form.symptoms = '';
   errors.value = {};
@@ -363,6 +386,17 @@ const submitForm = async () => {
   successMessage.value = '';
 
   try {
+    const combinedAddress = [
+      form.purok,
+      form.landmark ? `Landmark: ${form.landmark}` : '',
+      'Barangay Honrado'
+    ].filter(Boolean).join(', ');
+
+    const payload = {
+      ...form,
+      address: combinedAddress,
+    };
+
     const response = await fetch(props.walkinStoreUrl, {
       method: 'POST',
       headers: {
@@ -370,7 +404,7 @@ const submitForm = async () => {
         'Accept': 'application/json',
         'X-CSRF-TOKEN': csrfToken.value,
       },
-      body: JSON.stringify({ ...form }),
+      body: JSON.stringify(payload),
     });
 
     const data = await response.json();
@@ -397,7 +431,8 @@ const submitForm = async () => {
       form.gender = '';
       form.agecategory = '';
       form.phone_number = '';
-      form.address = 'Barangay Honrado';
+      form.purok = '';
+      form.landmark = '';
       form.purpose = '';
       form.symptoms = '';
 

@@ -196,10 +196,62 @@
                 <span class="material-icons-outlined" style="font-size:16px;">picture_as_pdf</span>
                 Export PDF
             </button>
-            <button class="btn-export btn-export-excel" id="exportExcelBtn">
-                <span class="material-icons-outlined" style="font-size:16px;">table_view</span>
-                Export Excel
-            </button>
+            
+            <!-- Excel Export Dropdown Menu -->
+            <div class="relative inline-block text-left" id="excelDropdownContainer">
+                <button type="button" class="btn-export btn-export-excel flex items-center gap-1.5 cursor-pointer" onclick="toggleExcelMenu()">
+                    <span class="material-icons-outlined" style="font-size:16px;">table_view</span>
+                    <span>Export Excel</span>
+                    <span class="material-icons-outlined" style="font-size:16px;">arrow_drop_down</span>
+                </button>
+                <div id="excelMenu" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-1.5 text-xs text-gray-700">
+                    <div class="px-4 py-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                        Select Excel Report
+                    </div>
+                    <a href="{{ route('nurse.reports.export-excel', ['type' => 'all']) }}" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-700 font-semibold transition-colors">
+                        <span class="material-icons-outlined text-emerald-600" style="font-size:18px;">library_books</span>
+                        <div>
+                            <div class="leading-tight">All Reports (Master Excel)</div>
+                            <div class="text-[10px] text-gray-400 font-normal">Consultations, Inventory, Residents, Services</div>
+                        </div>
+                    </a>
+                    <a href="{{ route('nurse.reports.export-excel', ['type' => 'consultations']) }}" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-700 font-medium transition-colors">
+                        <span class="material-icons-outlined text-blue-600" style="font-size:18px;">medical_information</span>
+                        <div>
+                            <div class="leading-tight">Consultations Report</div>
+                            <div class="text-[10px] text-gray-400 font-normal">Communicable diseases, cases & diagnoses</div>
+                        </div>
+                    </a>
+                    <a href="{{ route('nurse.reports.export-excel', ['type' => 'inventory']) }}" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-700 font-medium transition-colors">
+                        <span class="material-icons-outlined text-emerald-600" style="font-size:18px;">medication</span>
+                        <div>
+                            <div class="leading-tight">Medicine Inventory Report</div>
+                            <div class="text-[10px] text-gray-400 font-normal">Stocks, dosage, age limits & expiry</div>
+                        </div>
+                    </a>
+                    <a href="{{ route('nurse.reports.export-excel', ['type' => 'residents']) }}" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-700 font-medium transition-colors">
+                        <span class="material-icons-outlined text-indigo-600" style="font-size:18px;">people</span>
+                        <div>
+                            <div class="leading-tight">Resident Records Report</div>
+                            <div class="text-[10px] text-gray-400 font-normal">Master list, ages, purok & conditions</div>
+                        </div>
+                    </a>
+                    <a href="{{ route('nurse.reports.export-excel', ['type' => 'healthcare-services']) }}" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-700 font-medium transition-colors">
+                        <span class="material-icons-outlined text-amber-600" style="font-size:18px;">home</span>
+                        <div>
+                            <div class="leading-tight">Healthcare Services Report</div>
+                            <div class="text-[10px] text-gray-400 font-normal">Home services & staff assignments</div>
+                        </div>
+                    </a>
+                    <a href="{{ route('nurse.reports.export-excel', ['type' => 'resident-requests']) }}" class="flex items-center gap-2.5 px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-700 font-medium transition-colors">
+                        <span class="material-icons-outlined text-purple-600" style="font-size:18px;">local_shipping</span>
+                        <div>
+                            <div class="leading-tight">Medicine Delivery Requests</div>
+                            <div class="text-[10px] text-gray-400 font-normal">Patient distributions & quantities</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -630,79 +682,20 @@
         }
     });
 
-    // ── Export Excel (Spreadsheet with proper format & styling) ──
-    document.getElementById('exportExcelBtn').addEventListener('click', function() {
-        const table = document.getElementById('residentRequestsTable');
-        if (!table) {
-            alert('No resident request data available to export.');
-            return;
+    // ── Export Excel Dropdown Menu Handler ──
+    function toggleExcelMenu() {
+        const menu = document.getElementById('excelMenu');
+        if (menu) {
+            menu.classList.toggle('hidden');
         }
+    }
 
-        // Generate styled HTML Excel document
-        let excelContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
-            '<head>' +
-            '<meta http-equiv="content-type" content="text/plain; charset=UTF-8"/>' +
-            '<style>' +
-            'table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }' +
-            'th { background-color: #0c2d48; color: #ffffff; font-weight: bold; padding: 10px; border: 1px solid #cccccc; text-align: left; }' +
-            'td { padding: 8px 10px; border: 1px solid #cccccc; color: #333333; }' +
-            '</style>' +
-            '</head>' +
-            '<body>' +
-            '<h3 style="font-family: Arial, sans-serif; color: #0c2d48; margin-bottom: 8px;">MEDLINK — Resident Medicine Requests Report</h3>' +
-            '<p style="font-family: Arial, sans-serif; font-size: 12px; color: #666; margin-top: 0; margin-bottom: 16px;">Exported on: ' + new Date().toLocaleString() + '</p>' +
-            '<table border="1">' +
-            '<thead>' +
-            '<tr>' +
-            '<th>Name of Resident (Requester)</th>' +
-            '<th>Actual Patient (Recipient)</th>' +
-            '<th>Medicine Requested</th>' +
-            '<th style="text-align: center;">Quantity</th>' +
-            '<th style="text-align: center;">Med Distribution</th>' +
-            '<th style="text-align: center;">Total Requests</th>' +
-            '</tr>' +
-            '</thead>' +
-            '<tbody>';
-
-        const rows = table.querySelectorAll('tbody tr');
-        rows.forEach(tr => {
-            const cells = tr.querySelectorAll('td');
-            if (cells.length >= 6) {
-                const requester   = cells[0].innerText.replace(/\s+/g, ' ').trim();
-                const patient     = cells[1].innerText.replace(/\s+/g, ' ').trim();
-                const medicine    = cells[3].innerText.replace(/\s+/g, ' ').trim();
-                const quantity    = cells[4].innerText.trim();
-                const distribution= cells[5].innerText.replace(/\s+/g, ' ').trim();
-                const totalReqs   = cells[6].innerText.trim();
-
-                excelContent += `
-                    <tr>
-                        <td>${requester}</td>
-                        <td>${patient}</td>
-                        <td>${medicine}</td>
-                        <td style="text-align: center;">${quantity}</td>
-                        <td style="text-align: center;">${distribution}</td>
-                        <td style="text-align: center;">${totalReqs}</td>
-                    </tr>`;
-            }
-        });
-
-        excelContent += `
-                    </tbody>
-                </table>
-            </body>
-            </html>`;
-
-        const blob = new Blob(['\ufeff', excelContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const filename = 'Resident_Medicine_Requests_' + new Date().toISOString().slice(0, 10) + '.xls';
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+    document.addEventListener('click', function(e) {
+        const container = document.getElementById('excelDropdownContainer');
+        const menu = document.getElementById('excelMenu');
+        if (container && menu && !container.contains(e.target)) {
+            menu.classList.add('hidden');
+        }
     });
 </script>
 @endsection

@@ -24,19 +24,27 @@
         </button>
       </div>
       
-      <nav class="flex-1 py-6 flex flex-col gap-2 px-4 overflow-y-auto">
-        <button v-for="tab in tabs" :key="tab.id" @click="handleTabSelect(tab.id)"
-                :class="['flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-left w-full cursor-pointer', currentTab === tab.id ? 'text-white translate-x-0.5' : 'text-[#94a3b8] hover:bg-white/8 hover:text-[#e2e8f0] hover:translate-x-0.5']"
-                :style="currentTab === tab.id ? 'background:#2563eb; box-shadow:0 4px 12px rgba(37,99,235,0.35)' : ''">
-          <div class="flex items-center gap-3 min-w-0">
-            <span v-html="tab.icon" class="w-5 h-5 flex items-center justify-center shrink-0"></span>
-            <span class="truncate">{{ tab.name }}</span>
+      <nav class="flex-1 py-4 flex flex-col gap-1 px-4 overflow-y-auto">
+        <template v-for="(tab, index) in tabs" :key="tab.id">
+          <!-- Section category header guide -->
+          <div v-if="tab.sectionHeader"
+               :class="['px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-cyan-200/70', index !== 0 ? 'pt-4' : 'pt-1']">
+            {{ tab.sectionHeader }}
           </div>
-          <span v-if="tab.badge && tab.badge > 0"
-                class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-red-500 text-white shrink-0 ml-2 shadow-sm">
-            {{ tab.badge }}
-          </span>
-        </button>
+
+          <button @click="handleTabSelect(tab.id)"
+                  :class="['flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-left w-full cursor-pointer', currentTab === tab.id ? 'text-white translate-x-0.5' : 'text-[#94a3b8] hover:bg-white/8 hover:text-[#e2e8f0] hover:translate-x-0.5']"
+                  :style="currentTab === tab.id ? 'background:#2563eb; box-shadow:0 4px 12px rgba(37,99,235,0.35)' : ''">
+            <div class="flex items-center gap-3 min-w-0">
+              <span v-html="tab.icon" class="w-5 h-5 flex items-center justify-center shrink-0"></span>
+              <span class="truncate">{{ tab.name }}</span>
+            </div>
+            <span v-if="tab.badge && tab.badge > 0"
+                  class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-red-500 text-white shrink-0 ml-2 shadow-sm">
+              {{ tab.badge }}
+            </span>
+          </button>
+        </template>
       </nav>
 
       <div class="p-6 text-xs text-white/40 mb-2 leading-relaxed">
@@ -578,15 +586,15 @@ const csrfToken = ref('');
 const currentTab = ref('dashboard');
 
 const tabs = computed(() => [
-  { id: 'dashboard', name: 'Dashboard', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>', component: BhwDashboard },
+  { id: 'dashboard', name: 'Dashboard', sectionHeader: 'Overview', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>', component: BhwDashboard },
   { id: 'walkin', name: 'Walk-in Registration', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>', component: WalkinRegistration },
-  { id: 'inventory', name: 'View Inventory', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>', component: ViewInventory },
+  { id: 'inventory', name: 'View Inventory', sectionHeader: 'Medicine & Inventory', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>', component: ViewInventory },
   { id: 'returned-medicines', name: 'Returned Medicines', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 15v-1a4 4 0 00-4-4H4m0 0l3-3m-3 3l3 3m5 4v1a3 3 0 003 3h4a3 3 0 003-3V7a3 3 0 00-3-3h-4a3 3 0 00-3 3v1" /></svg>', component: ReturnedMedicines },
-  { id: 'services', name: 'Home Services', badge: assignedHomeServicesCount.value, icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>', component: HomeServices },
   { id: 'medicine-requests', name: 'Medicine Delivery', badge: pendingMedicineRequestsCount.value, icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m-4-4h8" /></svg>', component: MedicineDeliveryRequests },
-  { id: 'reports', name: 'Reports', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>', component: Reports },
-  { id: 'nurses', name: 'Nurse Accounts', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>', component: NurseManagement },
+  { id: 'services', name: 'Home Services', badge: assignedHomeServicesCount.value, sectionHeader: 'Services & Community', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>', component: HomeServices },
   { id: 'announcements', name: 'Schedule Announcements', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>', component: BhwAnnouncements },
+  { id: 'reports', name: 'Reports', sectionHeader: 'Administration', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>', component: Reports },
+  { id: 'nurses', name: 'Nurse Accounts', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>', component: NurseManagement },
   { id: 'notifications', name: 'Notifications', badge: unreadCount.value, icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>', component: Notifications },
 ]);
 

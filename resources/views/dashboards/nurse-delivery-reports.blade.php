@@ -73,6 +73,10 @@
             <p class="text-xs text-gray-500 mt-1">Official delivery tracking, claiming proofs, visitor frequency analysis, and daily distribution logs.</p>
         </div>
         <div class="flex items-center gap-3">
+            <a href="{{ route('nurse.delivery-reports.export-excel', ['date_filter' => $dateFilter, 'method' => $methodFilter, 'status' => $statusFilter, 'search' => $search]) }}" class="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer">
+                <span class="material-icons-outlined" style="font-size:18px;">table_view</span>
+                <span>Export Excel</span>
+            </a>
             <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer">
                 <span class="material-icons-outlined" style="font-size:18px;">print</span>
                 <span>Print Delivery Report</span>
