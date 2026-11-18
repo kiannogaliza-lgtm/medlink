@@ -74,10 +74,10 @@
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <h4 class="text-sm font-bold text-gray-900">{{ $item->medicine_name }}</h4>
-                                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                                    <span class="text-xs font-semibold text-blue-600">
                                         {{ $item->medicineRequest ? $item->medicineRequest->request_id : ('REQ-' . str_pad($item->medicine_request_id, 3, '0', STR_PAD_LEFT)) }}
                                     </span>
-                                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                                    <span class="text-xs font-semibold text-amber-700">
                                         {{ $item->quantity_returned }} {{ $item->medicine ? $item->medicine->unit : 'unit(s)' }} Broken/Returned
                                     </span>
                                     <span class="text-xs text-gray-500 font-medium">
@@ -95,9 +95,9 @@
                                 </p>
 
                                 {{-- Reason --}}
-                                <div class="mt-2 flex items-center gap-1.5 text-xs text-amber-900 bg-amber-50/80 px-2.5 py-1 rounded-lg border border-amber-200/60 w-fit">
-                                    <span class="material-icons-outlined text-amber-600" style="font-size: 14px;">info</span>
-                                    <span>Reason: <strong>{{ $item->reason }}</strong></span>
+                                <div class="mt-2 flex items-center gap-1.5 text-xs text-gray-700">
+                                    <span class="material-icons-outlined text-amber-600" style="font-size: 15px;">info</span>
+                                    <span>Reason: <span class="font-medium text-gray-800">{{ $item->reason }}</span></span>
                                 </div>
                             </div>
                         </div>
