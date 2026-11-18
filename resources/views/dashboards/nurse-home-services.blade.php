@@ -282,17 +282,6 @@
                                 <span class="material-icons-outlined" style="font-size:15px;">visibility</span>
                                 <span>View</span>
                             </button>
-                            <form method="POST" action="/nurse/home-services/{{ $req->id }}/accept" class="inline">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="btn-action-approve" style="background:#2563eb;" title="Accept request & notify resident request has been accepted">
-                                    <span class="material-icons-outlined" style="font-size:15px;">check_circle</span>
-                                    <span>Accept</span>
-                                </button>
-                            </form>
-                            <button type="button" onclick="openRejectModal({{ json_encode($req) }})" class="btn-action-reject">
-                                <span>Reject</span>
-                            </button>
                         </div>
                     </div>
 
@@ -360,13 +349,6 @@
 
                         {{-- Actions for Accepted --}}
                         <div class="flex items-center gap-2">
-                            <button type="button" onclick="viewDetails({{ json_encode($req) }})" class="btn-action-view">
-                                <span class="material-icons-outlined" style="font-size:15px;">visibility</span>
-                                <span>View</span>
-                            </button>
-                            <button type="button" onclick="openApproveModal({{ json_encode($req) }})" class="btn-action-approve">
-                                <span>Approve</span>
-                            </button>
                             <form method="POST" action="/nurse/home-services/{{ $req->id }}/complete" class="inline">
                                 @csrf
                                 @method('PATCH')
@@ -1108,32 +1090,15 @@
         actionsContainer.innerHTML = '';
 
         if (req.status === 'Pending') {
-            actionsContainer.innerHTML = `
-                <form method="POST" action="/nurse/home-services/${req.id}/accept" class="inline">
-                    <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}">
-                    <input type="hidden" name="_method" value="PATCH">
-                    <button type="submit" class="btn-action-approve" style="background:#2563eb;">
-                        <span class="material-icons-outlined" style="font-size:15px;">check_circle</span>
-                        <span>Accept</span>
-                    </button>
-                </form>
-                <button type="button" onclick="closeModal('viewModal'); openRejectModal(${JSON.stringify(req).replace(/"/g, '&quot;')})" class="btn-action-reject">
-                    <span class="material-icons-outlined" style="font-size:15px;">close</span>
-                    <span>Reject</span>
-                </button>
-            `;
+            actionsContainer.innerHTML = '';
         } else if (req.status === 'Accepted') {
             actionsContainer.innerHTML = `
-                <button type="button" onclick="closeModal('viewModal'); openApproveModal(${JSON.stringify(req).replace(/"/g, '&quot;')})" class="btn-action-approve">
-                    <span class="material-icons-outlined" style="font-size:15px;">check</span>
-                    <span>Approve</span>
-                </button>
                 <form method="POST" action="/nurse/home-services/${req.id}/complete" class="inline">
                     <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}">
                     <input type="hidden" name="_method" value="PATCH">
                     <button type="submit" class="btn-action-approve" style="background:#059669;">
                         <span class="material-icons-outlined" style="font-size:15px;">task_alt</span>
-                        <span>Mark as Completed</span>
+                        <span>Complete</span>
                     </button>
                 </form>
             `;
