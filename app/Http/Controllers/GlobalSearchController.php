@@ -353,25 +353,24 @@ class GlobalSearchController extends Controller
             ];
         }
 
-        // 4. My Schedules / Appointments
-        $mySchedules = Schedule::where('user_id', $user->id)
+        // 4. Announcements
+        $announcements = Announcement::where('status', 'active')
             ->where(function ($sub) use ($q) {
-                $sub->where('service', 'like', "%{$q}%")
-                    ->orWhere('notes', 'like', "%{$q}%")
-                    ->orWhere('status', 'like', "%{$q}%");
+                $sub->where('title', 'like', "%{$q}%")
+                    ->orWhere('content', 'like', "%{$q}%");
             })
             ->limit(4)
             ->get();
 
-        foreach ($mySchedules as $sch) {
-            $dateStr = $sch->scheduled_date ? $sch->scheduled_date->format('M d, Y') : '';
+        foreach ($announcements as $ann) {
+            $dateStr = $ann->date ? $ann->date->format('M d, Y') : ($ann->created_at ? $ann->created_at->format('M d, Y') : '');
             $results[] = [
-                'category' => 'My Schedules',
-                'icon' => 'calendar_month',
-                'title' => "{$sch->formatted_id}: {$sch->service}",
-                'subtitle' => "Status: {$sch->status} • Date: {$dateStr} {$sch->scheduled_time}",
+                'category' => 'Announcements',
+                'icon' => 'campaign',
+                'title' => $ann->title,
+                'subtitle' => "Date: {$dateStr} • {$ann->author_name}",
                 'tab' => 'schedule',
-                'action_data' => $sch->id,
+                'action_data' => $ann->id,
             ];
         }
 

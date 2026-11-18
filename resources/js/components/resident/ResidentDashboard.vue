@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-6">
     <!-- Top Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       
       <!-- Active Requests -->
       <div class="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 flex items-center justify-between hover:-translate-y-1 transition-transform duration-300">
@@ -29,26 +29,13 @@
         </div>
       </div>
 
-      <!-- Upcoming Schedules -->
+      <!-- Announcements -->
       <div class="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 flex items-center justify-between hover:-translate-y-1 transition-transform duration-300">
         <div>
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Upcoming Schedules</p>
-          <h3 class="text-3xl font-bold text-gray-800">{{ dashboardData.upcomingSchedulesCount }}</h3>
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Announcements</p>
+          <h3 class="text-3xl font-bold text-gray-800">{{ dashboardData.announcements ? dashboardData.announcements.length : 0 }}</h3>
         </div>
         <div class="w-12 h-12 bg-[#1e3a8a] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-      </div>
-
-      <!-- Notifications -->
-      <div class="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 flex items-center justify-between hover:-translate-y-1 transition-transform duration-300">
-        <div>
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Notifications</p>
-          <h3 class="text-3xl font-bold text-gray-800">0</h3>
-        </div>
-        <div class="w-12 h-12 bg-[#f97316] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
           <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>

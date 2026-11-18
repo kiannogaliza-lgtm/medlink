@@ -251,26 +251,6 @@
                   </div>
                 </a>
 
-                <!-- Upcoming Schedules -->
-                <a v-if="upcomingSchedulesCount > 0"
-                   href="#" @click.prevent="goToTab('schedule')"
-                   class="block px-4 py-3.5 hover:bg-blue-50/60 transition-colors">
-                  <div class="flex gap-3 items-start">
-                    <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
-                      <span class="material-icons-outlined" style="font-size: 18px;">calendar_month</span>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between">
-                        <p class="text-xs font-bold text-gray-800">Upcoming Schedules</p>
-                        <span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.2 rounded font-semibold">{{ upcomingSchedulesCount }}</span>
-                      </div>
-                      <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                        You have {{ upcomingSchedulesCount }} confirmed appointment(s) coming up.
-                      </p>
-                    </div>
-                  </div>
-                </a>
-
                 <!-- Individual Notifications List -->
                 <template v-if="localNotificationsList.length > 0">
                   <div v-for="notif in localNotificationsList.slice(0, 6)" :key="notif.id"
@@ -541,7 +521,6 @@ const acceptedMedicineRequestsCount = computed(() => dismissedCategories.value ?
 const approvedMedicineRequestsCount = computed(() => dismissedCategories.value ? 0 : (props.notificationSummary?.approvedMedicineRequests || 0));
 const returnedMedicinesCount = computed(() => dismissedCategories.value ? 0 : (props.notificationSummary?.returnedMedicines || (props.myMedicineReturns?.length || 0)));
 const pendingHomeServicesCount = computed(() => dismissedCategories.value ? 0 : (props.notificationSummary?.pendingHomeServices || 0));
-const upcomingSchedulesCount = computed(() => dismissedCategories.value ? 0 : (props.notificationSummary?.upcomingSchedules || 0));
 
 const unreadCount = computed(() => {
   return localNotificationsList.value.filter(n => !n.is_read).length;
@@ -553,7 +532,6 @@ const totalBadgeCount = computed(() => {
        + approvedMedicineRequestsCount.value
        + returnedMedicinesCount.value
        + pendingHomeServicesCount.value
-       + upcomingSchedulesCount.value
        + unreadCount.value;
 });
 
