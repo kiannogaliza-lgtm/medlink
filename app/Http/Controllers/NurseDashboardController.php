@@ -117,6 +117,7 @@ class NurseDashboardController extends Controller
         $inStockCount = Medicine::whereColumn('stock', '>', 'reorder_level')->count();
         $lowStockCount = Medicine::whereColumn('stock', '<=', 'reorder_level')->where('stock', '>', 0)->count();
         $criticalCount = Medicine::where('stock', '<=', 0)->count();
+        $expiredCount = Medicine::whereNotNull('expiration_date')->where('expiration_date', '<=', \Carbon\Carbon::today())->count();
         $totalItems = Medicine::count();
 
         return view('dashboards.nurse-inventory', compact(
@@ -124,6 +125,7 @@ class NurseDashboardController extends Controller
             'inStockCount',
             'lowStockCount',
             'criticalCount',
+            'expiredCount',
             'totalItems'
         ));
     }

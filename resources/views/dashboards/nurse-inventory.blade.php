@@ -38,6 +38,7 @@
                     <option value="In Stock" {{ request('status') == 'In Stock' ? 'selected' : '' }}>In Stock</option>
                     <option value="Low Stock" {{ request('status') == 'Low Stock' ? 'selected' : '' }}>Low Stock</option>
                     <option value="Critical" {{ request('status') == 'Critical' ? 'selected' : '' }}>Critical</option>
+                    <option value="Expired" {{ request('status') == 'Expired' ? 'selected' : '' }}>Expired</option>
                 </select>
             </form>
         </div>
@@ -69,28 +70,21 @@
                             <td class="py-3.5 px-4 text-gray-500">{{ $medicine->unit }}</td>
                             <td class="py-3.5 px-4 text-gray-600 text-xs font-medium">
                                 @if($medicine->dosage)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100">
-                                        {{ $medicine->dosage }}
-                                    </span>
+                                    <span>{{ $medicine->dosage }}</span>
                                 @else
                                     <span class="text-gray-400">—</span>
                                 @endif
                             </td>
-                            <td class="py-3.5 px-4 text-xs font-semibold">
+                            <td class="py-3.5 px-4 text-xs">
                                 @if($medicine->min_age !== null || $medicine->max_age !== null)
-                                    <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-0.5 rounded-full">
-                                        <span class="material-icons-outlined" style="font-size:12px;">person</span>
-                                        {{ $medicine->age_limit_label }}
-                                    </span>
+                                    <span class="text-purple-700 font-semibold">{{ $medicine->age_limit_label }}</span>
                                 @else
-                                    <span class="text-gray-400 font-normal">All ages</span>
+                                    <span class="text-gray-400">All ages</span>
                                 @endif
                             </td>
                             <td class="py-3.5 px-4 text-gray-500">{{ $medicine->reorder_level }}</td>
-                            <td class="py-3.5 px-4 font-semibold text-emerald-700">
-                                <span class="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full text-xs">
-                                    Max {{ $medicine->request_limit ?? 5 }}
-                                </span>
+                            <td class="py-3.5 px-4 font-semibold text-emerald-700 text-xs">
+                                Max {{ $medicine->request_limit ?? 5 }}
                             </td>
                             <td class="py-3.5 px-4">
                                 @if($medicine->expiration_date)
@@ -100,23 +94,28 @@
                                         $isExpiringSoon = $expDate->isBetween(now(), now()->addMonths(3));
                                     @endphp
                                     @if($isExpired)
-                                        <span class="text-red-600 font-semibold text-xs">{{ $expDate->format('Y-m-d') }} (Expired)</span>
+                                        <div class="font-bold text-red-600 text-xs leading-tight">{{ $expDate->format('Y-m-d') }}</div>
+                                        <div class="text-[11px] font-bold text-red-600 uppercase tracking-wide">Expired</div>
                                     @elseif($isExpiringSoon)
-                                        <span class="text-amber-600 font-semibold text-xs">{{ $expDate->format('Y-m-d') }} (Expiring Soon)</span>
+                                        <div class="font-semibold text-amber-600 text-xs leading-tight">{{ $expDate->format('Y-m-d') }}</div>
+                                        <div class="text-[11px] font-semibold text-amber-600">Expiring Soon</div>
                                     @else
-                                        <span class="text-gray-500 text-xs">{{ $expDate->format('Y-m-d') }}</span>
+                                        <div class="text-gray-600 text-xs leading-tight">{{ $expDate->format('Y-m-d') }}</div>
+                                        <div class="text-[11px] text-emerald-600 font-medium">Valid</div>
                                     @endif
                                 @else
                                     <span class="text-gray-400 text-xs">N/A</span>
                                 @endif
                             </td>
-                            <td class="py-3.5 px-4">
-                                @if($medicine->status === 'In Stock')
-                                    <span class="badge-in-stock text-xs font-semibold px-3 py-1 rounded-full">In Stock</span>
+                            <td class="py-3.5 px-4 text-xs font-bold">
+                                @if($medicine->expiration_date && \Carbon\Carbon::parse($medicine->expiration_date)->isPast())
+                                    <span class="text-red-600">Expired</span>
+                                @elseif($medicine->status === 'In Stock')
+                                    <span class="text-emerald-600">In Stock</span>
                                 @elseif($medicine->status === 'Low Stock')
-                                    <span class="badge-low-stock text-xs font-semibold px-3 py-1 rounded-full">Low Stock</span>
+                                    <span class="text-amber-600">Low Stock</span>
                                 @else
-                                    <span class="badge-critical text-xs font-semibold px-3 py-1 rounded-full">Critical</span>
+                                    <span class="text-red-600">Critical</span>
                                 @endif
                             </td>
                             <td class="py-3.5 px-4">
@@ -147,7 +146,7 @@
     </div>
 
     {{-- Summary Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
         <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-green-500">
             <p class="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1">In Stock</p>
             <p class="text-2xl font-extrabold text-gray-900">{{ $inStockCount }}</p>
@@ -159,6 +158,10 @@
         <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-red-500">
             <p class="text-xs font-semibold text-red-600 uppercase tracking-wider mb-1">Critical Stock</p>
             <p class="text-2xl font-extrabold text-gray-900">{{ $criticalCount }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-rose-500">
+            <p class="text-xs font-semibold text-rose-600 uppercase tracking-wider mb-1">Expired</p>
+            <p class="text-2xl font-extrabold text-gray-900">{{ $expiredCount ?? 0 }}</p>
         </div>
         <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-blue-500">
             <p class="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">Total Items</p>
