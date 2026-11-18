@@ -121,7 +121,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
             <div>
-              <p class="font-bold">⚠️ Age Restriction Warning</p>
+              <p class="font-bold">Age Restriction Warning</p>
               <p class="mt-0.5">
                 The intended patient is <strong>{{ currentPatientEffectiveAge }} years old</strong>, but <strong>{{ selectedMed.name }}</strong> is restricted to patients aged <strong>{{ selectedMed.age_limit_label }}</strong>.
               </p>
@@ -138,7 +138,7 @@
             </div>
           </div>
           <p v-else-if="selectedMed && selectedMed.status !== 'In Stock'" class="mt-1.5 text-xs font-medium" :class="selectedMed.status === 'Low Stock' ? 'text-yellow-600' : 'text-red-600'">
-            ⚠️ {{ selectedMed.status }} — only {{ selectedMed.stock }} {{ selectedMed.unit }} remaining.
+            {{ selectedMed.status }} — only {{ selectedMed.stock }} {{ selectedMed.unit }} remaining.
           </p>
         </div>
 
@@ -146,7 +146,7 @@
         <div>
           <div class="flex items-center justify-between mb-2">
             <label class="block text-sm font-semibold text-gray-700">Quantity</label>
-            <span v-if="selectedMed" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-[#1a5a89] border border-blue-200">
+            <span v-if="selectedMed" class="text-xs font-semibold text-[#1a5a89]">
               Request limit: max {{ currentMaxLimit }} {{ selectedMed.unit }}
             </span>
           </div>
@@ -154,7 +154,7 @@
                  :placeholder="selectedMed ? `Enter quantity (1 - ${currentMaxLimit})` : 'Enter quantity'"
                  class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] transition-all">
           <p v-if="selectedMed && form.quantity > currentMaxLimit" class="mt-1.5 text-xs font-semibold text-red-600">
-            ⚠️ You cannot request more than {{ currentMaxLimit }} {{ selectedMed.unit }} for this medicine.
+            You cannot request more than {{ currentMaxLimit }} {{ selectedMed.unit }} for this medicine.
           </p>
         </div>
 
@@ -262,11 +262,11 @@
             <div>
               <div class="flex items-center gap-2">
                 <p class="text-sm font-semibold text-gray-800">{{ med.name }}</p>
-                <span v-if="med.can_request === false && med.days_remaining" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                  ⏳ Refill in {{ med.days_remaining }}d
+                <span v-if="med.can_request === false && med.days_remaining" class="text-[10px] font-bold text-amber-800">
+                  Refill in {{ med.days_remaining }}d
                 </span>
-                <span v-else-if="med.can_request === false && med.lock_reason" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200">
-                  🔒 Locked
+                <span v-else-if="med.can_request === false && med.lock_reason" class="text-[10px] font-bold text-blue-800">
+                  Locked
                 </span>
               </div>
               <p class="text-xs text-gray-500 mt-0.5">
@@ -591,7 +591,7 @@ const submitRequest = async () => {
     });
 
     if (res.ok || res.redirected) {
-      flash.value = { type: 'success', message: '✅ Request submitted! Stock has been reserved.' };
+      flash.value = { type: 'success', message: 'Request submitted! Stock has been reserved.' };
       // Reset form
       form.value = {
         medicine_id: '',

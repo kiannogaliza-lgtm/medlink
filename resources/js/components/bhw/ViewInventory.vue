@@ -47,14 +47,14 @@
 
           <!-- Expiration info -->
           <div v-if="medicine.expiration_date" class="text-[11px] mt-1 font-semibold" :class="isExpired(medicine) ? 'text-red-600' : isExpiringSoon(medicine) ? 'text-amber-600' : 'text-gray-400'">
-            <span v-if="isExpired(medicine)">⚠ Expired: {{ medicine.expiration_date }}</span>
-            <span v-else-if="isExpiringSoon(medicine)">⏰ Expiring Soon: {{ medicine.expiration_date }}</span>
+            <span v-if="isExpired(medicine)">Expired: {{ medicine.expiration_date }}</span>
+            <span v-else-if="isExpiringSoon(medicine)">Expiring Soon: {{ medicine.expiration_date }}</span>
             <span v-else class="text-gray-400">Exp: {{ medicine.expiration_date }}</span>
           </div>
 
           <!-- Dosage info -->
           <div v-if="medicine.dosage" class="text-[11px] mt-1 text-blue-600 font-medium flex items-center gap-1">
-            <span>💊 Dosage: {{ medicine.dosage }}</span>
+            <span>Dosage: {{ medicine.dosage }}</span>
           </div>
           
           <div class="flex justify-between items-end mt-4">

@@ -402,7 +402,7 @@
                                 </td>
                                 <td style="border-right: 1px solid #f1f5f9; text-align: center;">
                                     @if(!empty($req->is_maintenance))
-                                        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700">
                                             <span class="material-icons-outlined" style="font-size:13px;">medication</span> Yes
                                         </span>
                                     @else
@@ -417,17 +417,17 @@
                                 </td>
                                 <td style="border-right: 1px solid #f1f5f9; text-align: center;">
                                     @if(strtolower($req->delivery_method) === 'delivery')
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-700">
                                             <span class="material-icons-outlined" style="font-size:14px;">local_shipping</span> Home Delivery
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
                                             <span class="material-icons-outlined" style="font-size:14px;">storefront</span> Barangay Health Center
                                         </span>
                                     @endif
                                 </td>
                                 <td style="text-align: center; font-weight: 700; color: #1a5a89;">
-                                    <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                                    <span class="text-xs font-bold text-blue-800">
                                         {{ $req->total_requests }}
                                     </span>
                                 </td>
@@ -496,7 +496,7 @@
                                     {{ $vac->vaccine_name }}
                                 </td>
                                 <td style="border-right: 1px solid #f1f5f9; text-align: center;">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                    <span class="text-[11px] font-bold text-blue-700">
                                         {{ $vac->dose_number }}
                                     </span>
                                 </td>
@@ -507,7 +507,7 @@
                                     {{ $vac->administered_by ?? 'Health Center Staff' }}
                                 </td>
                                 <td style="text-align: center;">
-                                    <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
                                         <span class="material-icons-outlined" style="font-size:12px;">check</span> {{ $vac->status }}
                                     </span>
                                 </td>

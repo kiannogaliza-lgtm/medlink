@@ -368,13 +368,13 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Disease / Surveillance Case *</label>
                     <select name="disease_case" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-bold text-blue-700 focus:ring-2 focus:ring-blue-500/30">
-                        <option value="Dengue">🦟 Dengue Fever</option>
-                        <option value="Tuberculosis">🫁 Tuberculosis (TB)</option>
-                        <option value="HIV">🩸 HIV Surveillance</option>
-                        <option value="Measles">🔴 Measles</option>
-                        <option value="Hypertension">❤️ Hypertension</option>
-                        <option value="COVID-19">🦠 COVID-19</option>
-                        <option value="General Consultation">🩺 General Consultation</option>
+                        <option value="Dengue">Dengue Fever</option>
+                        <option value="Tuberculosis">Tuberculosis (TB)</option>
+                        <option value="HIV">HIV Surveillance</option>
+                        <option value="Measles">Measles</option>
+                        <option value="Hypertension">Hypertension</option>
+                        <option value="COVID-19">COVID-19</option>
+                        <option value="General Consultation">General Consultation</option>
                     </select>
                 </div>
                 <div>

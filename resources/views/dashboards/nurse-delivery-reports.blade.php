@@ -143,7 +143,7 @@
                             </div>
                         </div>
                         <div class="text-right shrink-0">
-                            <span class="inline-block text-xs font-extrabold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+                            <span class="text-xs font-bold text-blue-700">
                                 {{ $v->total_requests }} req
                             </span>
                         </div>
@@ -196,12 +196,12 @@
                                     <span class="text-gray-500 font-normal">x{{ $tr->quantity }}</span>
                                 </td>
                                 <td class="py-2.5 px-3 whitespace-nowrap">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $tr->delivery_method === 'delivery' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
+                                    <span class="text-xs font-bold {{ $tr->delivery_method === 'delivery' ? 'text-indigo-700' : 'text-amber-700' }}">
                                         {{ $tr->delivery_method === 'delivery' ? 'Home Delivery' : 'Pickup' }}
                                     </span>
                                 </td>
                                 <td class="py-2.5 px-3 whitespace-nowrap">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $tr->status === 'Completed' ? 'bg-emerald-100 text-emerald-800' : ($tr->status === 'Approved' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700') }}">
+                                    <span class="text-xs font-bold {{ $tr->status === 'Completed' ? 'text-emerald-700' : ($tr->status === 'Approved' ? 'text-blue-700' : 'text-gray-700') }}">
                                         {{ $tr->status }}
                                     </span>
                                 </td>
@@ -341,14 +341,14 @@
 
                             {{-- Method --}}
                             <td class="py-3 px-3 whitespace-nowrap">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $req->delivery_method === 'delivery' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
+                                <span class="text-xs font-bold {{ $req->delivery_method === 'delivery' ? 'text-indigo-700' : 'text-amber-700' }}">
                                     {{ $req->delivery_method === 'delivery' ? 'Home Delivery' : 'Pickup at Center' }}
                                 </span>
                             </td>
 
                             {{-- Status --}}
                             <td class="py-3 px-3 whitespace-nowrap">
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold {{ $req->status === 'Completed' ? 'bg-emerald-100 text-emerald-800' : ($req->status === 'Approved' ? 'bg-blue-100 text-blue-800' : ($req->status === 'Accepted' ? 'bg-indigo-100 text-indigo-800' : ($req->status === 'Rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'))) }}">
+                                <span class="text-xs font-bold {{ $req->status === 'Completed' ? 'text-emerald-700' : ($req->status === 'Approved' ? 'text-blue-700' : ($req->status === 'Accepted' ? 'text-indigo-700' : ($req->status === 'Rejected' ? 'text-red-700' : 'text-amber-700'))) }}">
                                     {{ $req->status }}
                                 </span>
                             </td>
