@@ -958,26 +958,31 @@
 </div>
 
 {{-- ── SERVICE TYPES MAINTENANCE MODAL ── --}}
-<div class="hs-modal-overlay" id="serviceTypesModal">
-    <div class="hs-modal-box max-w-xl">
-        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <span class="material-icons-outlined text-gray-700">settings</span>
-                <h3 class="font-bold text-gray-900 text-base">Service Types Maintenance</h3>
+<div id="serviceTypesModal" class="hs-modal-overlay">
+    <div class="hs-modal-card max-w-lg">
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <span class="material-icons-outlined text-xl">settings</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-900 text-base">Service Types Maintenance</h3>
+                    <p class="text-xs text-gray-400 font-medium">Add, rename, or remove home service types</p>
+                </div>
             </div>
             <button type="button" onclick="closeModal('serviceTypesModal')" class="text-gray-400 hover:text-gray-600 transition-colors">
                 <span class="material-icons-outlined">close</span>
             </button>
         </div>
 
-        <div class="p-6 space-y-6">
+        <div class="p-6 space-y-5">
             {{-- Add New Service Type Form --}}
             <form id="addServiceTypeForm" onsubmit="submitNewServiceType(event)" class="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-                <div class="font-semibold text-xs text-gray-700 uppercase tracking-wide">Add New Service Type</div>
+                <label class="block font-semibold text-xs text-gray-700 uppercase tracking-wide">Add New Service Type</label>
                 <div class="flex gap-2">
                     <input type="text" id="newServiceTypeName" placeholder="e.g. Physical Therapy" required
-                           class="flex-1 px-3.5 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
-                    <button type="submit" id="btnAddServiceType" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-1">
+                           class="flex-1 px-3.5 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                    <button type="submit" id="btnAddServiceType" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer">
                         <span class="material-icons-outlined text-sm">add</span>
                         <span>Add</span>
                     </button>
@@ -987,30 +992,32 @@
 
             {{-- Service Types List --}}
             <div>
-                <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center justify-between mb-2 px-1">
                     <span class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Existing Service Types</span>
-                    <span id="serviceTypesCount" class="text-xs text-gray-400">Loading...</span>
+                    <span id="serviceTypesCount" class="text-xs text-gray-400 font-medium">Loading...</span>
                 </div>
-                <div class="border border-gray-100 rounded-xl overflow-hidden max-h-64 overflow-y-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50 text-[11px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
-                            <tr>
-                                <th class="py-2.5 px-3">Service Name</th>
-                                <th class="py-2.5 px-3 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="serviceTypesTableBody" class="divide-y divide-gray-100 text-gray-700">
-                            <tr>
-                                <td colspan="2" class="py-4 text-center text-xs text-gray-400">Loading service types...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="border border-gray-200 rounded-xl overflow-hidden bg-white">
+                    <div class="max-h-64 overflow-y-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-50 text-[11px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100 sticky top-0 bg-gray-50 z-10">
+                                <tr>
+                                    <th class="py-2.5 px-4">Service Name</th>
+                                    <th class="py-2.5 px-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="serviceTypesTableBody" class="divide-y divide-gray-100 text-gray-700">
+                                <tr>
+                                    <td colspan="2" class="py-4 text-center text-xs text-gray-400">Loading service types...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
-            <button type="button" onclick="closeModal('serviceTypesModal')" class="px-4 py-2 bg-white hover:bg-gray-100 text-gray-700 text-xs font-semibold border border-gray-200 rounded-lg shadow-xs transition-colors">
+        <div class="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex justify-end rounded-b-16">
+            <button type="button" onclick="closeModal('serviceTypesModal')" class="px-5 py-2 bg-white hover:bg-gray-100 text-gray-700 text-xs font-semibold border border-gray-200 rounded-lg shadow-xs transition-colors cursor-pointer">
                 Done
             </button>
         </div>
@@ -1241,17 +1248,17 @@
             }
 
             tbody.innerHTML = data.map(st => `
-                <tr class="hover:bg-gray-50/70 transition-colors">
-                    <td class="py-2.5 px-3 font-medium text-gray-800 text-xs">
+                <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3 px-4 font-medium text-gray-800 text-xs">
                         <span id="st-name-${st.id}">${escapeHtml(st.name)}</span>
                     </td>
-                    <td class="py-2.5 px-3 text-right">
-                        <div class="inline-flex items-center gap-1.5">
-                            <button type="button" onclick="editServiceType(${st.id}, '${escapeHtml(st.name).replace(/'/g, "\\'")}')" class="text-blue-600 hover:text-blue-800 p-1 text-xs font-semibold rounded hover:bg-blue-50 transition-colors" title="Edit">
-                                <span class="material-icons-outlined text-sm">edit</span>
+                    <td class="py-3 px-4 text-right">
+                        <div class="inline-flex items-center gap-1">
+                            <button type="button" onclick="editServiceType(${st.id}, '${escapeHtml(st.name).replace(/'/g, "\\'")}')" class="w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition-colors cursor-pointer" title="Edit">
+                                <span class="material-icons-outlined" style="font-size: 16px;">edit</span>
                             </button>
-                            <button type="button" onclick="deleteServiceType(${st.id}, '${escapeHtml(st.name).replace(/'/g, "\\'")}')" class="text-red-500 hover:text-red-700 p-1 text-xs font-semibold rounded hover:bg-red-50 transition-colors" title="Delete">
-                                <span class="material-icons-outlined text-sm">delete</span>
+                            <button type="button" onclick="deleteServiceType(${st.id}, '${escapeHtml(st.name).replace(/'/g, "\\'")}')" class="w-7 h-7 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors cursor-pointer" title="Delete">
+                                <span class="material-icons-outlined" style="font-size: 16px;">delete</span>
                             </button>
                         </div>
                     </td>
