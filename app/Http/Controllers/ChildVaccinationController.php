@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ChildVaccination;
 use App\Models\User;
+use App\Models\AppNotification;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -16,6 +17,7 @@ class ChildVaccinationController extends Controller
     {
         $search = $request->query('search', '');
         $doseFilter = $request->query('dose', 'all');
+        $ageCategoryFilter = $request->query('age_category', 'all');
 
         $query = ChildVaccination::with('parent')->latest('date_administered');
 
@@ -23,10 +25,15 @@ class ChildVaccinationController extends Controller
             $query->where('dose_number', $doseFilter);
         }
 
+        if ($ageCategoryFilter !== 'all' && !empty($ageCategoryFilter)) {
+            $query->where('age_category', $ageCategoryFilter);
+        }
+
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('child_name', 'like', "%{$search}%")
                   ->orWhere('vaccine_name', 'like', "%{$search}%")
+                  ->orWhere('age_category', 'like', "%{$search}%")
                   ->orWhereHas('parent', function ($pq) use ($search) {
                       $pq->where('first_name', 'like', "%{$search}%")
                          ->orWhere('last_name', 'like', "%{$search}%");
@@ -51,13 +58,14 @@ class ChildVaccinationController extends Controller
             'secondDoseCount',
             'succeedingCount',
             'doseFilter',
+            'ageCategoryFilter',
             'search',
             'parents'
         ));
     }
 
     /**
-     * Store a child vaccination dose.
+     * Store a vaccination dose.
      */
     public function store(Request $request)
     {
@@ -65,7 +73,8 @@ class ChildVaccinationController extends Controller
             'user_id'           => 'nullable|exists:users,id',
             'child_name'        => 'required|string|max:255',
             'child_dob'         => 'nullable|date',
-            'child_gender'      => 'nullable|string|in:Male,Female',
+            'child_gender'      => 'nullable|string|in:Male,Female,Other',
+            'age_category'      => 'required|string|max:100',
             'vaccine_name'      => 'required|string|max:255',
             'dose_number'       => 'required|string|in:1st Dose,2nd Dose,3rd Dose,Booster 1,Booster 2',
             'date_administered' => 'required|date',
@@ -79,16 +88,44 @@ class ChildVaccinationController extends Controller
             'administered_by' => $administeredBy,
         ]));
 
+        // Specifically notify the selected parent / resident account if linked
+        if (!empty($validated['user_id'])) {
+            $parent = User::find($validated['user_id']);
+            if ($parent) {
+                $patientName = $validated['child_name'];
+                $vaccine = $validated['vaccine_name'];
+                $dose = $validated['dose_number'];
+                $ageCat = $validated['age_category'];
+                $doseStatus = $validated['status'] ?? 'Completed';
+                $adminDate = Carbon::parse($validated['date_administered'])->format('M d, Y');
+
+                $notifTitle = "Vaccination Recorded: {$patientName} ({$vaccine})";
+                $notifMsg = "A vaccination entry has been recorded for {$patientName} ({$ageCat}). Vaccine: {$vaccine} ({$dose}), Status: {$doseStatus}, Date: {$adminDate}.";
+                if (!empty($validated['notes'])) {
+                    $notifMsg .= " Notes: {$validated['notes']}";
+                }
+
+                AppNotification::create([
+                    'user_id' => $parent->id,
+                    'title'   => $notifTitle,
+                    'message' => $notifMsg,
+                    'type'    => 'info',
+                    'is_read' => false,
+                ]);
+            }
+        }
+
         return redirect()->route('nurse.vaccinations')->with('success', "Vaccination dose recorded successfully for {$validated['child_name']}!");
     }
 
     /**
-     * Export child vaccinations & immunization records to Excel.
+     * Export vaccinations & immunization records to Excel.
      */
     public function exportExcel(Request $request)
     {
         $search = $request->query('search', '');
         $doseFilter = $request->query('dose', 'all');
+        $ageCategoryFilter = $request->query('age_category', 'all');
 
         $query = ChildVaccination::with('parent')->latest('date_administered');
 
@@ -96,10 +133,15 @@ class ChildVaccinationController extends Controller
             $query->where('dose_number', $doseFilter);
         }
 
+        if ($ageCategoryFilter !== 'all' && !empty($ageCategoryFilter)) {
+            $query->where('age_category', $ageCategoryFilter);
+        }
+
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('child_name', 'like', "%{$search}%")
                   ->orWhere('vaccine_name', 'like', "%{$search}%")
+                  ->orWhere('age_category', 'like', "%{$search}%")
                   ->orWhereHas('parent', function ($pq) use ($search) {
                       $pq->where('first_name', 'like', "%{$search}%")
                          ->orWhere('last_name', 'like', "%{$search}%");

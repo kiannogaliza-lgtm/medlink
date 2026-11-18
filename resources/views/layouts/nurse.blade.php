@@ -250,7 +250,7 @@
                     <span class="material-icons-outlined" style="font-size:20px;">medical_information</span> <span>Consultations & Disease Alerts</span>
                 </a>
                 <a href="{{ route('nurse.vaccinations') }}" class="sidebar-link @if(request()->routeIs('nurse.vaccinations*')) active @endif">
-                    <span class="material-icons-outlined" style="font-size:20px;">child_care</span> <span>Child Vaccinations</span>
+                    <span class="material-icons-outlined" style="font-size:20px;">vaccines</span> <span>Vaccinations</span>
                 </a>
 
                 <div class="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-cyan-200/70">Management & Reports</div>

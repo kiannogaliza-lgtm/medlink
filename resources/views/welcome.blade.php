@@ -103,21 +103,21 @@
 >
     <div class="w-full max-w-4xl py-6">
 
-        {{-- Location Pill --}}
-        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-950/70 border border-emerald-500/30 text-emerald-300 text-xs font-semibold mb-6 shadow-sm">
+        {{-- Location Label --}}
+        <div class="inline-flex items-center gap-2 text-emerald-300 text-xs font-semibold mb-6">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span>Brgy. Honrado &bull; San Francisco, Surigao del Norte</span>
         </div>
 
         {{-- Headline --}}
         <h1 class="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.08] mb-6">
-            Health services,<br>
-            <span class="text-emerald-400">right from home.</span>
+            Know. Request. Track.<br>
+            <span class="text-emerald-400">The MEDLINK Way.</span>
         </h1>
 
         {{-- Description --}}
         <p class="text-slate-200/90 text-base sm:text-lg lg:text-xl font-normal leading-relaxed max-w-2xl mb-9">
-            MEDLINK lets residents of Barangay Honrado check real-time medicine availability, request home health services, and follow clinic schedules online — all without the repeat trip to the health center.
+            Everything you need to know, every request you need to make, and every update you want to track MEDLINK brings Barangay Honrado's health services together in one convenient place.
         </p>
 
         {{-- In-Hero Sign In & Create Account Actions --}}
@@ -141,7 +141,7 @@
         {{-- Trust note --}}
         <div class="flex items-center gap-2 text-xs text-slate-300/70 font-medium">
             <span class="material-icons-outlined text-emerald-400" style="font-size: 16px;">verified</span>
-            <span>Medicine requests need nurse approval before release. Managed by Honrado Health Center.</span>
+            <span>Managed by Barangay Honrado Health Center. Medicine requests are subject to staff review and approval.</span>
         </div>
 
     </div>

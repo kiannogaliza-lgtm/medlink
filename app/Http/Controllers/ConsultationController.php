@@ -97,6 +97,35 @@ class ConsultationController extends Controller
             'attending_nurse' => $attendingNurse,
         ]));
 
+        // Specifically notify the selected resident if one was chosen
+        if (!empty($validated['user_id'])) {
+            $resident = User::find($validated['user_id']);
+            if ($resident) {
+                $patientLabel = $validated['patient_name'] ?: 'Patient';
+                $formattedDate = Carbon::parse($validated['consultation_date'])->format('M d, Y');
+                $statusText = $validated['status'] ?? 'Active';
+                $diseaseText = $validated['disease_case'] ?? 'General Consultation';
+                
+                $messageParts = [];
+                $messageParts[] = "A medical consultation record has been logged for {$patientLabel} on {$formattedDate}.";
+                $messageParts[] = "Case: {$diseaseText} (Status: {$statusText}).";
+                if (!empty($validated['diagnosis'])) {
+                    $messageParts[] = "Diagnosis: {$validated['diagnosis']}.";
+                }
+                if (!empty($validated['treatment_notes'])) {
+                    $messageParts[] = "Instructions/Prescription: {$validated['treatment_notes']}.";
+                }
+
+                AppNotification::create([
+                    'user_id' => $resident->id,
+                    'title'   => "Consultation Record: {$patientLabel} ({$diseaseText})",
+                    'message' => implode(' ', $messageParts),
+                    'type'    => 'info',
+                    'is_read' => false,
+                ]);
+            }
+        }
+
         // Check if cases of this disease now reach or exceed the threshold limit (5 cases)
         $caseCount = Consultation::where('disease_case', $validated['disease_case'])->count();
         $threshold = 5;

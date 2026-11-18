@@ -337,6 +337,7 @@
                         </option>
                     @endforeach
                 </select>
+                <p class="text-[11px] text-gray-400 mt-0.5">Selecting a registered resident will automatically send them a portal notification regarding this record.</p>
             </div>
 
             <div class="grid grid-cols-2 gap-3">

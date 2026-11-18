@@ -95,6 +95,7 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'notifications_read_at' => 'datetime',
             'password' => 'hashed',
+            'dob' => 'date',
             'age' => 'integer',
             'is_maintenance' => 'boolean',
         ];

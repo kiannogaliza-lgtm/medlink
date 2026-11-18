@@ -1,7 +1,7 @@
 @extends('layouts.nurse')
 
-@section('title', 'Child Vaccinations (Baby Book)')
-@section('page-title', 'Child Vaccinations (Baby Book)')
+@section('title', 'Vaccinations')
+@section('page-title', 'Vaccinations')
 
 @section('styles')
 <style>
@@ -56,7 +56,7 @@
     {{-- Printable Header --}}
     <div class="print-only p-6 border-b-2 border-gray-800 text-center">
         <h1 class="text-2xl font-black text-gray-900 uppercase">Barangay Honorato Health Center</h1>
-        <h2 class="text-base font-bold text-gray-700 mt-1">Child Immunization Masterlist & Dose Tracking Report</h2>
+        <h2 class="text-base font-bold text-gray-700 mt-1">Immunization Masterlist & Dose Tracking Report</h2>
         <p class="text-xs text-gray-500 mt-0.5">Municipal Health Office National Immunization Program &bull; Date: {{ now()->format('F d, Y') }}</p>
     </div>
 
@@ -108,25 +108,40 @@
         {{-- Toolbar: Actions & Filters --}}
         <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4 no-print">
             <div class="flex flex-wrap items-center gap-2">
-                <a href="{{ route('nurse.vaccinations') }}" class="dose-tab {{ $doseFilter === 'all' ? 'active' : '' }}">
+                <a href="{{ route('nurse.vaccinations', ['age_category' => $ageCategoryFilter]) }}" class="dose-tab {{ $doseFilter === 'all' ? 'active' : '' }}">
                     <span>All Doses</span>
                     <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">{{ $totalVaccinations }}</span>
                 </a>
-                <a href="{{ route('nurse.vaccinations', ['dose' => '1st Dose']) }}" class="dose-tab {{ $doseFilter === '1st Dose' ? 'active' : '' }}">
+                <a href="{{ route('nurse.vaccinations', ['dose' => '1st Dose', 'age_category' => $ageCategoryFilter]) }}" class="dose-tab {{ $doseFilter === '1st Dose' ? 'active' : '' }}">
                     <span>1st Dose</span>
                     <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $doseFilter === '1st Dose' ? 'bg-white/20' : 'bg-emerald-100 text-emerald-800' }}">{{ $firstDoseCount }}</span>
                 </a>
-                <a href="{{ route('nurse.vaccinations', ['dose' => '2nd Dose']) }}" class="dose-tab {{ $doseFilter === '2nd Dose' ? 'active' : '' }}">
+                <a href="{{ route('nurse.vaccinations', ['dose' => '2nd Dose', 'age_category' => $ageCategoryFilter]) }}" class="dose-tab {{ $doseFilter === '2nd Dose' ? 'active' : '' }}">
                     <span>2nd Dose</span>
                     <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $doseFilter === '2nd Dose' ? 'bg-white/20' : 'bg-purple-100 text-purple-800' }}">{{ $secondDoseCount }}</span>
                 </a>
-                <a href="{{ route('nurse.vaccinations', ['dose' => '3rd Dose']) }}" class="dose-tab {{ $doseFilter === '3rd Dose' ? 'active' : '' }}">
-                    <span>3rd Dose & Succeeding</span>
+                <a href="{{ route('nurse.vaccinations', ['dose' => '3rd Dose', 'age_category' => $ageCategoryFilter]) }}" class="dose-tab {{ $doseFilter === '3rd Dose' ? 'active' : '' }}">
+                    <span>3rd Dose & Boosters</span>
                 </a>
+
+                {{-- Age Category Filter Dropdown --}}
+                <div class="relative inline-block ml-1">
+                    <select onchange="filterAgeCategory(this.value)" class="text-xs font-semibold px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
+                        <option value="all" {{ ($ageCategoryFilter ?? 'all') === 'all' ? 'selected' : '' }}>All Age Categories</option>
+                        <option value="Newborn" {{ ($ageCategoryFilter ?? '') === 'Newborn' ? 'selected' : '' }}>Newborn (Birth)</option>
+                        <option value="Infant" {{ ($ageCategoryFilter ?? '') === 'Infant' ? 'selected' : '' }}>Infant (6 weeks–11 months)</option>
+                        <option value="Young child" {{ ($ageCategoryFilter ?? '') === 'Young child' ? 'selected' : '' }}>Young child (12–23 months)</option>
+                        <option value="Preschool child" {{ ($ageCategoryFilter ?? '') === 'Preschool child' ? 'selected' : '' }}>Preschool child (2–4 years)</option>
+                        <option value="School-age child" {{ ($ageCategoryFilter ?? '') === 'School-age child' ? 'selected' : '' }}>School-age child (5–9 years)</option>
+                        <option value="Adolescent" {{ ($ageCategoryFilter ?? '') === 'Adolescent' ? 'selected' : '' }}>Adolescent (10–19 years)</option>
+                        <option value="Adult" {{ ($ageCategoryFilter ?? '') === 'Adult' ? 'selected' : '' }}>Adult (20–59 years)</option>
+                        <option value="Senior citizen" {{ ($ageCategoryFilter ?? '') === 'Senior citizen' ? 'selected' : '' }}>Senior citizen (60 years and above)</option>
+                    </select>
+                </div>
             </div>
 
             <div class="flex items-center gap-2.5">
-                <a href="{{ route('nurse.vaccinations.export-excel', ['dose' => $doseFilter, 'search' => $search]) }}" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer" title="Export vaccinations to Excel">
+                <a href="{{ route('nurse.vaccinations.export-excel', ['dose' => $doseFilter, 'age_category' => $ageCategoryFilter, 'search' => $search]) }}" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer" title="Export vaccinations to Excel">
                     <span class="material-icons-outlined" style="font-size:16px;">table_view</span>
                     <span>Export Excel</span>
                 </a>
@@ -144,18 +159,18 @@
         {{-- Vaccinations Table --}}
         @if($vaccinations->isEmpty())
             <div class="text-center py-16 text-gray-400">
-                <span class="material-icons-outlined mb-2 text-gray-300" style="font-size:56px;">child_care</span>
-                <p class="font-semibold text-gray-600 text-base">No child vaccination records found</p>
-                <p class="text-xs text-gray-400 mt-1">Click "Record Vaccine Dose" above to add immunization records for infants, toddlers, and children.</p>
+                <span class="material-icons-outlined mb-2 text-gray-300" style="font-size:56px;">vaccines</span>
+                <p class="font-semibold text-gray-600 text-base">No vaccination records found</p>
+                <p class="text-xs text-gray-400 mt-1">Click "Record Vaccine Dose" above to add immunization records across newborns, children, adolescents, adults, and seniors.</p>
             </div>
         @else
             <div class="overflow-x-auto w-full">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-gray-100 bg-gray-50/60 text-xs uppercase tracking-wider text-gray-500 font-semibold">
-                            <th class="py-3.5 px-5 text-left">Child Patient</th>
+                            <th class="py-3.5 px-5 text-left">Patient</th>
                             <th class="py-3.5 px-5 text-left">Age / Classification</th>
-                            <th class="py-3.5 px-5 text-left">Parent / Resident Account</th>
+                            <th class="py-3.5 px-5 text-left">Resident / Family Account</th>
                             <th class="py-3.5 px-5 text-left">Vaccine Administered</th>
                             <th class="py-3.5 px-5 text-center">Dose</th>
                             <th class="py-3.5 px-5 text-left">Date Given</th>
@@ -180,7 +195,7 @@
                                 </td>
                                 <td class="py-4 px-5">
                                     <span class="text-xs font-semibold text-purple-700">
-                                        {{ $v->age_category }}
+                                        {{ $v->age_category_label }}
                                     </span>
                                 </td>
                                 <td class="py-4 px-5">
@@ -188,7 +203,7 @@
                                         <div class="font-semibold text-blue-700 text-xs">{{ $v->parent->first_name }} {{ $v->parent->last_name }}</div>
                                         <div class="text-[11px] text-gray-400">{{ $v->parent->phone_number ?? 'Resident' }}</div>
                                     @else
-                                        <span class="text-xs text-gray-400 italic">Walk-in Child</span>
+                                        <span class="text-xs text-gray-400 italic">Walk-in</span>
                                     @endif
                                 </td>
                                 <td class="py-4 px-5 font-bold text-gray-800">
@@ -239,8 +254,8 @@
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-fade-in">
         <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-blue-50/40">
             <div class="flex items-center gap-2 text-[#0c2d48]">
-                <span class="material-icons-outlined text-blue-600">child_care</span>
-                <h3 class="font-bold text-base">Record Child Vaccine Dose</h3>
+                <span class="material-icons-outlined text-blue-600">vaccines</span>
+                <h3 class="font-bold text-base">Record Vaccine Dose</h3>
             </div>
             <button type="button" onclick="closeVaccineModal()" class="text-gray-400 hover:text-gray-600 p-1">
                 <span class="material-icons-outlined">close</span>
@@ -251,32 +266,55 @@
             @csrf
 
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Parent / Guardian Resident Account</label>
-                <select name="user_id" class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500/30">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Resident / Parent / Guardian Account</label>
+                <select name="user_id" id="modal_user_id" onchange="handleResidentSelect(this)" class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500/30">
                     <option value="">-- Walk-in without Resident Account --</option>
                     @foreach($parents as $p)
-                        <option value="{{ $p->id }}">
+                        @php
+                            $dobFormatted = '';
+                            if (!empty($p->dob)) {
+                                $dobFormatted = $p->dob instanceof \Carbon\Carbon ? $p->dob->format('Y-m-d') : date('Y-m-d', strtotime($p->dob));
+                            }
+                        @endphp
+                        <option value="{{ $p->id }}" data-name="{{ $p->first_name }} {{ $p->last_name }}" data-dob="{{ $dobFormatted }}" data-gender="{{ $p->gender }}" data-age="{{ $p->age }}">
                             {{ $p->first_name }} {{ $p->last_name }} ({{ $p->phone_number ?? 'No contact' }})
                         </option>
                     @endforeach
                 </select>
-                <p class="text-[11px] text-gray-400 mt-0.5">Linking the parent will automatically reflect this vaccine record in the resident's portal account!</p>
+                <p class="text-[11px] text-gray-400 mt-0.5">Linking the resident/parent will automatically send a notification to their resident account and reflect this vaccine record.</p>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div class="col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Child Patient Full Name *</label>
-                    <input type="text" name="child_name" required placeholder="e.g. Baby Lucas Santos" class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Patient Full Name *</label>
+                    <input type="text" name="child_name" id="modal_patient_name" required placeholder="e.g. Baby Lucas Santos, Juan Dela Cruz" class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30">
                 </div>
+
+                {{-- Age Category Selection --}}
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Age Category *</label>
+                    <select name="age_category" id="modal_age_category" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-purple-700 focus:ring-2 focus:ring-blue-500/30">
+                        <option value="Newborn">Newborn (Birth)</option>
+                        <option value="Infant">Infant (6 weeks–11 months)</option>
+                        <option value="Young child">Young child (12–23 months)</option>
+                        <option value="Preschool child">Preschool child (2–4 years)</option>
+                        <option value="School-age child">School-age child (5–9 years)</option>
+                        <option value="Adolescent">Adolescent (10–19 years)</option>
+                        <option value="Adult">Adult (20–59 years)</option>
+                        <option value="Senior citizen">Senior citizen (60 years and above)</option>
+                    </select>
+                </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Child Date of Birth</label>
-                    <input type="date" name="child_dob" class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Date of Birth</label>
+                    <input type="date" name="child_dob" id="modal_dob" onchange="autoSuggestAgeCategory(this.value)" class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Gender</label>
-                    <select name="child_gender" class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30">
+                    <select name="child_gender" id="modal_gender" class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30">
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
+                        <option value="Other">Other</option>
                     </select>
                 </div>
             </div>
@@ -285,14 +323,24 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Vaccine Name *</label>
                     <select name="vaccine_name" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-bold text-blue-700 focus:ring-2 focus:ring-blue-500/30">
-                        <option value="BCG (Tuberculosis)">BCG (At Birth)</option>
-                        <option value="Hepatitis B">Hepatitis B (At Birth)</option>
-                        <option value="Pentavalent (DTP-HepB-Hib)">Pentavalent (DTP-HepB-Hib)</option>
-                        <option value="Oral Polio Vaccine (OPV)">Oral Polio Vaccine (OPV)</option>
-                        <option value="Inactivated Polio (IPV)">Inactivated Polio (IPV)</option>
-                        <option value="Pneumococcal Conjugate (PCV)">Pneumococcal Conjugate (PCV)</option>
-                        <option value="Measles, Mumps, Rubella (MMR)">Measles, Mumps, Rubella (MMR)</option>
-                        <option value="Flu Vaccine">Flu Vaccine (Pediatric)</option>
+                        <optgroup label="Infant & Childhood Vaccines">
+                            <option value="BCG (Tuberculosis)">BCG (At Birth)</option>
+                            <option value="Hepatitis B">Hepatitis B (At Birth)</option>
+                            <option value="Pentavalent (DTP-HepB-Hib)">Pentavalent (DTP-HepB-Hib)</option>
+                            <option value="Oral Polio Vaccine (OPV)">Oral Polio Vaccine (OPV)</option>
+                            <option value="Inactivated Polio (IPV)">Inactivated Polio (IPV)</option>
+                            <option value="Pneumococcal Conjugate (PCV)">Pneumococcal Conjugate (PCV)</option>
+                            <option value="Measles, Mumps, Rubella (MMR)">Measles, Mumps, Rubella (MMR)</option>
+                        </optgroup>
+                        <optgroup label="Adolescent, Adult & Senior Vaccines">
+                            <option value="Flu Vaccine (Influenza)">Flu Vaccine (Influenza)</option>
+                            <option value="Pneumococcal Polysaccharide (Pneumonia)">Pneumococcal Polysaccharide (Pneumonia)</option>
+                            <option value="COVID-19 Vaccine">COVID-19 Vaccine</option>
+                            <option value="Tetanus Toxoid (TT / Td)">Tetanus Toxoid (TT / Td)</option>
+                            <option value="HPV (Human Papillomavirus)">HPV (Human Papillomavirus)</option>
+                            <option value="Hepatitis B (Adult)">Hepatitis B (Adult)</option>
+                            <option value="Rabies Post-Exposure">Rabies Post-Exposure</option>
+                        </optgroup>
                     </select>
                 </div>
                 <div>
@@ -324,7 +372,7 @@
 
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Immunization / Reaction Notes</label>
-                <textarea name="notes" rows="2" placeholder="e.g. Tolerated well, right thigh injection, baby book card signed." class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30 resize-none"></textarea>
+                <textarea name="notes" rows="2" placeholder="e.g. Tolerated well, right deltoid injection, immunization card updated." class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30 resize-none"></textarea>
             </div>
 
             <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-2.5">
@@ -347,6 +395,78 @@
     function closeVaccineModal() {
         document.getElementById('recordVaccineModal').classList.remove('flex');
         document.getElementById('recordVaccineModal').classList.add('hidden');
+    }
+
+    function filterAgeCategory(category) {
+        const url = new URL(window.location);
+        if (category === 'all') {
+            url.searchParams.delete('age_category');
+        } else {
+            url.searchParams.set('age_category', category);
+        }
+        window.location = url.toString();
+    }
+
+    function autoSuggestAgeCategory(dobString) {
+        if (!dobString) return;
+        const dob = new Date(dobString);
+        const today = new Date();
+        const diffMs = today - dob;
+        if (diffMs < 0) return;
+
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffYears = today.getFullYear() - dob.getFullYear();
+        const categorySelect = document.getElementById('modal_age_category');
+
+        if (diffDays <= 42) {
+            categorySelect.value = 'Newborn';
+        } else if (diffDays <= 365) {
+            categorySelect.value = 'Infant';
+        } else if (diffDays <= 730) {
+            categorySelect.value = 'Young child';
+        } else if (diffYears < 5) {
+            categorySelect.value = 'Preschool child';
+        } else if (diffYears < 10) {
+            categorySelect.value = 'School-age child';
+        } else if (diffYears < 20) {
+            categorySelect.value = 'Adolescent';
+        } else if (diffYears < 60) {
+            categorySelect.value = 'Adult';
+        } else {
+            categorySelect.value = 'Senior citizen';
+        }
+    }
+
+    function handleResidentSelect(select) {
+        const opt = select.options[select.selectedIndex];
+        if (!opt || !opt.value) return;
+        const name = opt.getAttribute('data-name');
+        const dob = opt.getAttribute('data-dob');
+        const gender = opt.getAttribute('data-gender');
+        const age = opt.getAttribute('data-age');
+
+        // Only pre-fill patient name if user hasn't typed a different name or it's empty
+        const nameInput = document.getElementById('modal_patient_name');
+        if (!nameInput.value) {
+            nameInput.value = name || '';
+        }
+        if (dob) {
+            document.getElementById('modal_dob').value = dob;
+            autoSuggestAgeCategory(dob);
+        } else if (age) {
+            const ageNum = parseInt(age, 10);
+            const categorySelect = document.getElementById('modal_age_category');
+            if (ageNum < 1) categorySelect.value = 'Infant';
+            else if (ageNum <= 2) categorySelect.value = 'Young child';
+            else if (ageNum <= 4) categorySelect.value = 'Preschool child';
+            else if (ageNum <= 9) categorySelect.value = 'School-age child';
+            else if (ageNum <= 19) categorySelect.value = 'Adolescent';
+            else if (ageNum <= 59) categorySelect.value = 'Adult';
+            else categorySelect.value = 'Senior citizen';
+        }
+        if (gender) {
+            document.getElementById('modal_gender').value = gender;
+        }
     }
 </script>
 @endsection
