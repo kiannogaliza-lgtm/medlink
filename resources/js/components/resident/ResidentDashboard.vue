@@ -80,7 +80,7 @@
               <h4 class="font-semibold text-gray-800 text-sm mb-0.5">{{ med.name }}</h4>
               <p class="text-xs text-gray-500">{{ med.stock }} {{ med.unit }}</p>
             </div>
-            <span :class="['px-3 py-1 text-xs font-semibold rounded-full', med.status === 'In Stock' ? 'bg-green-100 text-green-700' : (med.status === 'Low Stock' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')]">
+            <span :class="['text-xs font-semibold', getStatusColor(med.status)]">
               {{ med.status }}
             </span>
           </div>
@@ -105,7 +105,7 @@
               <h4 class="font-semibold text-gray-800 text-sm mb-0.5">{{ req.name }}</h4>
               <p class="text-[11px] text-gray-500">{{ req.type }} &bull; {{ req.date }}</p>
             </div>
-            <span :class="['px-3 py-1 text-xs font-semibold rounded-full capitalize', getStatusClass(req.status)]">
+            <span :class="['text-xs font-semibold capitalize', getStatusColor(req.status)]">
               {{ req.status }}
             </span>
           </div>
@@ -150,13 +150,15 @@ defineProps({
   }
 });
 
-const getStatusClass = (status) => {
-  const s = status.toLowerCase();
-  if (s === 'approved' || s === 'completed') return 'bg-green-100 text-green-700';
-  if (s === 'accepted') return 'bg-blue-100 text-blue-700';
-  if (s === 'pending') return 'bg-yellow-100 text-yellow-700';
-  if (s === 'scheduled' || s === 'assigned') return 'bg-blue-100 text-blue-700';
-  if (s === 'rejected') return 'bg-red-100 text-red-700';
-  return 'bg-gray-100 text-gray-700';
+const getStatusColor = (status) => {
+  const s = (status || '').toLowerCase();
+  if (s === 'approved' || s === 'completed' || s === 'in stock') return 'text-emerald-600 font-bold';
+  if (s === 'accepted') return 'text-blue-600 font-bold';
+  if (s === 'pending' || s === 'low stock') return 'text-amber-600 font-bold';
+  if (s === 'scheduled' || s === 'assigned') return 'text-blue-600 font-bold';
+  if (s === 'rejected' || s === 'critical') return 'text-red-600 font-bold';
+  return 'text-gray-600 font-bold';
 };
+
+const getStatusClass = (status) => getStatusColor(status);
 </script>

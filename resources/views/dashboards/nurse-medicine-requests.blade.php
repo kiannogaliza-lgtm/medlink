@@ -49,24 +49,16 @@
         color: #475569;
     }
     .badge-pending {
-        background-color: #fef3c7;
         color: #d97706;
-        border: 1px solid #fde68a;
     }
     .badge-accepted {
-        background-color: #eff6ff;
         color: #2563eb;
-        border: 1px solid #bfdbfe;
     }
     .badge-approved {
-        background-color: #dcfce7;
         color: #15803d;
-        border: 1px solid #bbf7d0;
     }
     .badge-rejected {
-        background-color: #fee2e2;
         color: #b91c1c;
-        border: 1px solid #fecaca;
     }
 </style>
 @endsection
@@ -243,7 +235,7 @@
                                     @endif
                                 </td>
                                 <td class="py-3.5 px-3 whitespace-nowrap">
-                                    <span class="text-blue-600 font-medium text-xs bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{{ $request->type }}</span>
+                                    <span class="text-blue-600 font-medium text-xs">{{ $request->type }}</span>
                                 </td>
                                 <td class="py-3.5 px-4 min-w-[180px]">
                                     <span class="font-medium text-gray-800">{{ $request->item_service }}</span>
@@ -271,11 +263,11 @@
                                 </td>
                                 <td class="py-3.5 px-3 whitespace-nowrap">
                                     @if($request->delivery_method === 'delivery')
-                                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">
+                                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">
                                             <span class="material-icons-outlined" style="font-size:13px;">local_shipping</span> Delivery
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
                                             <span class="material-icons-outlined" style="font-size:13px;">storefront</span> Pickup
                                         </span>
                                     @endif
@@ -286,15 +278,15 @@
                                 </td>
                                 <td class="py-3.5 px-4 whitespace-nowrap">
                                     @if($request->status === 'Pending')
-                                        <span class="badge-pending text-xs font-semibold px-2.5 py-1 rounded-full">Pending</span>
+                                        <span class="badge-pending text-xs font-semibold">Pending</span>
                                     @elseif($request->status === 'Accepted')
-                                        <span class="badge-accepted text-xs font-semibold px-2.5 py-1 rounded-full">Consultation</span>
+                                        <span class="badge-accepted text-xs font-semibold">Consultation</span>
                                     @elseif($request->status === 'Approved')
-                                        <span class="badge-approved text-xs font-semibold px-2.5 py-1 rounded-full">Approved</span>
+                                        <span class="badge-approved text-xs font-semibold">Approved</span>
                                     @elseif($request->status === 'Rejected')
-                                        <span class="badge-rejected text-xs font-semibold px-2.5 py-1 rounded-full">Rejected</span>
+                                        <span class="badge-rejected text-xs font-semibold">Rejected</span>
                                     @else
-                                        <span class="bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-full">{{ $request->status }}</span>
+                                        <span class="text-gray-600 text-xs font-semibold">{{ $request->status }}</span>
                                     @endif
                                 </td>
                                 <td class="py-3.5 px-4 whitespace-nowrap text-right">

@@ -125,13 +125,13 @@
         }
 
         /* Status badges */
-        .badge-in-stock { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
-        .badge-low-stock { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
-        .badge-critical { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-        .badge-pending { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
-        .badge-accepted { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
-        .badge-approved { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
-        .badge-rejected { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .badge-in-stock { color: #059669; }
+        .badge-low-stock { color: #d97706; }
+        .badge-critical { color: #dc2626; }
+        .badge-pending { color: #d97706; }
+        .badge-accepted { color: #2563eb; }
+        .badge-approved { color: #059669; }
+        .badge-rejected { color: #dc2626; }
 
         /* Toast notification */
         .toast {

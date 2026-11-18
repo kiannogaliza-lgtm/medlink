@@ -17,14 +17,10 @@
         box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06);
     }
     .badge-active {
-        background: #ecfdf5;
         color: #059669;
-        border: 1px solid #a7f3d0;
     }
     .badge-archived {
-        background: #f1f5f9;
         color: #64748b;
-        border: 1px solid #cbd5e1;
     }
 </style>
 @endsection
@@ -84,10 +80,10 @@
             <div class="announcement-card flex flex-col md:flex-row md:items-start justify-between gap-5">
                 <div class="flex-1">
                     <div class="flex flex-wrap items-center gap-2.5 mb-2">
-                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider {{ $ann->status === 'active' ? 'badge-active' : 'badge-archived' }}">
+                        <span class="text-xs font-bold uppercase tracking-wider {{ $ann->status === 'active' ? 'badge-active' : 'badge-archived' }}">
                             {{ $ann->status }}
                         </span>
-                        <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100 flex items-center gap-1">
+                        <span class="text-xs font-semibold text-blue-600 flex items-center gap-1">
                             <span class="material-icons-outlined" style="font-size:13px;">schedule</span>
                             {{ $ann->date ? $ann->date->format('M d, Y') : $ann->created_at->format('M d, Y') }}
                         </span>

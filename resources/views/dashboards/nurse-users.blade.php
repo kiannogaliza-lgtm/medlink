@@ -29,13 +29,13 @@
     }
 
     /* Role badges */
-    .badge-bhw { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
-    .badge-nurse { background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; }
-    .badge-resident { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .badge-bhw { color: #2563eb; }
+    .badge-nurse { color: #7c3aed; }
+    .badge-resident { color: #16a34a; }
 
     /* Status badges */
-    .badge-active { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
-    .badge-inactive { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .badge-active { color: #059669; }
+    .badge-inactive { color: #dc2626; }
 
     /* Avatar colors per role */
     .avatar-bhw { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
@@ -149,14 +149,14 @@
                             </td>
                             {{-- Role badge --}}
                             <td class="py-3.5 px-4">
-                                <span class="badge-{{ $user->role }} text-xs font-semibold px-3 py-1 rounded-full capitalize">
+                                <span class="badge-{{ $user->role }} text-xs font-semibold capitalize">
                                     {{ strtoupper($user->role) }}
                                 </span>
                             </td>
                             {{-- Maintenance badge --}}
                             <td class="py-3.5 px-4">
                                 @if($user->is_maintenance)
-                                    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                                    <span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-700">
                                         <span class="material-icons-outlined" style="font-size:14px;">medication</span>
                                         Maintenance
                                     </span>
@@ -166,7 +166,7 @@
                             </td>
                             {{-- Status badge --}}
                             <td class="py-3.5 px-4">
-                                <span class="badge-{{ $user->status ?? 'active' }} text-xs font-semibold px-3 py-1 rounded-full capitalize">
+                                <span class="badge-{{ $user->status ?? 'active' }} text-xs font-semibold capitalize">
                                     {{ ucfirst($user->status ?? 'active') }}
                                 </span>
                             </td>

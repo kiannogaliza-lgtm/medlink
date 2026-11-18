@@ -40,7 +40,7 @@
              :class="['border rounded-2xl p-5 hover:shadow-md transition-all flex flex-col justify-between', isExpired(medicine) ? 'border-red-300 bg-red-50' : isExpiringSoon(medicine) ? 'border-amber-200 bg-amber-50/40' : 'border-gray-100 bg-gray-50/50 hover:bg-white']">
           <div class="flex justify-between items-start mb-2">
             <h4 class="font-bold text-gray-800 text-sm w-3/4 truncate pr-2" :title="medicine.name">{{ medicine.name }}</h4>
-            <span :class="badgeClass(medicine.status)" class="px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap">
+            <span :class="badgeClass(medicine.status)" class="text-xs font-bold whitespace-nowrap">
               {{ medicine.status }}
             </span>
           </div>
@@ -168,10 +168,10 @@ const summaryCounts = computed(() => {
 
 const badgeClass = (status) => {
   switch (status) {
-    case 'In Stock': return 'bg-emerald-100 text-emerald-700';
-    case 'Low Stock': return 'bg-amber-100 text-amber-700';
-    case 'Critical': return 'bg-red-100 text-red-700';
-    default: return 'bg-gray-100 text-gray-700';
+    case 'In Stock': return 'text-emerald-600 font-bold';
+    case 'Low Stock': return 'text-amber-600 font-bold';
+    case 'Critical': return 'text-red-600 font-bold';
+    default: return 'text-gray-600 font-bold';
   }
 };
 </script>

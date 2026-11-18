@@ -122,25 +122,17 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        padding: 3px 10px;
-        border-radius: 20px;
         font-size: 11px;
         font-weight: 700;
-        background: #fffbeb;
         color: #b45309;
-        border: 1px solid #fde68a;
     }
     .badge-verified {
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        padding: 3px 10px;
-        border-radius: 20px;
         font-size: 11px;
         font-weight: 700;
-        background: #ecfdf5;
         color: #059669;
-        border: 1px solid #a7f3d0;
     }
 
     /* Action buttons */
@@ -358,7 +350,7 @@
                                         <span>
                                             @if($resident->age !== null)
                                                 <strong>{{ $resident->age }} yrs</strong> &middot; 
-                                                <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                                <span class="text-[11px] font-semibold text-blue-700">
                                                     {{ $resident->age_category ?: \App\Models\User::resolveAgeCategory($resident->age) }}
                                                 </span>
                                             @else
@@ -384,7 +376,7 @@
                                     <div class="meta-item">
                                         <label>Maintenance</label>
                                         @if($resident->is_maintenance)
-                                            <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700">
                                                 <span class="material-icons-outlined" style="font-size:12px;">medication</span> Yes
                                             </span>
                                         @else
@@ -457,7 +449,7 @@
                                         <span>
                                             @if($resident->age !== null)
                                                 <strong>{{ $resident->age }} yrs</strong> &middot; 
-                                                <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                <span class="text-[11px] font-semibold text-emerald-700">
                                                     {{ $resident->age_category ?: \App\Models\User::resolveAgeCategory($resident->age) }}
                                                 </span>
                                             @else

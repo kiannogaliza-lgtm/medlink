@@ -30,11 +30,11 @@
         background: #e2e8f0;
         color: #0f172a;
     }
-    .badge-dengue { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
-    .badge-tb     { background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; }
-    .badge-hiv    { background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; }
-    .badge-measles{ background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; }
-    .badge-other  { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
+    .badge-dengue { color: #dc2626; }
+    .badge-tb     { color: #d97706; }
+    .badge-hiv    { color: #7e22ce; }
+    .badge-measles{ color: #c2410c; }
+    .badge-other  { color: #0284c7; }
 
     @media print {
         header, aside, .no-print, button, form, .pagination {
@@ -253,23 +253,23 @@
                                 </td>
                                 <td class="py-4 px-5 whitespace-nowrap">
                                     @if(strtolower($item->disease_case) === 'dengue')
-                                        <span class="badge-dengue text-xs font-extrabold px-3 py-1 rounded-full inline-flex items-center gap-1">
+                                        <span class="badge-dengue text-xs font-bold inline-flex items-center gap-1">
                                             <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span> Dengue Case
                                         </span>
                                     @elseif(strtolower($item->disease_case) === 'tuberculosis')
-                                        <span class="badge-tb text-xs font-extrabold px-3 py-1 rounded-full inline-flex items-center gap-1">
+                                        <span class="badge-tb text-xs font-bold inline-flex items-center gap-1">
                                             <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Tuberculosis (TB)
                                         </span>
                                     @elseif(strtolower($item->disease_case) === 'hiv')
-                                        <span class="badge-hiv text-xs font-extrabold px-3 py-1 rounded-full inline-flex items-center gap-1">
+                                        <span class="badge-hiv text-xs font-bold inline-flex items-center gap-1">
                                             <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span> HIV Surveillance
                                         </span>
                                     @elseif(strtolower($item->disease_case) === 'measles')
-                                        <span class="badge-measles text-xs font-extrabold px-3 py-1 rounded-full inline-flex items-center gap-1">
+                                        <span class="badge-measles text-xs font-bold inline-flex items-center gap-1">
                                             <span class="w-1.5 h-1.5 rounded-full bg-orange-600"></span> Measles
                                         </span>
                                     @else
-                                        <span class="badge-other text-xs font-extrabold px-3 py-1 rounded-full inline-flex items-center gap-1">
+                                        <span class="badge-other text-xs font-bold inline-flex items-center gap-1">
                                             {{ $item->disease_case }}
                                         </span>
                                     @endif
@@ -286,7 +286,7 @@
                                     {{ $item->treatment_notes ?? 'Standard clinic care.' }}
                                 </td>
                                 <td class="py-4 px-5 text-center whitespace-nowrap">
-                                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-700 border border-green-200">
+                                    <span class="text-xs font-bold text-green-700">
                                         {{ $item->status }}
                                     </span>
                                 </td>

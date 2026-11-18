@@ -179,7 +179,7 @@
                                     </div>
                                 </td>
                                 <td class="py-4 px-5">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                    <span class="text-xs font-semibold text-purple-700">
                                         {{ $v->age_category }}
                                     </span>
                                 </td>
@@ -198,7 +198,7 @@
                                     @endif
                                 </td>
                                 <td class="py-4 px-5 text-center whitespace-nowrap">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-blue-50 text-blue-800 border border-blue-200">
+                                    <span class="text-xs font-bold text-blue-800">
                                         {{ $v->dose_number }}
                                     </span>
                                 </td>
@@ -209,7 +209,7 @@
                                     {{ $v->administered_by ?? 'Health Center Staff' }}
                                 </td>
                                 <td class="py-4 px-5 text-center whitespace-nowrap">
-                                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-700 border border-green-200">
+                                    <span class="text-[11px] font-bold text-green-700">
                                         {{ $v->status }}
                                     </span>
                                 </td>

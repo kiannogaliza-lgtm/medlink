@@ -285,7 +285,7 @@
                 {{ med.lock_reason }}
               </p>
             </div>
-            <span :class="['px-2.5 py-1 text-xs font-semibold rounded-full shrink-0', med.status === 'In Stock' ? 'bg-green-100 text-green-700' : (med.status === 'Low Stock' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')]">
+            <span :class="['text-xs font-semibold shrink-0', getStatusColor(med.status)]">
               {{ med.status }}
             </span>
           </div>
@@ -324,7 +324,7 @@
               <p class="text-sm font-semibold text-gray-800">{{ req.medicine_name }}</p>
               <p class="text-xs text-gray-500 mt-0.5">{{ req.request_id }} &bull; Qty: {{ req.quantity }} &bull; {{ req.delivery_method === 'pickup' ? 'Pickup' : 'Home Delivery' }} &bull; {{ req.date }}</p>
             </div>
-            <span :class="['px-2.5 py-1 text-xs font-semibold rounded-full capitalize whitespace-nowrap', getStatusClass(req.status)]">
+            <span :class="['text-xs font-semibold capitalize whitespace-nowrap', getStatusColor(req.status)]">
               {{ req.status }}
             </span>
           </div>
@@ -497,14 +497,16 @@ const currentMaxLimit = computed(() => {
   return Number(selectedMed.value.request_limit) || 5;
 });
 
-const getStatusClass = (status) => {
+const getStatusColor = (status) => {
   const s = (status || '').toLowerCase();
-  if (s === 'approved' || s === 'completed') return 'bg-green-100 text-green-700';
-  if (s === 'accepted') return 'bg-blue-100 text-blue-700';
-  if (s === 'pending') return 'bg-yellow-100 text-yellow-700';
-  if (s === 'rejected') return 'bg-red-100 text-red-700';
-  return 'bg-gray-100 text-gray-700';
+  if (s === 'approved' || s === 'completed' || s === 'in stock') return 'text-emerald-600 font-bold';
+  if (s === 'accepted') return 'text-blue-600 font-bold';
+  if (s === 'pending' || s === 'low stock') return 'text-amber-600 font-bold';
+  if (s === 'rejected' || s === 'critical') return 'text-red-600 font-bold';
+  return 'text-gray-600 font-bold';
 };
+
+const getStatusClass = (status) => getStatusColor(status);
 
 const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 

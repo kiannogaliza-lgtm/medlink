@@ -47,57 +47,37 @@
     .badge-hs-pending {
         display: inline-flex;
         align-items: center;
-        padding: 2px 10px;
-        border-radius: 9999px;
         font-size: 11px;
         font-weight: 600;
-        background: #fef3c7;
         color: #d97706;
-        border: 1px solid #fde68a;
     }
     .badge-hs-accepted {
         display: inline-flex;
         align-items: center;
-        padding: 2px 10px;
-        border-radius: 9999px;
         font-size: 11px;
         font-weight: 600;
-        background: #dbeafe;
         color: #1d4ed8;
-        border: 1px solid #bfdbfe;
     }
     .badge-hs-approved {
         display: inline-flex;
         align-items: center;
-        padding: 2px 10px;
-        border-radius: 9999px;
         font-size: 11px;
         font-weight: 600;
-        background: #e0f2fe;
         color: #0284c7;
-        border: 1px solid #bae6fd;
     }
     .badge-hs-completed {
         display: inline-flex;
         align-items: center;
-        padding: 2px 10px;
-        border-radius: 9999px;
         font-size: 11px;
         font-weight: 600;
-        background: #dcfce7;
         color: #16a34a;
-        border: 1px solid #bbf7d0;
     }
     .badge-hs-rejected {
         display: inline-flex;
         align-items: center;
-        padding: 2px 10px;
-        border-radius: 9999px;
         font-size: 11px;
         font-weight: 600;
-        background: #fee2e2;
         color: #dc2626;
-        border: 1px solid #fecaca;
     }
 
     /* ── Action Buttons ─────────────────────────────────────────── */
