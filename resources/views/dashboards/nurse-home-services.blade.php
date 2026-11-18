@@ -1090,7 +1090,20 @@
         actionsContainer.innerHTML = '';
 
         if (req.status === 'Pending') {
-            actionsContainer.innerHTML = '';
+            actionsContainer.innerHTML = `
+                <form method="POST" action="/nurse/home-services/${req.id}/accept" class="inline">
+                    <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}">
+                    <input type="hidden" name="_method" value="PATCH">
+                    <button type="submit" class="btn-action-approve" style="background:#2563eb;">
+                        <span class="material-icons-outlined" style="font-size:15px;">check_circle</span>
+                        <span>Accept</span>
+                    </button>
+                </form>
+                <button type="button" onclick="closeModal('viewModal'); openRejectModal(${JSON.stringify(req).replace(/"/g, '&quot;')})" class="btn-action-reject">
+                    <span class="material-icons-outlined" style="font-size:15px;">close</span>
+                    <span>Reject</span>
+                </button>
+            `;
         } else if (req.status === 'Accepted') {
             actionsContainer.innerHTML = `
                 <form method="POST" action="/nurse/home-services/${req.id}/complete" class="inline">
