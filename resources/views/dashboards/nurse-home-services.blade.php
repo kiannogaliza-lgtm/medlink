@@ -231,6 +231,10 @@
             @endif
 
             <div class="ml-auto flex items-center gap-2">
+                <button type="button" onclick="openServiceTypesModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 rounded-lg text-xs font-semibold shadow-sm transition-colors" title="Manage Service Types">
+                    <span class="material-icons-outlined text-sm">settings</span>
+                    <span>Service Types</span>
+                </button>
                 <button type="button" onclick="openClearModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs font-semibold shadow-sm transition-colors" title="Clear requests in list">
                     <span class="material-icons-outlined text-sm">delete_sweep</span>
                     <span>Clear List</span>
@@ -891,14 +895,20 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Service Type <span class="text-red-500">*</span></label>
-                        <select name="service_type" required class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
-                            <option value="Medical Check-up">Medical Check-up</option>
-                            <option value="Blood Pressure Monitoring">Blood Pressure Monitoring</option>
-                            <option value="Wound Care">Wound Care</option>
-                            <option value="Post-natal Care">Post-natal Care</option>
-                            <option value="Elderly Health Check">Elderly Health Check</option>
-                            <option value="Vaccination Assistance">Vaccination Assistance</option>
-                            <option value="Medication Delivery">Medication Delivery</option>
+                        <select name="service_type" id="newRequestServiceTypeSelect" required class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                            @if(isset($serviceTypes) && count($serviceTypes) > 0)
+                                @foreach($serviceTypes as $st)
+                                    <option value="{{ $st->name }}">{{ $st->name }}</option>
+                                @endforeach
+                            @else
+                                <option value="Medical Check-up">Medical Check-up</option>
+                                <option value="Blood Pressure Monitoring">Blood Pressure Monitoring</option>
+                                <option value="Wound Care">Wound Care</option>
+                                <option value="Post-natal Care">Post-natal Care</option>
+                                <option value="Elderly Health Check">Elderly Health Check</option>
+                                <option value="Vaccination Assistance">Vaccination Assistance</option>
+                                <option value="Medication Delivery">Medication Delivery</option>
+                            @endif
                         </select>
                     </div>
                     <div>
@@ -944,6 +954,66 @@
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+{{-- ── SERVICE TYPES MAINTENANCE MODAL ── --}}
+<div class="hs-modal-overlay" id="serviceTypesModal">
+    <div class="hs-modal-box max-w-xl">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="material-icons-outlined text-gray-700">settings</span>
+                <h3 class="font-bold text-gray-900 text-base">Service Types Maintenance</h3>
+            </div>
+            <button type="button" onclick="closeModal('serviceTypesModal')" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <span class="material-icons-outlined">close</span>
+            </button>
+        </div>
+
+        <div class="p-6 space-y-6">
+            {{-- Add New Service Type Form --}}
+            <form id="addServiceTypeForm" onsubmit="submitNewServiceType(event)" class="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                <div class="font-semibold text-xs text-gray-700 uppercase tracking-wide">Add New Service Type</div>
+                <div class="flex gap-2">
+                    <input type="text" id="newServiceTypeName" placeholder="e.g. Physical Therapy" required
+                           class="flex-1 px-3.5 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                    <button type="submit" id="btnAddServiceType" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-1">
+                        <span class="material-icons-outlined text-sm">add</span>
+                        <span>Add</span>
+                    </button>
+                </div>
+                <div id="serviceTypeFormError" class="text-xs text-red-600 hidden font-medium"></div>
+            </form>
+
+            {{-- Service Types List --}}
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Existing Service Types</span>
+                    <span id="serviceTypesCount" class="text-xs text-gray-400">Loading...</span>
+                </div>
+                <div class="border border-gray-100 rounded-xl overflow-hidden max-h-64 overflow-y-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 text-[11px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                            <tr>
+                                <th class="py-2.5 px-3">Service Name</th>
+                                <th class="py-2.5 px-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="serviceTypesTableBody" class="divide-y divide-gray-100 text-gray-700">
+                            <tr>
+                                <td colspan="2" class="py-4 text-center text-xs text-gray-400">Loading service types...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+            <button type="button" onclick="closeModal('serviceTypesModal')" class="px-4 py-2 bg-white hover:bg-gray-100 text-gray-700 text-xs font-semibold border border-gray-200 rounded-lg shadow-xs transition-colors">
+                Done
+            </button>
+        </div>
     </div>
 </div>
 
@@ -1147,6 +1217,157 @@
         } else {
             input.setCustomValidity('');
         }
+    }
+
+    // Service Types Maintenance
+    async function openServiceTypesModal() {
+        openModal('serviceTypesModal');
+        await loadServiceTypes();
+    }
+
+    async function loadServiceTypes() {
+        const tbody = document.getElementById('serviceTypesTableBody');
+        const countSpan = document.getElementById('serviceTypesCount');
+        try {
+            const res = await fetch('/nurse/home-service-types', {
+                headers: { 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+            countSpan.textContent = `${data.length} services`;
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="2" class="py-4 text-center text-xs text-gray-400">No service types found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(st => `
+                <tr class="hover:bg-gray-50/70 transition-colors">
+                    <td class="py-2.5 px-3 font-medium text-gray-800 text-xs">
+                        <span id="st-name-${st.id}">${escapeHtml(st.name)}</span>
+                    </td>
+                    <td class="py-2.5 px-3 text-right">
+                        <div class="inline-flex items-center gap-1.5">
+                            <button type="button" onclick="editServiceType(${st.id}, '${escapeHtml(st.name).replace(/'/g, "\\'")}')" class="text-blue-600 hover:text-blue-800 p-1 text-xs font-semibold rounded hover:bg-blue-50 transition-colors" title="Edit">
+                                <span class="material-icons-outlined text-sm">edit</span>
+                            </button>
+                            <button type="button" onclick="deleteServiceType(${st.id}, '${escapeHtml(st.name).replace(/'/g, "\\'")}')" class="text-red-500 hover:text-red-700 p-1 text-xs font-semibold rounded hover:bg-red-50 transition-colors" title="Delete">
+                                <span class="material-icons-outlined text-sm">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Also update the select options in New Request modal if present
+            const reqSelect = document.getElementById('newRequestServiceTypeSelect');
+            if (reqSelect) {
+                const currentVal = reqSelect.value;
+                reqSelect.innerHTML = data.map(st => `<option value="${escapeHtml(st.name)}">${escapeHtml(st.name)}</option>`).join('');
+                if (currentVal && data.some(st => st.name === currentVal)) {
+                    reqSelect.value = currentVal;
+                }
+            }
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="2" class="py-4 text-center text-xs text-red-500">Failed to load service types.</td></tr>`;
+        }
+    }
+
+    async function submitNewServiceType(e) {
+        e.preventDefault();
+        const input = document.getElementById('newServiceTypeName');
+        const errEl = document.getElementById('serviceTypeFormError');
+        const btn = document.getElementById('btnAddServiceType');
+        const name = input.value.trim();
+        if (!name) return;
+
+        errEl.classList.add('hidden');
+        btn.disabled = true;
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const res = await fetch('/nurse/home-service-types', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ name })
+            });
+
+            const result = await res.json();
+            if (!res.ok) {
+                errEl.textContent = result.message || (result.errors && Object.values(result.errors)[0][0]) || 'Error adding service type';
+                errEl.classList.remove('hidden');
+            } else {
+                input.value = '';
+                await loadServiceTypes();
+            }
+        } catch (error) {
+            errEl.textContent = 'Server error. Please try again.';
+            errEl.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function editServiceType(id, currentName) {
+        const newName = prompt('Update Service Type Name:', currentName);
+        if (newName === null) return;
+        const trimmed = newName.trim();
+        if (!trimmed || trimmed === currentName) return;
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const res = await fetch(`/nurse/home-service-types/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ name: trimmed })
+            });
+
+            const result = await res.json();
+            if (!res.ok) {
+                alert(result.message || (result.errors && Object.values(result.errors)[0][0]) || 'Error updating service type');
+            } else {
+                await loadServiceTypes();
+            }
+        } catch (error) {
+            alert('Failed to update service type.');
+        }
+    }
+
+    async function deleteServiceType(id, name) {
+        if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const res = await fetch(`/nurse/home-service-types/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            });
+
+            const result = await res.json();
+            if (!res.ok) {
+                alert(result.message || 'Error deleting service type');
+            } else {
+                await loadServiceTypes();
+            }
+        } catch (error) {
+            alert('Failed to delete service type.');
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return text.replace(/[&<>"']/g, m => map[m]);
     }
 
     // Close on escape key or backdrop click

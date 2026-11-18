@@ -7,6 +7,7 @@ use App\Models\Medicine;
 use App\Models\MedicineRequest;
 use App\Models\MedicineReturn;
 use App\Models\HomeServiceRequest;
+use App\Models\HomeServiceType;
 use App\Models\Schedule;
 
 class ResidentDashboardController extends Controller
@@ -294,6 +295,9 @@ class ResidentDashboardController extends Controller
         // URL for the profile update PUT action
         $profileUpdateUrl = route('resident.profile.update');
 
+        // Active home service types for resident request dropdown
+        $homeServiceTypes = HomeServiceType::where('is_active', true)->orderBy('name')->pluck('name')->values()->all();
+
         return view('dashboards.resident', compact(
             'medicines',
             'myMedicineRequests',
@@ -307,6 +311,7 @@ class ResidentDashboardController extends Controller
             'medicineRequestStoreUrl',
             'homeServiceStoreUrl',
             'bookedHomeServices',
+            'homeServiceTypes',
             'mySchedules',
             'bookedSchedules',
             'scheduleStoreUrl',

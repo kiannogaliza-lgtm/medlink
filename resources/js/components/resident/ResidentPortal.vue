@@ -320,6 +320,7 @@
           :medicine-request-store-url="medicineRequestStoreUrl"
           :home-service-store-url="homeServiceStoreUrl"
           :booked-home-services="bookedHomeServices"
+          :home-service-types="homeServiceTypes"
           :my-schedules="mySchedules"
           :booked-schedules="bookedSchedules"
           :schedule-store-url="scheduleStoreUrl"
@@ -376,6 +377,10 @@ const props = defineProps({
     default: ''
   },
   bookedHomeServices: {
+    type: Array,
+    default: () => []
+  },
+  homeServiceTypes: {
     type: Array,
     default: () => []
   },

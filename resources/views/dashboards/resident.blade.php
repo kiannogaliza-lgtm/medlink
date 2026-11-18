@@ -26,6 +26,7 @@
             medicine-request-store-url="{{ $medicineRequestStoreUrl }}"
             home-service-store-url="{{ $homeServiceStoreUrl }}"
             :booked-home-services="{{ json_encode($bookedHomeServices) }}"
+            :home-service-types="{{ json_encode($homeServiceTypes ?? []) }}"
             :my-schedules="{{ json_encode($mySchedules) }}"
             :booked-schedules="{{ json_encode($bookedSchedules) }}"
             schedule-store-url="{{ $scheduleStoreUrl }}"

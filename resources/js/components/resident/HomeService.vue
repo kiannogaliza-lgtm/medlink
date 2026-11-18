@@ -26,12 +26,9 @@
           <select v-model="form.service_type" required
                   class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] transition-all bg-white">
             <option value="" disabled>Select a service...</option>
-            <option value="Maternal Care">Maternal Care</option>
-            <option value="Immunization">Immunization</option>
-            <option value="Wound Care">Wound Care</option>
-            <option value="Vital Signs Monitoring">Vital Signs Monitoring</option>
-            <option value="Bedridden Patient Care">Bedridden Patient Care</option>
-            <option value="Other">Other</option>
+            <option v-for="type in serviceTypeList" :key="type" :value="type">
+              {{ type }}
+            </option>
           </select>
         </div>
 
@@ -140,7 +137,24 @@ import { ref, computed, watch } from 'vue';
 const props = defineProps({
   user: { type: Object, required: true },
   homeServiceStoreUrl: { type: String, required: true },
-  bookedHomeServices: { type: Array, default: () => [] }
+  bookedHomeServices: { type: Array, default: () => [] },
+  homeServiceTypes: { type: Array, default: () => [] }
+});
+
+const defaultServiceTypes = [
+  'Maternal Care',
+  'Immunization',
+  'Wound Care',
+  'Vital Signs Monitoring',
+  'Bedridden Patient Care',
+  'Other'
+];
+
+const serviceTypeList = computed(() => {
+  if (props.homeServiceTypes && props.homeServiceTypes.length > 0) {
+    return props.homeServiceTypes;
+  }
+  return defaultServiceTypes;
 });
 
 const form = ref({

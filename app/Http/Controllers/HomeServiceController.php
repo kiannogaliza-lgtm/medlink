@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HomeServiceRequest;
+use App\Models\HomeServiceType;
 use App\Models\User;
 use App\Models\AppNotification;
 use Illuminate\Http\Request;
@@ -46,6 +47,9 @@ class HomeServiceController extends Controller
         // Get all BHW users for assignment dropdown
         $bhwUsers = User::where('role', 'bhw')->get();
 
+        // Get all service types
+        $serviceTypes = HomeServiceType::orderBy('name')->get();
+
         return view('dashboards.nurse-home-services', compact(
             'allRequests',
             'pendingRequests',
@@ -59,6 +63,7 @@ class HomeServiceController extends Controller
             'completedCount',
             'rejectedCount',
             'bhwUsers',
+            'serviceTypes',
             'status',
             'search'
         ));

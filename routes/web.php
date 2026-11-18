@@ -12,6 +12,7 @@ use App\Http\Controllers\HomeServiceController;
 use App\Http\Controllers\SchedulingController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\GlobalSearchController;
+use App\Http\Controllers\HomeServiceTypeController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -114,6 +115,12 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/nurse/home-services/{homeServiceRequest}/assign', [HomeServiceController::class, 'assign'])->name('home-services.assign');
     Route::delete('/nurse/home-services/{homeServiceRequest}', [HomeServiceController::class, 'destroy'])->name('home-services.destroy');
     Route::post('/nurse/home-services/clear', [HomeServiceController::class, 'clear'])->name('home-services.clear');
+
+    // Home Service Types Maintenance (Nurse/Admin)
+    Route::get('/nurse/home-service-types', [HomeServiceTypeController::class, 'index'])->name('home-service-types.index');
+    Route::post('/nurse/home-service-types', [HomeServiceTypeController::class, 'store'])->name('home-service-types.store');
+    Route::put('/nurse/home-service-types/{homeServiceType}', [HomeServiceTypeController::class, 'update'])->name('home-service-types.update');
+    Route::delete('/nurse/home-service-types/{homeServiceType}', [HomeServiceTypeController::class, 'destroy'])->name('home-service-types.destroy');
 
     Route::get('/nurse/scheduling', [SchedulingController::class, 'index'])->name('nurse.scheduling');
     Route::post('/nurse/scheduling', [SchedulingController::class, 'store'])->name('scheduling.store');
