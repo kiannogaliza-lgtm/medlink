@@ -10,7 +10,7 @@
            style="background: linear-gradient(180deg, #0c2d48 0%, #0a2540 50%, #081d33 100%)">
       <div class="p-5 flex items-center justify-between h-[72px] border-b border-white/10">
         <div class="flex items-center gap-3">
-          <img src="/ico.jpg" alt="MEDLINK Logo" class="w-10 h-10 rounded-xl object-cover shrink-0 shadow-lg">
+          <img src="/images/logo.png" alt="MEDLINK Logo" class="w-10 h-10 rounded-xl object-contain shrink-0 shadow-lg">
           <div class="leading-tight">
             <div class="font-extrabold tracking-wider text-base text-white">MEDLINK</div>
             <div class="text-[10px] text-cyan-200 font-semibold tracking-widest uppercase">Patient Portal</div>

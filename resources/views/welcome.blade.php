@@ -35,8 +35,8 @@
         
         {{-- 1. Brand Logo (Strictly Left) --}}
         <a href="/" class="flex items-center gap-3 group shrink-0">
-            <img src="{{ asset('ico.jpg') }}" alt="MEDLINK Logo" 
-                 class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-lg border border-white/20 group-hover:scale-105 transition-transform">
+            <img src="{{ asset('images/logo.png') }}?v={{ time() }}" alt="MEDLINK Logo" 
+                 class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-contain shadow-lg group-hover:scale-105 transition-transform">
             <div>
                 <div class="font-display font-black text-white text-lg sm:text-xl tracking-tight leading-none flex items-center gap-2">
                     MEDLINK

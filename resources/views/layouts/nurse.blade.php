@@ -207,7 +207,7 @@
             {{-- Logo --}}
             <div class="px-5 py-5 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <img src="{{ asset('ico.jpg') }}" alt="Logo" class="w-10 h-10 rounded-full object-cover shadow-lg border border-white/20">
+                    <img src="{{ asset('images/logo.png') }}?v={{ time() }}" alt="Logo" class="w-10 h-10 rounded-xl object-contain shadow-lg">
                     <div>
                         <div class="text-white font-bold text-base tracking-wide">MEDLINK</div>
                         <div class="text-blue-300 text-[10px] font-medium uppercase tracking-widest">Nurse Dashboard</div>

@@ -41,7 +41,7 @@
     {{-- Header / Brand --}}
     <header class="w-full max-w-7xl mx-auto px-6 sm:px-8 h-20 flex items-center justify-between relative z-10">
         <a href="/" class="flex items-center gap-3 group" aria-label="MEDLINK Home">
-            <img src="{{ asset('ico.jpg') }}" alt="MEDLINK Logo" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover flex-shrink-0 shadow-md border border-white/20 group-hover:scale-105 transition-transform">
+            <img src="{{ asset('images/logo.png') }}?v={{ time() }}" alt="MEDLINK Logo" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-contain flex-shrink-0 shadow-md group-hover:scale-105 transition-transform">
             <div>
                 <div class="font-display font-black text-white text-base sm:text-lg tracking-tight leading-none flex items-center gap-2">
                     MEDLINK
