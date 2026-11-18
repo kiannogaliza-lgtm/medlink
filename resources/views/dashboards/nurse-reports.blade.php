@@ -386,25 +386,21 @@
                                 </td>
                                 <td style="border-right: 1px solid #f1f5f9;">
                                     @if($req->is_for_other)
-                                        <div class="font-bold text-purple-800 text-xs flex items-center gap-1">
-                                            <span class="material-icons-outlined" style="font-size:14px;">family_restroom</span>
+                                        <div class="font-bold text-purple-800 text-xs">
                                             {{ $req->patient_name }}
                                         </div>
                                         <div class="text-[11px] text-purple-700 mt-0.5">
                                             {{ $req->patient_age ?? 'Age N/A' }} &bull; {{ $req->patient_rel }}
                                         </div>
                                     @else
-                                        <div class="text-xs font-medium text-gray-700 flex items-center gap-1">
-                                            <span class="material-icons-outlined text-gray-400" style="font-size:14px;">person</span>
+                                        <div class="text-xs font-medium text-gray-700">
                                             Self ({{ $req->requester_age ?? 'Resident' }})
                                         </div>
                                     @endif
                                 </td>
                                 <td style="border-right: 1px solid #f1f5f9; text-align: center;">
                                     @if(!empty($req->is_maintenance))
-                                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700">
-                                            <span class="material-icons-outlined" style="font-size:13px;">medication</span> Yes
-                                        </span>
+                                        <span class="text-[11px] font-bold text-amber-700">Yes</span>
                                     @else
                                         <span class="text-xs text-gray-400 font-medium">—</span>
                                     @endif
@@ -417,13 +413,9 @@
                                 </td>
                                 <td style="border-right: 1px solid #f1f5f9; text-align: center;">
                                     @if(strtolower($req->delivery_method) === 'delivery')
-                                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-700">
-                                            <span class="material-icons-outlined" style="font-size:14px;">local_shipping</span> Home Delivery
-                                        </span>
+                                        <span class="text-xs font-semibold text-purple-700">Home Delivery</span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
-                                            <span class="material-icons-outlined" style="font-size:14px;">storefront</span> Barangay Health Center
-                                        </span>
+                                        <span class="text-xs font-semibold text-emerald-700">Barangay Health Center</span>
                                     @endif
                                 </td>
                                 <td style="text-align: center; font-weight: 700; color: #1a5a89;">
@@ -507,8 +499,8 @@
                                     {{ $vac->administered_by ?? 'Health Center Staff' }}
                                 </td>
                                 <td style="text-align: center;">
-                                    <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
-                                        <span class="material-icons-outlined" style="font-size:12px;">check</span> {{ $vac->status }}
+                                    <span class="text-[11px] font-bold text-emerald-700">
+                                        {{ $vac->status }}
                                     </span>
                                 </td>
                             </tr>

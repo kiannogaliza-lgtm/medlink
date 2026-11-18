@@ -263,13 +263,9 @@
                                 </td>
                                 <td class="py-3.5 px-3 whitespace-nowrap">
                                     @if($request->delivery_method === 'delivery')
-                                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">
-                                            <span class="material-icons-outlined" style="font-size:13px;">local_shipping</span> Delivery
-                                        </span>
+                                        <span class="text-xs font-semibold text-indigo-700">Delivery</span>
                                     @else
-                                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
-                                            <span class="material-icons-outlined" style="font-size:13px;">storefront</span> Pickup
-                                        </span>
+                                        <span class="text-xs font-semibold text-emerald-700">Pickup</span>
                                     @endif
                                 </td>
                                 <td class="py-3.5 px-4 text-gray-500 whitespace-nowrap">
