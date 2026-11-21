@@ -96,6 +96,7 @@
         .modal-overlay {
             position: fixed;
             inset: 0;
+            padding: 1rem;
             background: rgba(0,0,0,0.5);
             backdrop-filter: blur(4px);
             z-index: 50;
@@ -113,15 +114,49 @@
         .modal-content {
             background: #ffffff;
             border-radius: 16px;
-            padding: 32px;
+            padding: clamp(1.25rem, 4vw, 2rem);
             width: 100%;
             max-width: 500px;
+            max-height: 90dvh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             box-shadow: 0 25px 60px rgba(0,0,0,0.15);
             transform: translateY(20px);
             transition: transform 0.3s ease;
         }
         .modal-overlay.active .modal-content {
             transform: translateY(0);
+        }
+
+        /* Smooth horizontal touch scroll for data tables & filter tabs */
+        .overflow-x-auto {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Mobile ergonomics across all Nurse dashboard pages */
+        @media (max-width: 639px) {
+            .stat-card {
+                padding: 14px 16px;
+            }
+            .modal-content .grid-cols-2,
+            .modal-content .grid-cols-3 {
+                grid-template-columns: 1fr !important;
+            }
+            .modal-content .col-span-2 {
+                grid-column: span 1 / span 1 !important;
+            }
+            .modal-content input,
+            .modal-content select,
+            .modal-content textarea {
+                font-size: 16px;
+            }
+            .toast {
+                top: 12px;
+                left: 12px;
+                right: 12px;
+                max-width: none;
+                padding: 12px 16px;
+            }
         }
 
         /* Status badges */
@@ -160,7 +195,7 @@
     </style>
     @yield('styles')
 </head>
-<body class="bg-[#f0f4f8] text-gray-900 antialiased min-h-screen">
+<body class="bg-[#f0f4f8] text-gray-900 antialiased min-h-[100dvh] overflow-x-hidden">
     @php
         $nurseUser = auth()->user();
         $nurseReadAt = $nurseUser ? $nurseUser->notifications_read_at : null;
@@ -266,6 +301,9 @@
                 <a href="{{ route('nurse.users') }}" class="sidebar-link @if(request()->routeIs('nurse.users')) active @endif">
                     <span class="material-icons-outlined" style="font-size:20px;">manage_accounts</span> <span>User Management</span>
                 </a>
+                <a href="{{ route('nurse.account-history') }}" class="sidebar-link @if(request()->routeIs('nurse.account-history*')) active @endif">
+                    <span class="material-icons-outlined" style="font-size:20px;">history</span> <span>Account History Logs</span>
+                </a>
             </nav>
 
             {{-- Footer --}}
@@ -278,29 +316,35 @@
         {{-- Main Content --}}
         <div class="main-wrapper flex-1 min-w-0">
             {{-- Top Navbar --}}
-            <header class="bg-white h-[64px] flex items-center justify-between px-3 sm:px-6 lg:px-8 border-b border-gray-200 sticky top-0 z-30">
-                <div class="flex items-center gap-3">
+            <header class="bg-white h-[64px] flex items-center justify-between gap-2 px-3 sm:px-6 lg:px-8 border-b border-gray-200 sticky top-0 z-30">
+                <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                     {{-- Mobile Hamburger Button --}}
-                    <button type="button" onclick="toggleNurseMobileSidebar()" class="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none cursor-pointer" aria-label="Toggle Menu">
+                    <button type="button" onclick="toggleNurseMobileSidebar()" class="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none cursor-pointer shrink-0" aria-label="Toggle Menu">
                         <span class="material-icons-outlined block" style="font-size:24px;">menu</span>
                     </button>
-                    <div>
-                        <h1 class="text-base sm:text-lg font-bold text-gray-900 truncate max-w-[150px] sm:max-w-none">@yield('page-title', 'Nurse Dashboard')</h1>
-                        <p class="text-[11px] sm:text-xs text-gray-400 hidden sm:block">Welcome back, {{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</p>
+                    <div class="min-w-0">
+                        <h1 class="text-sm sm:text-lg font-bold text-gray-900 truncate">@yield('page-title', 'Nurse Dashboard')</h1>
+                        <p class="text-[11px] sm:text-xs text-gray-400 hidden sm:block truncate">Welcome back, {{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 sm:gap-4">
-                    {{-- Search --}}
-                    <div class="relative" id="nurse-global-search-container">
+                <div class="flex items-center gap-1.5 sm:gap-4 shrink-0">
+                    {{-- Mobile Search Toggle Button --}}
+                    <button type="button" id="nurse-mobile-search-toggle" onclick="toggleNurseMobileSearch()" aria-label="Search"
+                            class="sm:hidden text-gray-500 hover:text-[#1a5a89] transition-colors p-2 bg-gray-50 rounded-full border border-gray-100 focus:outline-none cursor-pointer">
+                        <span class="material-icons-outlined block" style="font-size:20px;">search</span>
+                    </button>
+
+                    {{-- Search (Desktop inline, Mobile expandable bar below header) --}}
+                    <div class="hidden sm:block relative" id="nurse-global-search-container">
                         <span class="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="font-size:18px;">search</span>
                         <input type="text" id="nurse-global-search-input" placeholder="Search..." autocomplete="off"
-                               class="pl-9 pr-7 sm:pl-10 sm:pr-8 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 w-[130px] sm:w-[220px] focus:w-[190px] sm:focus:w-[280px] transition-all">
+                               class="pl-9 pr-7 sm:pl-10 sm:pr-8 py-2 bg-gray-50 border border-gray-200 rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 w-full sm:w-[220px] sm:focus:w-[280px] transition-all">
                         <button type="button" id="nurse-global-search-clear" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                             <span class="material-icons-outlined" style="font-size:16px;">close</span>
                         </button>
 
                         {{-- Search Results Dropdown --}}
-                        <div id="nurse-search-results" class="hidden absolute right-0 mt-2 w-96 max-w-[90vw] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 transform origin-top-right transition-all">
+                        <div id="nurse-search-results" class="hidden absolute right-0 mt-2 w-[min(24rem,calc(100vw-1.5rem))] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 transform origin-top-right transition-all">
                             <div class="px-4 py-2.5 bg-gray-50/80 border-b border-gray-100 flex items-center justify-between text-xs text-gray-500 font-semibold">
                                 <span>Search Results</span>
                                 <span id="nurse-search-count" class="text-blue-600 font-bold"></span>
@@ -314,7 +358,7 @@
                     {{-- Notifications --}}
                     <div class="relative" id="notification-dropdown-container">
                         <button onclick="toggleNotifications()" class="relative text-gray-500 hover:text-[#1a5a89] transition-colors p-2 bg-gray-50 rounded-full border border-gray-100 focus:outline-none cursor-pointer">
-                            <span class="material-icons-outlined block" style="font-size:22px;">notifications</span>
+                            <span class="material-icons-outlined block" style="font-size:20px;">notifications</span>
                             @if($totalNotifications > 0)
                                 <span id="nurse-notif-badge" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 border-2 border-white rounded-full text-[10px] text-white flex items-center justify-center font-bold">
                                     {{ $totalNotifications > 9 ? '9+' : $totalNotifications }}
@@ -322,8 +366,8 @@
                             @endif
                         </button>
                         
-                        {{-- Dropdown Panel (No View All footer) --}}
-                        <div id="notification-panel" class="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden hidden z-50 transform origin-top-right transition-all">
+                        {{-- Dropdown Panel (Viewport-safe on mobile) --}}
+                        <div id="notification-panel" class="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-[70px] sm:top-auto sm:mt-3 sm:w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden hidden z-50 transform origin-top-right transition-all">
                             <div class="px-5 py-3.5 border-b border-gray-100 bg-gray-50/70 flex justify-between items-center">
                                 <div class="flex items-center gap-2">
                                     <span class="material-icons-outlined text-[#1a5a89]" style="font-size:18px;">notifications</span>
@@ -433,9 +477,9 @@
                                     {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}{{ strtoupper(substr(auth()->user()->last_name, 0, 1)) }}
                                 </div>
                             @endif
-                            <form method="POST" action="{{ route('logout') }}">
+                            <form id="nurse-logout-form" method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit" title="Logout" class="text-gray-400 hover:text-red-500 transition-colors cursor-pointer p-1">
+                                <button type="button" onclick="openNurseLogoutModal()" title="Logout" class="text-gray-400 hover:text-red-500 transition-colors cursor-pointer p-1">
                                     <span class="material-icons-outlined" style="font-size:20px;">logout</span>
                                 </button>
                             </form>
@@ -450,13 +494,72 @@
         </div>
     </div>
 
+    {{-- Logout Confirmation Modal --}}
+    <div id="logoutConfirmModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" onclick="closeNurseLogoutModal(event)">
+        <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm overflow-hidden" onclick="event.stopPropagation()">
+            <div class="p-6 text-center">
+                <div class="w-14 h-14 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-4">
+                    <span class="material-icons-outlined" style="font-size:28px;">logout</span>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Confirm Logout</h3>
+                <p class="text-sm text-gray-500 mt-1.5">Are you sure you want to log out of your Nurse account?</p>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-2.5">
+                <button type="button" onclick="closeNurseLogoutModal()" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" onclick="confirmNurseLogout()" class="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-colors cursor-pointer">
+                    Confirm Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
     @yield('scripts')
     <script>
+        function openNurseLogoutModal() {
+            const modal = document.getElementById('logoutConfirmModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+        function closeNurseLogoutModal(e) {
+            if (e && e.target !== document.getElementById('logoutConfirmModal')) return;
+            const modal = document.getElementById('logoutConfirmModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+        function confirmNurseLogout() {
+            const form = document.getElementById('nurse-logout-form');
+            if (form) form.submit();
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeNurseLogoutModal();
+        });
+
         function toggleNurseMobileSidebar() {
             const sidebar = document.getElementById('nurse-sidebar');
             const backdrop = document.getElementById('nurse-sidebar-backdrop');
             if (sidebar) sidebar.classList.toggle('mobile-open');
             if (backdrop) backdrop.classList.toggle('hidden');
+        }
+
+        function toggleNurseMobileSearch() {
+            const container = document.getElementById('nurse-global-search-container');
+            const input = document.getElementById('nurse-global-search-input');
+            if (!container) return;
+            const isMobileOpen = container.classList.contains('!block');
+            if (isMobileOpen) {
+                container.classList.remove('!block', 'fixed', 'left-3', 'right-3', 'top-[70px]', 'z-50', 'bg-white', 'p-2', 'rounded-xl', 'shadow-xl', 'border', 'border-gray-200');
+                container.classList.add('hidden', 'relative');
+            } else {
+                container.classList.remove('hidden', 'relative');
+                container.classList.add('!block', 'fixed', 'left-3', 'right-3', 'top-[70px]', 'z-50', 'bg-white', 'p-2', 'rounded-xl', 'shadow-xl', 'border', 'border-gray-200');
+                if (input) setTimeout(() => input.focus(), 50);
+            }
         }
 
         function toggleNotifications() {
@@ -506,8 +609,12 @@
 
             const searchContainer = document.getElementById('nurse-global-search-container');
             const searchResults = document.getElementById('nurse-search-results');
+            const mobileSearchToggle = document.getElementById('nurse-mobile-search-toggle');
             if (searchContainer && searchResults && !searchContainer.contains(event.target)) {
                 searchResults.classList.add('hidden');
+                if (searchContainer.classList.contains('!block') && (!mobileSearchToggle || !mobileSearchToggle.contains(event.target))) {
+                    toggleNurseMobileSearch();
+                }
             }
         });
 
@@ -621,5 +728,7 @@
             }
         })();
     </script>
+    {{-- Real-Time Auto-Sync Engine --}}
+    <script src="{{ asset('js/auto-sync.js') }}?v={{ time() }}"></script>
 </body>
 </html>

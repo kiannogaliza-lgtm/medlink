@@ -203,7 +203,7 @@
             cutout: '55%',
             plugins: {
                 legend: {
-                    position: 'right',
+                    position: window.innerWidth < 640 ? 'bottom' : 'right',
                     labels: {
                         usePointStyle: true,
                         pointStyle: 'circle',

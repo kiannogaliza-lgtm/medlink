@@ -110,7 +110,20 @@ class HomeServiceController extends Controller
 
         $user = auth()->user();
 
-        HomeServiceRequest::create([
+        // Restriction: Only PWD and Senior Citizens can access / request Home Health Services
+        $isSenior = ($user->age !== null && $user->age >= 60) || strtolower($user->age_category ?? '') === 'senior citizen';
+        $classification = strtolower($user->patient_classification ?? '');
+        $isEligible = $classification === 'pwd' || $classification === 'senior citizen' || $isSenior;
+
+        if (!$isEligible) {
+            $msg = 'Home health services are exclusively reserved for PWD and Senior Citizen residents. Regular patients may visit the Barangay Health Center.';
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 403);
+            }
+            return redirect()->back()->with('error', $msg);
+        }
+
+        $hsRequest = HomeServiceRequest::create([
             'user_id' => $user->id,
             'patient_name' => $user->first_name . ' ' . $user->last_name,
             'service_type' => $validated['service_type'],
@@ -121,6 +134,17 @@ class HomeServiceController extends Controller
             'reason_symptoms' => $validated['reason_symptoms'] ?? null,
             'status' => 'Pending',
         ]);
+
+        // Notify all Nurses and BHWs in real-time about the new Home Service request
+        $staff = User::whereIn('role', ['nurse', 'bhw'])->get();
+        foreach ($staff as $member) {
+            AppNotification::create([
+                'user_id' => $member->id,
+                'type' => 'info',
+                'title' => 'New Home Service Request',
+                'message' => "{$hsRequest->patient_name} requested {$hsRequest->service_type} on " . ($hsRequest->preferred_date ? $hsRequest->preferred_date->format('M d, Y') : $validated['preferred_date']) . " ({$hsRequest->preferred_time}).",
+            ]);
+        }
 
         return redirect()->route('dashboard')->with('success', 'Home service request submitted successfully.');
     }
@@ -279,6 +303,27 @@ class HomeServiceController extends Controller
         }
 
         $homeServiceRequest->save();
+
+        // Notify the newly assigned BHW
+        if (!empty($homeServiceRequest->assigned_to)) {
+            AppNotification::create([
+                'user_id' => $homeServiceRequest->assigned_to,
+                'type' => 'info',
+                'title' => 'Home Service Assignment Updated',
+                'message' => "You have been assigned to {$homeServiceRequest->service_type} for {$homeServiceRequest->patient_name} on " . ($homeServiceRequest->preferred_date ? $homeServiceRequest->preferred_date->format('M d, Y') : 'schedule') . " ({$homeServiceRequest->preferred_time}).",
+            ]);
+        }
+
+        // Notify the resident about the updated assignment
+        if ($homeServiceRequest->user_id) {
+            $workerName = $homeServiceRequest->assigned_bhw_name ?: 'Our healthcare team';
+            AppNotification::create([
+                'user_id' => $homeServiceRequest->user_id,
+                'type' => 'info',
+                'title' => 'Home Service Worker Updated',
+                'message' => "Your {$homeServiceRequest->service_type} home service is now assigned to {$workerName}.",
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Assigned worker updated.');
     }

@@ -172,7 +172,7 @@ class ResidentDashboardController extends Controller
 
         // Stats
         $activeMedCount   = MedicineRequest::where('user_id', $user->id)->whereIn('status', ['Pending', 'Accepted', 'Approved'])->count();
-        $activeHsCount    = HomeServiceRequest::where('user_id', $user->id)->whereIn('status', ['Pending', 'Approved'])->count();
+        $activeHsCount    = HomeServiceRequest::where('user_id', $user->id)->whereIn('status', ['Pending', 'Accepted', 'Approved', 'Confirmed'])->count();
         $activeRequestsCount = $activeMedCount + $activeHsCount;
 
         $completedMedCount = MedicineRequest::where('user_id', $user->id)->where('status', 'Completed')->count();
@@ -259,7 +259,7 @@ class ResidentDashboardController extends Controller
         $pendingMedQuery = MedicineRequest::where('user_id', $user->id)->where('status', 'Pending');
         $acceptedMedQuery = MedicineRequest::where('user_id', $user->id)->where('status', 'Accepted');
         $approvedMedQuery = MedicineRequest::where('user_id', $user->id)->where('status', 'Approved');
-        $pendingHomeServiceQuery = HomeServiceRequest::where('user_id', $user->id)->whereIn('status', ['Pending', 'Approved']);
+        $pendingHomeServiceQuery = HomeServiceRequest::where('user_id', $user->id)->where('status', 'Pending');
         $upcomingScheduleQuery = Schedule::where('user_id', $user->id)->where('status', 'Confirmed');
 
         if ($readAt) {

@@ -373,6 +373,16 @@ class BhwDashboardController extends Controller
             ]);
         }
 
+        // Notify Nurses in real-time
+        foreach (\App\Models\User::where('role', 'nurse')->get() as $nurse) {
+            AppNotification::create([
+                'user_id' => $nurse->id,
+                'type' => 'info',
+                'title' => 'Home Service Accepted by BHW',
+                'message' => "{$homeService->assigned_bhw_name} accepted {$homeService->service_type} for {$homeService->patient_name}.",
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Service request accepted successfully. Resident has been notified that you are on the way.'
@@ -392,13 +402,23 @@ class BhwDashboardController extends Controller
         $homeService->save();
 
         // Notify the resident that the BHW is coming
+        $workerName = $homeService->assigned_bhw_name ?: ('BHW ' . auth()->user()->first_name . ' ' . auth()->user()->last_name);
         if ($homeService->user_id) {
-            $workerName = $homeService->assigned_bhw_name ?: ('BHW ' . auth()->user()->first_name . ' ' . auth()->user()->last_name);
             AppNotification::create([
                 'user_id' => $homeService->user_id,
                 'type' => 'info',
                 'title' => 'Home Service — On the Way',
                 'message' => "The home service, {$workerName} is coming wait for a minute.",
+            ]);
+        }
+
+        // Notify Nurses in real-time
+        foreach (\App\Models\User::where('role', 'nurse')->get() as $nurse) {
+            AppNotification::create([
+                'user_id' => $nurse->id,
+                'type' => 'info',
+                'title' => 'Home Service Confirmed by BHW',
+                'message' => "{$workerName} confirmed and is on the way for {$homeService->patient_name}'s {$homeService->service_type}.",
             ]);
         }
 
@@ -419,13 +439,23 @@ class BhwDashboardController extends Controller
         $homeService->save();
 
         // Notify the resident that the BHW is coming
+        $workerName = $homeService->assigned_bhw_name;
         if ($homeService->user_id) {
-            $workerName = $homeService->assigned_bhw_name;
             AppNotification::create([
                 'user_id' => $homeService->user_id,
                 'type' => 'success',
                 'title' => 'Home Service Approved — On the Way',
                 'message' => "The home service, {$workerName} is coming wait for a minute.",
+            ]);
+        }
+
+        // Notify Nurses in real-time
+        foreach (\App\Models\User::where('role', 'nurse')->get() as $nurse) {
+            AppNotification::create([
+                'user_id' => $nurse->id,
+                'type' => 'success',
+                'title' => 'Home Service Approved by BHW',
+                'message' => "{$workerName} approved and claimed {$homeService->service_type} for {$homeService->patient_name}.",
             ]);
         }
 
@@ -448,13 +478,23 @@ class BhwDashboardController extends Controller
         $homeService->save();
 
         // Notify the resident
+        $workerName = $homeService->assigned_bhw_name ?: ('BHW ' . auth()->user()->first_name . ' ' . auth()->user()->last_name);
         if ($homeService->user_id) {
-            $workerName = $homeService->assigned_bhw_name ?: ('BHW ' . auth()->user()->first_name . ' ' . auth()->user()->last_name);
             AppNotification::create([
                 'user_id' => $homeService->user_id,
                 'type' => 'info',
                 'title' => 'Home Service Completed',
                 'message' => "The home service, {$workerName} has completed your {$homeService->service_type} home visit.",
+            ]);
+        }
+
+        // Notify Nurses in real-time
+        foreach (\App\Models\User::where('role', 'nurse')->get() as $nurse) {
+            AppNotification::create([
+                'user_id' => $nurse->id,
+                'type' => 'success',
+                'title' => 'Home Service Completed',
+                'message' => "{$workerName} completed {$homeService->service_type} home visit for {$homeService->patient_name}.",
             ]);
         }
 
@@ -469,6 +509,10 @@ class BhwDashboardController extends Controller
      */
     public function nursesList()
     {
+        if (!auth()->user() || !auth()->user()->can_manage_nurses) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized: You do not have permission to manage Nurse accounts.'], 403);
+        }
+
         $nurses = \App\Models\User::where('role', 'nurse')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -480,6 +524,10 @@ class BhwDashboardController extends Controller
      */
     public function storeNurse(Request $request)
     {
+        if (!auth()->user() || !auth()->user()->can_manage_nurses) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized: You do not have permission to create Nurse accounts.'], 403);
+        }
+
         $validated = $request->validate([
             'first_name'   => ['required', 'string', 'max:255'],
             'last_name'    => ['required', 'string', 'max:255'],
@@ -515,6 +563,10 @@ class BhwDashboardController extends Controller
      */
     public function destroyNurse(\App\Models\User $user)
     {
+        if (!auth()->user() || !auth()->user()->can_manage_nurses) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized: You do not have permission to delete Nurse accounts.'], 403);
+        }
+
         if ($user->role !== 'nurse') {
             return response()->json(['success' => false, 'message' => 'User is not a nurse.'], 403);
         }

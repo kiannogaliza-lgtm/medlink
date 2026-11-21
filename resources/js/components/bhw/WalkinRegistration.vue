@@ -55,8 +55,8 @@
           </div>
         </div>
 
-        <!-- Row 2: Birthdate, Age, Gender & Category -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Row 2: Birthdate, Age, Gender, Category & Classification -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Birthdate</label>
             <div class="relative">
@@ -96,6 +96,15 @@
               <option value="Toddler">Toddler (1–2 yrs)</option>
               <option value="Infant">Infant (1 mo–1 yr)</option>
               <option value="Newborn / Neonate">Newborn / Neonate (0–28 days)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Classification</label>
+            <select v-model="form.patient_classification"
+                    class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] transition-all bg-gray-50 focus:bg-white appearance-none cursor-pointer">
+              <option value="Regular Patient">Regular Patient</option>
+              <option value="PWD">PWD (Person with Disability)</option>
+              <option value="Senior Citizen">Senior Citizen</option>
             </select>
           </div>
         </div>
@@ -276,6 +285,7 @@ const form = reactive({
   age: '',
   gender: '',
   agecategory: '',
+  patient_classification: 'Regular Patient',
   phone_number: '',
   purok: '',
   landmark: '',
@@ -299,6 +309,11 @@ const resolveCategoryFromAge = (num) => {
 const onAgeInput = () => {
   if (form.age !== '' && !isNaN(form.age)) {
     form.agecategory = resolveCategoryFromAge(form.age);
+    if (Number(form.age) >= 60 && form.patient_classification !== 'PWD') {
+      form.patient_classification = 'Senior Citizen';
+    } else if (Number(form.age) < 60 && form.patient_classification === 'Senior Citizen') {
+      form.patient_classification = 'Regular Patient';
+    }
   }
 };
 
@@ -317,6 +332,11 @@ const onDobChange = () => {
   if (years >= 0) {
     form.age = years;
     form.agecategory = resolveCategoryFromAge(years);
+    if (years >= 60 && form.patient_classification !== 'PWD') {
+      form.patient_classification = 'Senior Citizen';
+    } else if (years < 60 && form.patient_classification === 'Senior Citizen') {
+      form.patient_classification = 'Regular Patient';
+    }
   }
 };
 
@@ -335,6 +355,7 @@ const clearForm = () => {
   form.gender = '';
   form.phone_number = '';
   form.agecategory = '';
+  form.patient_classification = 'Regular Patient';
   form.purok = '';
   form.landmark = '';
   form.purpose = '';

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-[#f3f6f9] font-sans overflow-hidden relative">
+  <div class="flex h-[100dvh] bg-[#f3f6f9] font-sans overflow-hidden relative">
     <!-- Mobile Sidebar Backdrop Overlay -->
     <div v-if="mobileMenuOpen"
          @click="mobileMenuOpen = false"
@@ -39,6 +39,11 @@
               <span v-html="tab.icon" class="w-5 h-5 flex items-center justify-center shrink-0"></span>
               <span class="truncate">{{ tab.name }}</span>
             </div>
+            <span v-if="tab.id === 'service' && !isEligibleForHomeService"
+                  class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider shrink-0"
+                  title="Exclusively for PWD and Senior Citizens">
+              PWD/Senior
+            </span>
           </button>
         </template>
       </nav>
@@ -65,19 +70,29 @@
           </div>
         </div>
         
-        <div class="flex items-center gap-2 sm:gap-6">
-          <div class="relative hidden sm:block" id="resident-search-container">
-            <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div class="flex items-center gap-1.5 sm:gap-6 shrink-0">
+          <!-- Mobile Search Toggle Button -->
+          <button type="button"
+                  id="resident-mobile-search-toggle"
+                  @click="mobileSearchOpen = !mobileSearchOpen"
+                  aria-label="Search"
+                  class="sm:hidden text-gray-500 hover:text-[#1a5a89] transition-colors p-2 bg-gray-50 rounded-full border border-gray-100 focus:outline-none cursor-pointer">
+            <span class="material-icons-outlined block" style="font-size:20px;">{{ mobileSearchOpen ? 'close' : 'search' }}</span>
+          </button>
+
+          <div :class="[mobileSearchOpen ? 'block fixed left-3 right-3 top-[70px] z-50 bg-white p-2 rounded-2xl shadow-xl border border-gray-200 sm:static sm:p-0 sm:bg-transparent sm:shadow-none sm:border-0' : 'hidden sm:block relative']"
+               id="resident-search-container">
+            <svg class="w-4 h-4 absolute left-5 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input type="text"
                    v-model="portalSearchQuery"
                    @input="handleSearchInput"
                    placeholder="Search..." 
-                   class="pl-11 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] w-48 lg:w-72 transition-all">
+                   class="pl-11 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-full text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] w-full sm:w-48 lg:w-72 transition-all">
             <button v-if="portalSearchQuery"
                     @click="clearPortalSearch"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
+                    class="absolute right-4 sm:right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -85,7 +100,7 @@
 
             <!-- Search Results Dropdown -->
             <div v-if="showSearchResults"
-                 class="absolute left-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50">
+                 class="absolute left-0 right-0 sm:right-auto mt-2 sm:w-96 max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50">
               <div class="px-4 py-2.5 bg-gray-50/80 border-b border-gray-100 flex items-center justify-between text-xs text-gray-500 font-semibold">
                 <span>Search Results</span>
                 <span class="text-[#1a5a89] font-bold">{{ searchResults.length }} found</span>
@@ -134,7 +149,7 @@
 
             <!-- Dropdown Panel -->
             <div v-if="showNotificationDropdown"
-                 class="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 transform origin-top-right transition-all">
+                 class="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-[70px] sm:top-auto sm:mt-3 sm:w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 transform origin-top-right transition-all">
               <div class="px-5 py-3.5 border-b border-gray-100 bg-gray-50/70 flex justify-between items-center">
                 <div class="flex items-center gap-2">
                   <span class="material-icons-outlined text-[#1a5a89]" style="font-size:18px;">notifications</span>
@@ -288,7 +303,7 @@
             </div>
           </div>
           
-          <div class="flex items-center gap-2 sm:gap-4 border-l border-gray-100 pl-3 sm:pl-6">
+          <div class="flex items-center gap-1.5 sm:gap-4 border-l border-gray-100 pl-2 sm:pl-6">
              <div class="text-right hidden md:block">
                 <div class="text-xs sm:text-sm font-semibold text-gray-700">{{ currentUser.first_name }} {{ currentUser.last_name }}</div>
                 <div class="text-[10px] sm:text-[11px] text-green-500 font-medium">Online</div>
@@ -297,9 +312,9 @@
              <div v-else class="w-8 h-8 sm:w-10 sm:h-10 bg-[#1a5a89] text-white rounded-full flex items-center justify-center font-bold shadow-md shadow-[#1a5a89]/20 text-xs sm:text-sm shrink-0">
                 {{ currentUser.first_name ? currentUser.first_name.charAt(0) : 'U' }}
              </div>
-             <form method="POST" action="/logout" class="ml-1 sm:ml-2 border-l border-gray-100 pl-3 sm:pl-6">
+             <form ref="logoutFormRef" method="POST" action="/logout" class="sm:ml-2 sm:border-l border-gray-100 sm:pl-6">
                <input type="hidden" name="_token" :value="csrfToken">
-               <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 p-1.5 sm:p-2 rounded-full border border-gray-100 cursor-pointer" title="Logout">
+               <button type="button" @click="showLogoutModal = true" class="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 p-2 rounded-full border border-gray-100 cursor-pointer" title="Logout">
                  <svg class="w-4 h-4 sm:w-5 sm:h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                  </svg>
@@ -310,7 +325,7 @@
       </header>
       
       <!-- Content Area -->
-      <div class="flex-1 overflow-auto p-3 sm:p-6 lg:p-8 relative z-0">
+      <div class="flex-1 overflow-auto p-3 sm:p-6 lg:p-8 pb-20 sm:pb-8 relative z-0">
         <component
           :is="currentComponent"
           :user="currentUser"
@@ -332,12 +347,33 @@
       </div>
 
       <!-- Floating help button -->
-      <button class="fixed bottom-6 right-6 w-12 h-12 bg-gray-800 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-700 transition-colors z-50">
+      <button class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-11 h-11 sm:w-12 sm:h-12 bg-gray-800 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-700 transition-colors z-40">
         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </button>
     </main>
+
+    <!-- Logout Confirmation Modal -->
+    <div v-if="showLogoutModal" id="logoutConfirmModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" @click.self="showLogoutModal = false">
+      <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm overflow-hidden">
+        <div class="p-6 text-center">
+          <div class="w-14 h-14 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-4">
+            <span class="material-icons-outlined" style="font-size:28px;">logout</span>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900">Confirm Logout</h3>
+          <p class="text-sm text-gray-500 mt-1.5">Are you sure you want to log out of your Resident account?</p>
+        </div>
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-2.5">
+          <button type="button" @click="showLogoutModal = false" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+            Cancel
+          </button>
+          <button type="button" @click="confirmLogout" class="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-colors cursor-pointer">
+            Confirm Logout
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -424,11 +460,42 @@ const handleProfileUpdated = (updatedUser) => {
 const showNotificationDropdown = ref(false);
 const localNotificationsList = ref([]);
 const mobileMenuOpen = ref(false);
+const mobileSearchOpen = ref(false);
 const csrfToken = ref('');
+const showLogoutModal = ref(false);
+const logoutFormRef = ref(null);
+
+function confirmLogout() {
+  try { sessionStorage.removeItem('medlink_resident_tab'); } catch (e) {}
+  if (logoutFormRef.value) {
+    logoutFormRef.value.submit();
+  }
+}
+
+// ── Check if resident is eligible for Home Service (PWD or Senior Citizen only) ──
+const isEligibleForHomeService = computed(() => {
+  const u = currentUser.value || props.user || {};
+  const classification = String(u.patient_classification || '').toLowerCase();
+  const ageCategory = String(u.age_category || '').toLowerCase();
+  const isSenior = (u.age !== null && u.age !== undefined && Number(u.age) >= 60) || ageCategory === 'senior citizen';
+  return classification === 'pwd' || classification === 'senior citizen' || isSenior;
+});
 
 function handleTabSelect(tabId) {
   currentTab.value = tabId;
+  try { sessionStorage.setItem('medlink_resident_tab', tabId); } catch (e) {}
   mobileMenuOpen.value = false;
+}
+
+function handleNewRealtimeNotification(e) {
+  if (!e.detail) return;
+  const newNotif = e.detail;
+  // If not already in list, prepend it to localNotificationsList
+  if (!localNotificationsList.value.some(n => n.id === newNotif.id)) {
+    localNotificationsList.value.unshift(newNotif);
+    // Un-dismiss categories so unread indicators reactivate immediately
+    dismissedCategories.value = false;
+  }
 }
 
 onMounted(() => {
@@ -441,11 +508,13 @@ onMounted(() => {
   // Close dropdown when clicking outside
   document.addEventListener('click', handleClickOutside);
   window.addEventListener('notifications-read', markAllAsRead);
+  window.addEventListener('medlink-new-notification', handleNewRealtimeNotification);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
   window.removeEventListener('notifications-read', markAllAsRead);
+  window.removeEventListener('medlink-new-notification', handleNewRealtimeNotification);
 });
 
 function handleClickOutside(e) {
@@ -454,8 +523,12 @@ function handleClickOutside(e) {
     showNotificationDropdown.value = false;
   }
   const searchContainer = document.getElementById('resident-search-container');
+  const mobileSearchBtn = document.getElementById('resident-mobile-search-toggle');
   if (searchContainer && !searchContainer.contains(e.target)) {
     showSearchResults.value = false;
+    if (!mobileSearchBtn || !mobileSearchBtn.contains(e.target)) {
+      mobileSearchOpen.value = false;
+    }
   }
 }
 
@@ -567,10 +640,14 @@ async function markAllAsRead() {
 // ── Navigate to a sidebar tab ──
 function goToTab(tabId) {
   currentTab.value = tabId;
+  try { sessionStorage.setItem('medlink_resident_tab', tabId); } catch (e) {}
   showNotificationDropdown.value = false;
 }
 
-const currentTab = ref('dashboard');
+const savedResidentTab = (() => {
+  try { return sessionStorage.getItem('medlink_resident_tab') || 'dashboard'; } catch (e) { return 'dashboard'; }
+})();
+const currentTab = ref(savedResidentTab);
 
 const tabs = [
   { id: 'dashboard', name: 'Dashboard', sectionHeader: 'Overview', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>', component: ResidentDashboard },

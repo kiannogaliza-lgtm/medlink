@@ -112,6 +112,7 @@
                         <th class="text-left py-3 px-4 font-bold text-blue-700 text-xs uppercase tracking-wider">Phone Number</th>
                         <th class="text-left py-3 px-4 font-bold text-blue-700 text-xs uppercase tracking-wider">Age / Category</th>
                         <th class="text-left py-3 px-4 font-bold text-blue-700 text-xs uppercase tracking-wider">Role</th>
+                        <th class="text-left py-3 px-4 font-bold text-blue-700 text-xs uppercase tracking-wider">Nurse Access</th>
                         <th class="text-left py-3 px-4 font-bold text-blue-700 text-xs uppercase tracking-wider">Maintenance</th>
                         <th class="text-left py-3 px-4 font-bold text-blue-700 text-xs uppercase tracking-wider">Status</th>
                         <th class="text-left py-3 px-4 font-bold text-blue-700 text-xs uppercase tracking-wider">Last Login</th>
@@ -153,6 +154,27 @@
                                     {{ strtoupper($user->role) }}
                                 </span>
                             </td>
+                            {{-- Nurse Account Management Access (BHW only) --}}
+                            <td class="py-3.5 px-4">
+                                @if($user->role === 'bhw')
+                                    <form method="POST" action="{{ route('users.toggle-nurse-access', $user->id) }}" class="inline-flex items-center">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit"
+                                            title="{{ $user->can_manage_nurses ? 'Click to revoke Nurse Account access' : 'Click to grant Nurse Account access' }}"
+                                            class="inline-flex items-center gap-2 cursor-pointer group">
+                                            <span class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors {{ $user->can_manage_nurses ? 'bg-emerald-500' : 'bg-gray-300' }}">
+                                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform {{ $user->can_manage_nurses ? 'translate-x-4.5' : 'translate-x-1' }}"></span>
+                                            </span>
+                                            <span class="text-xs font-semibold {{ $user->can_manage_nurses ? 'text-emerald-700' : 'text-gray-400 group-hover:text-gray-600' }}">
+                                                {{ $user->can_manage_nurses ? 'Allowed' : 'Restricted' }}
+                                            </span>
+                                        </button>
+                                    </form>
+                                @else
+                                    <span class="text-xs text-gray-400 font-medium">—</span>
+                                @endif
+                            </td>
                             {{-- Maintenance badge --}}
                             <td class="py-3.5 px-4">
                                 @if($user->is_maintenance)
@@ -177,7 +199,7 @@
                             {{-- Actions --}}
                             <td class="py-3.5 px-4">
                                 <div class="flex items-center gap-2">
-                                    <button onclick="openEditModal({{ $user->id }}, '{{ addslashes($user->first_name) }}', '{{ addslashes($user->last_name) }}', '{{ $user->phone_number }}', '{{ $user->role }}', '{{ $user->status ?? 'active' }}', '{{ $user->profile_photo ? asset('storage/' . $user->profile_photo) : '' }}', {{ $user->age !== null ? $user->age : 'null' }}, {{ $user->is_maintenance ? 1 : 0 }})"
+                                    <button onclick="openEditModal({{ $user->id }}, '{{ addslashes($user->first_name) }}', '{{ addslashes($user->last_name) }}', '{{ $user->phone_number }}', '{{ $user->role }}', '{{ $user->status ?? 'active' }}', '{{ $user->profile_photo ? asset('storage/' . $user->profile_photo) : '' }}', {{ $user->age !== null ? $user->age : 'null' }}, {{ $user->is_maintenance ? 1 : 0 }}, {{ $user->can_manage_nurses ? 1 : 0 }})"
                                         class="w-8 h-8 rounded-md bg-blue-50 hover:bg-blue-100 flex items-center justify-center text-blue-600 transition-colors" title="Edit">
                                         <span class="material-icons-outlined" style="font-size:17px;">edit</span>
                                     </button>
@@ -273,13 +295,22 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Role</label>
-                            <select name="role" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer">
+                            <select name="role" id="add-role" onchange="toggleAddNurseAccess()" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer">
                                 <option value="">Select role...</option>
                                 <option value="bhw" {{ old('role') == 'bhw' ? 'selected' : '' }}>BHW</option>
                                 <option value="nurse" {{ old('role') == 'nurse' ? 'selected' : '' }}>Nurse</option>
                                 <option value="resident" {{ old('role') == 'resident' ? 'selected' : '' }}>Resident</option>
                             </select>
                         </div>
+                    </div>
+                    <div id="add-nurse-access-wrap" class="hidden p-3.5 rounded-xl bg-blue-50/70 border border-blue-100">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="can_manage_nurses" value="1" class="w-4 h-4 accent-blue-600 rounded">
+                            <div>
+                                <span class="text-sm font-semibold text-gray-800 block">Allow Nurse Account Management</span>
+                                <span class="text-xs text-gray-500">Permit this BHW to view, create, and manage Nurse accounts in their portal.</span>
+                            </div>
+                        </label>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -356,12 +387,21 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Role</label>
-                            <select name="role" id="edit-role" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer">
+                            <select name="role" id="edit-role" onchange="toggleEditNurseAccess()" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer">
                                 <option value="bhw">BHW</option>
                                 <option value="nurse">Nurse</option>
                                 <option value="resident">Resident</option>
                             </select>
                         </div>
+                    </div>
+                    <div id="edit-nurse-access-wrap" class="hidden p-3.5 rounded-xl bg-blue-50/70 border border-blue-100">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="can_manage_nurses" id="edit-can-manage-nurses" value="1" class="w-4 h-4 accent-blue-600 rounded">
+                            <div>
+                                <span class="text-sm font-semibold text-gray-800 block">Allow Nurse Account Management</span>
+                                <span class="text-xs text-gray-500">Permit this BHW to view, create, and manage Nurse accounts in their portal.</span>
+                            </div>
+                        </label>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -451,12 +491,25 @@
         }
     }
 
+    // Toggle Nurse Account Management checkbox visibility based on role
+    function toggleAddNurseAccess() {
+        const role = document.getElementById('add-role')?.value;
+        const wrap = document.getElementById('add-nurse-access-wrap');
+        if (wrap) wrap.classList.toggle('hidden', role !== 'bhw');
+    }
+    function toggleEditNurseAccess() {
+        const role = document.getElementById('edit-role')?.value;
+        const wrap = document.getElementById('edit-nurse-access-wrap');
+        if (wrap) wrap.classList.toggle('hidden', role !== 'bhw');
+    }
+
     // ADD Modal
     function openAddModal() {
         document.getElementById('add-photo-input').value = '';
         document.getElementById('add-photo-preview').src = '';
         document.getElementById('add-photo-preview').classList.add('hidden');
         document.getElementById('add-photo-icon').classList.remove('hidden');
+        toggleAddNurseAccess();
         document.getElementById('add-modal').classList.add('active');
     }
     function closeAddModal() {
@@ -464,7 +517,7 @@
     }
 
     // EDIT Modal
-    function openEditModal(id, firstName, lastName, phone, role, status, photoUrl, age, isMaintenance) {
+    function openEditModal(id, firstName, lastName, phone, role, status, photoUrl, age, isMaintenance, canManageNurses) {
         document.getElementById('edit-form').action = '/nurse/users/' + id;
         document.getElementById('edit-first-name').value = firstName;
         document.getElementById('edit-last-name').value = lastName;
@@ -473,6 +526,9 @@
         document.getElementById('edit-role').value = role;
         document.getElementById('edit-status').value = status;
         document.getElementById('edit-maintenance').value = isMaintenance ? '1' : '0';
+        const accessCheckbox = document.getElementById('edit-can-manage-nurses');
+        if (accessCheckbox) accessCheckbox.checked = Boolean(canManageNurses);
+        toggleEditNurseAccess();
         document.getElementById('edit-photo-input').value = '';
 
         const editPreview = document.getElementById('edit-photo-preview');

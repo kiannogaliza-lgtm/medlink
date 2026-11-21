@@ -32,27 +32,27 @@
         .dot:nth-child(3) { animation-delay: 0.4s; }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col relative bg-center bg-cover bg-no-repeat bg-fixed"
+<body class="antialiased min-h-[100dvh] flex flex-col relative bg-center bg-cover bg-no-repeat md:bg-fixed overflow-x-hidden"
       style="background-image: url('{{ asset('honrado.png') }}');">
 
     {{-- Dark Overlay --}}
     <div class="absolute inset-0 bg-[#0c2d48]/90 z-0 pointer-events-none"></div>
 
     {{-- Header --}}
-    <header class="w-full px-6 h-16 flex items-center justify-between relative z-10">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg">
+    <header class="w-full px-4 sm:px-6 h-16 flex items-center justify-between gap-3 relative z-10">
+        <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg shrink-0">
                 <span class="material-icons-outlined text-white" style="font-size:18px;">local_hospital</span>
             </div>
-            <div>
+            <div class="min-w-0">
                 <span class="text-white font-bold text-sm tracking-wide">MEDLINK</span>
-                <span class="text-blue-300 text-[9px] font-medium uppercase tracking-widest block -mt-0.5">Barangay Honrado</span>
+                <span class="text-blue-300 text-[9px] font-medium uppercase tracking-widest block -mt-0.5 truncate">Barangay Honrado</span>
             </div>
         </div>
 
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" class="shrink-0">
             @csrf
-            <button type="submit" class="text-white/50 hover:text-white text-sm font-medium flex items-center gap-1.5 transition-colors relative z-10">
+            <button type="submit" class="text-white/70 hover:text-white text-xs sm:text-sm font-medium flex items-center gap-1.5 transition-colors relative z-10 px-2.5 py-2 rounded-lg hover:bg-white/10">
                 <span class="material-icons-outlined" style="font-size:16px;">logout</span>
                 Sign out
             </button>
@@ -60,24 +60,24 @@
     </header>
 
     {{-- Main content --}}
-    <main class="flex-1 flex items-center justify-center px-6 py-12 relative z-10">
+    <main class="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 relative z-10">
         <div class="text-center max-w-md w-full">
 
             {{-- Animated icon --}}
-            <div class="relative inline-flex items-center justify-center mb-10">
+            <div class="relative inline-flex items-center justify-center mb-8 sm:mb-10">
                 {{-- Outer pulse ring --}}
-                <div class="pulse-ring absolute w-40 h-40 rounded-full" style="background: rgba(251,191,36,0.1);"></div>
+                <div class="pulse-ring absolute w-32 h-32 sm:w-40 sm:h-40 rounded-full" style="background: rgba(251,191,36,0.1);"></div>
                 {{-- Middle ring --}}
-                <div class="absolute w-28 h-28 rounded-full" style="background: rgba(251,191,36,0.15);"></div>
+                <div class="absolute w-24 h-24 sm:w-28 sm:h-28 rounded-full" style="background: rgba(251,191,36,0.15);"></div>
                 {{-- Icon circle --}}
-                <div class="float-icon relative w-20 h-20 rounded-full flex items-center justify-center shadow-2xl"
+                <div class="float-icon relative w-18 h-18 sm:w-20 sm:h-20 rounded-full flex items-center justify-center shadow-2xl"
                      style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                    <span class="material-icons-outlined text-white" style="font-size:38px;">pending_actions</span>
+                    <span class="material-icons-outlined text-white" style="font-size:34px;">pending_actions</span>
                 </div>
             </div>
 
             {{-- Message card --}}
-            <div class="bg-white/[0.06] backdrop-blur-sm rounded-2xl border border-white/10 px-8 py-8">
+            <div class="bg-white/[0.06] backdrop-blur-sm rounded-2xl border border-white/10 px-5 py-6 sm:px-8 sm:py-8">
                 <h1 class="text-2xl font-bold text-white mb-3">Account Pending Approval</h1>
                 <p class="text-blue-200/80 text-sm leading-relaxed mb-6">
                     Hi, <span class="text-white font-semibold">{{ auth()->user()->first_name }}</span>! Your registration was submitted successfully.
@@ -141,5 +141,41 @@
         </div>
     </main>
 
+    {{-- Real-Time Auto-Approval Listener --}}
+    <script>
+        (function() {
+            let isChecking = false;
+            const checkApprovalInterval = setInterval(async () => {
+                if (isChecking) return;
+                isChecking = true;
+                try {
+                    const res = await fetch('{{ route("api.sync-version") }}', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        // If user status changed from pending to active, navigate to dashboard immediately!
+                        if (data.authenticated && data.status === 'active') {
+                            clearInterval(checkApprovalInterval);
+                            window.location.href = '{{ route("dashboard") }}';
+                            return;
+                        } else if (data.authenticated && data.status === 'inactive') {
+                            // If rejected
+                            clearInterval(checkApprovalInterval);
+                            window.location.href = '{{ route("login") }}';
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    // Silently wait for next interval
+                } finally {
+                    isChecking = false;
+                }
+            }, 2000); // Check every 2 seconds
+        })();
+    </script>
 </body>
 </html>

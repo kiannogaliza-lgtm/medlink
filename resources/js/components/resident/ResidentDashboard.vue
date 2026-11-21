@@ -45,14 +45,14 @@
     </div>
 
     <!-- Maintenance Status Banner -->
-    <div v-if="user && user.is_maintenance" class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 flex items-center justify-between shadow-xs">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center text-white shadow-md shadow-amber-200">
-          <span class="material-icons-outlined text-2xl">medication</span>
+    <div v-if="user && user.is_maintenance" class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+      <div class="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-500 rounded-xl flex items-center justify-center text-white shadow-md shadow-amber-200 shrink-0">
+          <span class="material-icons-outlined text-xl sm:text-2xl">medication</span>
         </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h4 class="text-base font-bold text-amber-950">Maintenance Medication Program</h4>
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <h4 class="text-sm sm:text-base font-bold text-amber-950">Maintenance Medication Program</h4>
             <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900">Enrolled</span>
           </div>
           <p class="text-xs text-amber-800/80 mt-0.5">You are registered as a maintenance patient. Remember to request your regular refills on schedule.</p>

@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <!-- Stats Row -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
         <div>
           <div class="text-sm text-gray-500 font-medium mb-1">Assigned Services Today</div>
@@ -50,17 +50,17 @@
     </div>
 
     <!-- Expired Medicine Alert -->
-    <div v-if="dashboardData?.expiredMedicinesCount > 0" class="bg-red-50 border border-red-200 rounded-2xl p-5 flex items-center gap-4 shadow-sm">
-      <div class="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-red-200">
-        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <div v-if="dashboardData?.expiredMedicinesCount > 0" class="bg-red-50 border border-red-200 rounded-2xl p-4 sm:p-5 flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 shadow-sm">
+      <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-600 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-red-200">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
       </div>
-      <div class="flex-1">
+      <div class="flex-1 min-w-0">
         <p class="font-bold text-red-700 text-sm">Medicine Expiration Alert</p>
-        <p class="text-red-600 text-sm mt-0.5">{{ dashboardData.expiredMedicinesCount }} medicine(s) have expired. Please report this to the nurse immediately.</p>
+        <p class="text-red-600 text-xs sm:text-sm mt-0.5">{{ dashboardData.expiredMedicinesCount }} medicine(s) have expired. Please report this to the nurse immediately.</p>
       </div>
-      <span class="text-2xl font-extrabold text-red-700">{{ dashboardData.expiredMedicinesCount }}</span>
+      <span class="text-xl sm:text-2xl font-extrabold text-red-700 shrink-0">{{ dashboardData.expiredMedicinesCount }}</span>
     </div>
 
     <!-- Main Grid -->

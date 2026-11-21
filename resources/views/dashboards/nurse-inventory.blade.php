@@ -5,35 +5,35 @@
 
 @section('content')
     {{-- Header --}}
-    <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-        <div class="flex items-center justify-between mb-5">
+    <div class="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <h2 class="text-base font-bold text-gray-900 flex items-center gap-2">
                 <span class="material-icons-outlined text-blue-500" style="font-size:22px;">inventory_2</span>
                 Medicine Inventory Management
             </h2>
-            <button onclick="openAddModal()" id="btn-add-medicine" class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all shadow-sm hover:shadow-md">
+            <button onclick="openAddModal()" id="btn-add-medicine" class="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all shadow-sm hover:shadow-md">
                 <span class="material-icons-outlined" style="font-size:18px;">add</span>
                 Add Medicine
             </button>
         </div>
 
         {{-- Search & Filters --}}
-        <div class="flex flex-wrap items-center gap-4 mb-6">
-            <form method="GET" action="{{ route('nurse.inventory') }}" class="flex flex-wrap items-center gap-4 w-full" id="filter-form">
-                <div class="relative flex-1 min-w-[250px]">
+        <div class="flex flex-wrap items-center gap-3 sm:gap-4 mb-6">
+            <form method="GET" action="{{ route('nurse.inventory') }}" class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 w-full" id="filter-form">
+                <div class="relative flex-1 sm:min-w-[220px]">
                     <span class="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="font-size:18px;">search</span>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search medicines..."
-                        class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all">
+                        class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all">
                 </div>
                 <select name="category" onchange="document.getElementById('filter-form').submit()"
-                    class="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer">
+                    class="w-full sm:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer">
                     <option value="all" {{ request('category') == 'all' || !request('category') ? 'selected' : '' }}>All Categories</option>
                     @foreach(\App\Http\Controllers\MedicineController::categories() as $cat)
                         <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
                     @endforeach
                 </select>
                 <select name="status" onchange="document.getElementById('filter-form').submit()"
-                    class="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer">
+                    class="w-full sm:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer">
                     <option value="all" {{ request('status') == 'all' || !request('status') ? 'selected' : '' }}>All Status</option>
                     <option value="In Stock" {{ request('status') == 'In Stock' ? 'selected' : '' }}>In Stock</option>
                     <option value="Low Stock" {{ request('status') == 'Low Stock' ? 'selected' : '' }}>Low Stock</option>

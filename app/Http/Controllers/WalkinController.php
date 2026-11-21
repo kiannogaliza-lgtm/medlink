@@ -25,12 +25,13 @@ class WalkinController extends Controller
             'last_name'     => 'required|string|max:255',
             'dob'           => 'nullable|date',
             'age'           => 'nullable|integer|min:0|max:130',
-            'agecategory'   => 'nullable|string|max:100',
-            'gender'        => 'nullable|string|in:Male,Female',
-            'phone_number'  => ['nullable', 'regex:/^09[0-9]{9}$/'],
-            'address'       => 'nullable|string|max:500',
-            'purpose'       => 'required|string|max:255',
-            'symptoms'      => 'nullable|string|max:1000',
+            'agecategory'            => 'nullable|string|max:100',
+            'patient_classification' => 'nullable|string|in:Regular Patient,PWD,Senior Citizen',
+            'gender'                 => 'nullable|string|in:Male,Female',
+            'phone_number'           => ['nullable', 'regex:/^09[0-9]{9}$/'],
+            'address'                => 'nullable|string|max:500',
+            'purpose'                => 'required|string|max:255',
+            'symptoms'               => 'nullable|string|max:1000',
         ], [
             'phone_number.regex' => 'The phone number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',
         ]);
@@ -57,14 +58,20 @@ class WalkinController extends Controller
             $existingUser = User::where('phone_number', $validated['phone_number'])->first();
         }
 
+        $patientClassification = $validated['patient_classification'] ?? 'Regular Patient';
+        if ($age !== null && $age >= 60 && $patientClassification !== 'PWD') {
+            $patientClassification = 'Senior Citizen';
+        }
+
         if ($existingUser) {
             // Use the existing user — update any missing fields
             $existingUser->update(array_filter([
-                'dob'          => $validated['dob'] ?? null,
-                'age'          => $age,
-                'age_category' => $ageCategory,
-                'gender'       => $validated['gender'] ?? null,
-                'address'      => $validated['address'] ?? null,
+                'dob'                    => $validated['dob'] ?? null,
+                'age'                    => $age,
+                'age_category'           => $ageCategory,
+                'patient_classification' => $patientClassification,
+                'gender'                 => $validated['gender'] ?? null,
+                'address'                => $validated['address'] ?? null,
             ]));
             $user = $existingUser;
         } else {
@@ -73,18 +80,28 @@ class WalkinController extends Controller
             $phoneNumber = $validated['phone_number'] ?: 'WALKIN-' . time() . '-' . rand(1000, 9999);
 
             $user = User::create([
-                'first_name'   => $validated['first_name'],
-                'last_name'    => $validated['last_name'],
-                'phone_number' => $phoneNumber,
-                'password'     => Hash::make('walkin_' . time()), // Default password
-                'role'         => 'resident',
-                'status'       => 'active', // Auto-approved since BHW registers in-person
-                'dob'          => $validated['dob'] ?? null,
-                'age'          => $age,
-                'age_category' => $ageCategory,
-                'gender'       => $validated['gender'] ?? null,
-                'address'      => $validated['address'] ?? 'Barangay Honrado',
+                'first_name'             => $validated['first_name'],
+                'last_name'              => $validated['last_name'],
+                'phone_number'           => $phoneNumber,
+                'password'               => Hash::make('walkin_' . time()), // Default password
+                'role'                   => 'resident',
+                'status'                 => 'active', // Auto-approved since BHW registers in-person
+                'dob'                    => $validated['dob'] ?? null,
+                'age'                    => $age,
+                'age_category'           => $ageCategory,
+                'patient_classification' => $patientClassification,
+                'gender'                 => $validated['gender'] ?? null,
+                'address'                => $validated['address'] ?? 'Barangay Honrado',
             ]);
+
+            // Record Account History Log: Account Created by BHW
+            \App\Models\AccountLog::record(
+                $user,
+                'Account Created',
+                "Walk-in patient account registered in person by BHW " . (auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Staff') . " for {$validated['purpose']}.",
+                auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'BHW Staff',
+                'bhw'
+            );
         }
 
         // Create a Walk-in schedule entry so it appears in the Nurse scheduling system

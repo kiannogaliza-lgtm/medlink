@@ -359,6 +359,22 @@
                                         </span>
                                     </div>
                                     <div class="meta-item">
+                                        <label>Classification</label>
+                                        @if(($resident->patient_classification ?? '') === 'PWD')
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
+                                                <span class="material-icons-outlined" style="font-size:13px;">accessible</span> PWD
+                                            </span>
+                                        @elseif(($resident->patient_classification ?? '') === 'Senior Citizen' || ($resident->age && $resident->age >= 60))
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                                                <span class="material-icons-outlined" style="font-size:13px;">elderly</span> Senior Citizen
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-700 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-200">
+                                                Regular Patient
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <div class="meta-item">
                                         <label>Address</label>
                                         <span>Barangay Honrado</span>
                                     </div>
@@ -401,7 +417,8 @@
                                             '{{ $initials }}',
                                             '{{ $color }}',
                                             '{{ $resident->age !== null ? $resident->age . ' years old' : '—' }}',
-                                            '{{ $resident->age !== null ? ($resident->age_category ?: \App\Models\User::resolveAgeCategory($resident->age)) : '—' }}'
+                                            '{{ $resident->age !== null ? ($resident->age_category ?: \App\Models\User::resolveAgeCategory($resident->age)) : '—' }}',
+                                            '{{ $resident->patient_classification ?: (($resident->age && $resident->age >= 60) ? 'Senior Citizen' : 'Regular Patient') }}'
                                         )">
                                     <span class="material-icons-outlined" style="font-size:14px;">visibility</span>
                                     View Details
@@ -458,6 +475,22 @@
                                         </span>
                                     </div>
                                     <div class="meta-item">
+                                        <label>Classification</label>
+                                        @if(($resident->patient_classification ?? '') === 'PWD')
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
+                                                <span class="material-icons-outlined" style="font-size:13px;">accessible</span> PWD
+                                            </span>
+                                        @elseif(($resident->patient_classification ?? '') === 'Senior Citizen' || ($resident->age && $resident->age >= 60))
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                                                <span class="material-icons-outlined" style="font-size:13px;">elderly</span> Senior Citizen
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-700 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-200">
+                                                Regular Patient
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <div class="meta-item">
                                         <label>Address</label>
                                         <span>Barangay Honrado</span>
                                     </div>
@@ -488,7 +521,8 @@
                                             '{{ $initials }}',
                                             '{{ $color }}',
                                             '{{ $resident->age !== null ? $resident->age . ' years old' : '—' }}',
-                                            '{{ $resident->age !== null ? ($resident->age_category ?: \App\Models\User::resolveAgeCategory($resident->age)) : '—' }}'
+                                            '{{ $resident->age !== null ? ($resident->age_category ?: \App\Models\User::resolveAgeCategory($resident->age)) : '—' }}',
+                                            '{{ $resident->patient_classification ?: (($resident->age && $resident->age >= 60) ? 'Senior Citizen' : 'Regular Patient') }}'
                                         )">
                                     <span class="material-icons-outlined" style="font-size:14px;">visibility</span>
                                     View Details
@@ -538,6 +572,10 @@
                     <div>
                         <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Age Category</p>
                         <p id="modal-category" class="text-sm text-gray-700 font-medium"></p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Classification</p>
+                        <p id="modal-classification" class="text-sm font-semibold text-gray-800"></p>
                     </div>
                     <div>
                         <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Address</p>
@@ -633,15 +671,16 @@
     });
 
     // ── Detail Modal ──────────────────────────────────────────────
-    function openDetailModal(name, patientId, email, phone, date, idPhotoUrl, userId, status, initials, color, age, category) {
+    function openDetailModal(name, patientId, email, phone, date, idPhotoUrl, userId, status, initials, color, age, category, classification) {
         const modal = document.getElementById('detailModal');
 
-        document.getElementById('modal-name').textContent      = name;
-        document.getElementById('modal-patient-id').textContent = patientId;
-        document.getElementById('modal-phone').textContent     = phone;
-        document.getElementById('modal-age').textContent       = age || '—';
-        document.getElementById('modal-category').textContent  = category || '—';
-        document.getElementById('modal-date').textContent      = date;
+        document.getElementById('modal-name').textContent           = name;
+        document.getElementById('modal-patient-id').textContent      = patientId;
+        document.getElementById('modal-phone').textContent          = phone;
+        document.getElementById('modal-age').textContent            = age || '—';
+        document.getElementById('modal-category').textContent       = category || '—';
+        document.getElementById('modal-classification').textContent = classification || 'Regular Patient';
+        document.getElementById('modal-date').textContent           = date;
 
         // Avatar
         const avatar = document.getElementById('modal-avatar');

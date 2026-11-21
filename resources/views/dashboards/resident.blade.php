@@ -14,9 +14,15 @@
         }
         body { font-family: 'Inter', sans-serif; }
     </style>
+    <style>
+        .overflow-x-auto { -webkit-overflow-scrolling: touch; }
+        @media (max-width: 639px) {
+            input, select, textarea { font-size: 16px; }
+        }
+    </style>
     @vite(['resources/js/medlink.js'])
 </head>
-<body class="bg-gray-50 text-gray-900 antialiased min-h-screen">
+<body class="bg-gray-50 text-gray-900 antialiased min-h-[100dvh] overflow-x-hidden">
     <div id="app">
         <resident-portal 
             :user="{{ auth()->user()->toJson() }}"
@@ -36,5 +42,7 @@
             profile-update-url="{{ $profileUpdateUrl }}"
         ></resident-portal>
     </div>
+    {{-- Real-Time Auto-Sync Engine --}}
+    <script src="{{ asset('js/auto-sync.js') }}?v={{ time() }}"></script>
 </body>
 </html>

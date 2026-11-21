@@ -17,25 +17,25 @@
         {{ flash.message }}
       </div>
 
-      <form @submit.prevent="submitRequest" class="p-6 flex flex-col gap-5">
+      <form @submit.prevent="submitRequest" class="p-4 sm:p-6 flex flex-col gap-5">
         <!-- Who is this medicine for? (Patient / Recipient) -->
-        <div class="p-4 rounded-xl bg-blue-50/60 border border-blue-100">
+        <div class="p-3.5 sm:p-4 rounded-xl bg-blue-50/60 border border-blue-100">
           <label class="block text-xs font-bold text-[#1a5a89] uppercase tracking-wider mb-2">
             Who is taking this medicine?
           </label>
-          <div class="grid grid-cols-2 gap-2 mb-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
             <label :class="['flex items-center gap-2 p-2.5 rounded-lg border text-xs font-semibold cursor-pointer transition-all', form.patient_type === 'self' ? 'bg-white border-[#1a5a89] text-[#1a5a89] shadow-sm' : 'bg-transparent border-gray-200 text-gray-600 hover:bg-white/60']">
-              <input type="radio" v-model="form.patient_type" value="self" class="accent-[#1a5a89]">
-              <span>Myself ({{ user.first_name }} {{ user.last_name }})</span>
+              <input type="radio" v-model="form.patient_type" value="self" class="accent-[#1a5a89] shrink-0">
+              <span class="truncate">Myself ({{ user.first_name }} {{ user.last_name }})</span>
             </label>
             <label :class="['flex items-center gap-2 p-2.5 rounded-lg border text-xs font-semibold cursor-pointer transition-all', form.patient_type === 'other' ? 'bg-white border-[#1a5a89] text-[#1a5a89] shadow-sm' : 'bg-transparent border-gray-200 text-gray-600 hover:bg-white/60']">
-              <input type="radio" v-model="form.patient_type" value="other" class="accent-[#1a5a89]">
+              <input type="radio" v-model="form.patient_type" value="other" class="accent-[#1a5a89] shrink-0">
               <span>Family Member / Child / Elder</span>
             </label>
           </div>
 
           <!-- Self patient age display -->
-          <div v-if="form.patient_type === 'self'" class="text-xs text-gray-600 flex items-center justify-between pt-1 border-t border-blue-100/70">
+          <div v-if="form.patient_type === 'self'" class="text-xs text-gray-600 flex flex-wrap items-center justify-between gap-1 pt-1 border-t border-blue-100/70">
             <span>Requester Registered Age:</span>
             <span class="font-bold text-[#1a5a89]">
               {{ user.age !== null && user.age !== undefined ? `${user.age} years old` : 'Age not recorded' }}
@@ -48,18 +48,18 @@
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1">Patient Full Name <span class="text-red-500">*</span></label>
               <input v-model="form.patient_name" type="text" placeholder="e.g. Maria Santos" required
-                     class="w-full border border-gray-200 bg-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50">
+                     class="w-full border border-gray-200 bg-white rounded-lg px-3 py-2 text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50">
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1">Patient Age (Years) <span class="text-red-500">*</span></label>
                 <input v-model.number="form.patient_age" type="number" min="0" max="130" placeholder="e.g. 8" required
-                       class="w-full border border-gray-200 bg-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50">
+                       class="w-full border border-gray-200 bg-white rounded-lg px-3 py-2 text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50">
               </div>
               <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1">Relationship <span class="text-red-500">*</span></label>
                 <select v-model="form.patient_relationship" required
-                        class="w-full border border-gray-200 bg-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50">
+                        class="w-full border border-gray-200 bg-white rounded-lg px-3 py-2 text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50">
                   <option value="">Select...</option>
                   <option value="Child / Dependent">Child / Dependent</option>
                   <option value="Parent / Senior Citizen">Parent / Senior Citizen</option>

@@ -71,11 +71,11 @@
     <!-- Main Card -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <!-- Toolbar: Tabs & Search -->
-      <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="p-4 sm:p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <!-- Status Tabs -->
         <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
           <button @click="currentFilter = 'Pending'"
-                  :class="['px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
+                  :class="['shrink-0 whitespace-nowrap px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
                            currentFilter === 'Pending' ? 'bg-[#0c2d48] text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200']">
             <span class="material-icons-outlined" style="font-size: 16px;">hourglass_top</span>
             <span>Pending</span>
@@ -85,7 +85,7 @@
           </button>
 
           <button @click="currentFilter = 'Accepted'"
-                  :class="['px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
+                  :class="['shrink-0 whitespace-nowrap px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
                            currentFilter === 'Accepted' ? 'bg-[#0c2d48] text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200']">
             <span class="material-icons-outlined" style="font-size: 16px;">assignment_turned_in</span>
             <span>Accepted</span>
@@ -95,7 +95,7 @@
           </button>
 
           <button @click="currentFilter = 'Approved'"
-                  :class="['px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
+                  :class="['shrink-0 whitespace-nowrap px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
                            currentFilter === 'Approved' ? 'bg-[#0c2d48] text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200']">
             <span class="material-icons-outlined" style="font-size: 16px;">task_alt</span>
             <span>Approved (Out for Delivery)</span>
@@ -105,7 +105,7 @@
           </button>
 
           <button @click="currentFilter = 'Rejected'"
-                  :class="['px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
+                  :class="['shrink-0 whitespace-nowrap px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
                            currentFilter === 'Rejected' ? 'bg-[#0c2d48] text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200']">
             <span class="material-icons-outlined" style="font-size: 16px;">block</span>
             <span>Rejected</span>
@@ -115,7 +115,7 @@
           </button>
 
           <button @click="currentFilter = 'all'"
-                  :class="['px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
+                  :class="['shrink-0 whitespace-nowrap px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
                            currentFilter === 'all' ? 'bg-[#0c2d48] text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200']">
             <span class="material-icons-outlined" style="font-size: 16px;">list_alt</span>
             <span>All Deliveries</span>
@@ -131,7 +131,7 @@
           <input type="text" 
                  v-model="searchQuery" 
                  placeholder="Search patient, medicine, address..." 
-                 class="w-full pl-9 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                 class="w-full pl-9 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-xl text-base sm:text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
           <button v-if="searchQuery" @click="searchQuery = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
             <span class="material-icons-outlined" style="font-size: 16px;">close</span>
           </button>
@@ -139,12 +139,12 @@
       </div>
 
       <!-- Notice Banner on Delivery Only Scope -->
-      <div class="bg-indigo-50/70 border-b border-indigo-100 px-6 py-2.5 flex items-center justify-between text-xs text-indigo-900">
-        <div class="flex items-center gap-2">
-          <span class="material-icons-outlined text-indigo-600" style="font-size: 18px;">local_shipping</span>
+      <div class="bg-indigo-50/70 border-b border-indigo-100 px-4 sm:px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-indigo-900">
+        <div class="flex items-start sm:items-center gap-2">
+          <span class="material-icons-outlined text-indigo-600 shrink-0 mt-0.5 sm:mt-0" style="font-size: 18px;">local_shipping</span>
           <span><strong>BHW View:</strong> Only medicine requests with <strong>Home Delivery</strong> are shown here for dispatch and neighborhood delivery.</span>
         </div>
-        <span class="text-[11px] text-indigo-600 font-semibold bg-indigo-100/60 px-2 py-0.5 rounded-full">
+        <span class="text-[11px] text-indigo-600 font-semibold bg-indigo-100/60 px-2.5 py-0.5 rounded-full self-start sm:self-auto shrink-0">
           Pickup requests are handled at Center by Nurse
         </span>
       </div>

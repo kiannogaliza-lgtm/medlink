@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\AccountLog;
+use App\Models\AppNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -73,17 +75,26 @@ class UserManagementController extends Controller
 
         $age = isset($validated['age']) && $validated['age'] !== null ? (int) $validated['age'] : null;
 
-        User::create([
-            'first_name'    => $validated['first_name'],
-            'last_name'     => $validated['last_name'],
-            'phone_number'  => $validated['phone_number'],
-            'age'           => $age,
-            'age_category'  => User::resolveAgeCategory($age),
-            'role'          => $validated['role'],
-            'password'      => Hash::make($validated['password']),
-            'status'        => 'active',
-            'profile_photo' => $photoPath,
+        $newUser = User::create([
+            'first_name'        => $validated['first_name'],
+            'last_name'         => $validated['last_name'],
+            'phone_number'      => $validated['phone_number'],
+            'age'               => $age,
+            'age_category'      => User::resolveAgeCategory($age),
+            'role'              => $validated['role'],
+            'can_manage_nurses' => $validated['role'] === 'bhw' ? $request->boolean('can_manage_nurses') : false,
+            'password'          => Hash::make($validated['password']),
+            'status'            => 'active',
+            'profile_photo'     => $photoPath,
         ]);
+
+        AccountLog::record(
+            $newUser,
+            'Account Created',
+            "Account manually created by Nurse " . (auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Staff') . " with role {$validated['role']}.",
+            auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Barangay Nurse',
+            'nurse'
+        );
 
         return redirect()->route('nurse.users')->with('success', 'User account created successfully.');
     }
@@ -107,6 +118,8 @@ class UserManagementController extends Controller
         ]);
 
         $validated['is_maintenance'] = $request->boolean('is_maintenance');
+        $previousAccess = (bool) $user->can_manage_nurses;
+        $validated['can_manage_nurses'] = $validated['role'] === 'bhw' ? $request->boolean('can_manage_nurses') : false;
 
         if ($request->hasFile('profile_photo')) {
             if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo)) {
@@ -122,15 +135,78 @@ class UserManagementController extends Controller
 
         $user->update($validated);
 
+        // Notify BHW if Nurse Account access permission changed
+        if ($user->role === 'bhw' && $previousAccess !== (bool) $user->can_manage_nurses) {
+            AppNotification::create([
+                'user_id' => $user->id,
+                'type'    => $user->can_manage_nurses ? 'success' : 'info',
+                'title'   => $user->can_manage_nurses ? 'Nurse Account Access Granted' : 'Nurse Account Access Revoked',
+                'message' => $user->can_manage_nurses
+                    ? 'A Nurse has granted you permission to create and manage Nurse accounts.'
+                    : 'Your permission to manage Nurse accounts has been revoked by a Nurse.',
+            ]);
+        }
+
+        AccountLog::record(
+            $user,
+            'Account Updated',
+            "User details updated by Nurse " . (auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Staff') . ".",
+            auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Barangay Nurse',
+            'nurse'
+        );
+
         // Optional password change
         if ($request->filled('password')) {
             $request->validate([
                 'password' => ['string', 'min:8', 'confirmed'],
             ]);
             $user->update(['password' => Hash::make($request->password)]);
+
+            AccountLog::record(
+                $user,
+                'Password Reset',
+                "Account password reset by Nurse " . (auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Staff') . ".",
+                auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Barangay Nurse',
+                'nurse'
+            );
         }
 
         return redirect()->route('nurse.users')->with('success', 'User account updated successfully.');
+    }
+
+    /**
+     * Toggle a BHW user's permission to create/manage Nurse accounts.
+     */
+    public function toggleNurseAccess(Request $request, User $user)
+    {
+        if ($user->role !== 'bhw') {
+            return redirect()->back()->with('error', 'Nurse account access can only be toggled for BHW users.');
+        }
+
+        $newValue = !((bool) $user->can_manage_nurses);
+        $user->update(['can_manage_nurses' => $newValue]);
+
+        $actorName = auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Barangay Nurse';
+
+        AccountLog::record(
+            $user,
+            'Account Updated',
+            ($newValue ? 'Granted' : 'Revoked') . " Nurse Account Management access by Nurse {$actorName}.",
+            $actorName,
+            'nurse'
+        );
+
+        AppNotification::create([
+            'user_id' => $user->id,
+            'type'    => $newValue ? 'success' : 'info',
+            'title'   => $newValue ? 'Nurse Account Access Granted' : 'Nurse Account Access Revoked',
+            'message' => $newValue
+                ? "Nurse {$actorName} granted you access to create and manage Nurse accounts."
+                : "Nurse {$actorName} revoked your access to Nurse Account Management.",
+        ]);
+
+        $statusLabel = $newValue ? 'granted' : 'revoked';
+        return redirect()->back()->with('success', "Nurse account access {$statusLabel} for BHW {$user->first_name} {$user->last_name}.");
     }
 
     /**

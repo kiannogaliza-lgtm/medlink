@@ -59,6 +59,23 @@ class PatientVerificationController extends Controller
 
         $user->update(['status' => 'active']);
 
+        // Record Account History Log
+        \App\Models\AccountLog::record(
+            $user,
+            'Account Verified',
+            "Resident account verified and approved by Nurse " . (auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Staff') . ".",
+            auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Barangay Nurse',
+            'nurse'
+        );
+
+        // Notify the resident
+        \App\Models\AppNotification::create([
+            'user_id' => $user->id,
+            'type'    => 'success',
+            'title'   => 'Account Verified & Approved',
+            'message' => 'Congratulations! Your resident account has been verified. You now have full access to the MedLink portal.',
+        ]);
+
         return back()->with('success', "Patient {$user->first_name} {$user->last_name} has been verified and can now access the system.");
     }
 
@@ -72,6 +89,15 @@ class PatientVerificationController extends Controller
         }
 
         $user->update(['status' => 'inactive']);
+
+        // Record Account History Log
+        \App\Models\AccountLog::record(
+            $user,
+            'Account Rejected',
+            "Resident account rejected by Nurse " . (auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Staff') . ".",
+            auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Barangay Nurse',
+            'nurse'
+        );
 
         return back()->with('success', "Patient {$user->first_name} {$user->last_name} has been rejected.");
     }

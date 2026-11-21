@@ -3,11 +3,44 @@
     <div class="bg-white rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100">
       
       <!-- Header -->
-      <div class="p-6 border-b border-gray-100 flex items-center gap-3">
-        <svg class="w-6 h-6 text-[#1a5a89]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-        </svg>
-        <h3 class="font-bold text-[#1a5a89] text-xl">Request Home Health Service</h3>
+      <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <svg class="w-6 h-6 text-[#1a5a89]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+          </svg>
+          <div>
+            <h3 class="font-bold text-[#1a5a89] text-xl">Request Home Health Service</h3>
+            <p class="text-xs text-gray-400 mt-0.5">Exclusive community home care for PWD & Senior Citizen residents</p>
+          </div>
+        </div>
+        <div v-if="isEligible" class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          Eligible: {{ eligibilityLabel }}
+        </div>
+      </div>
+
+      <!-- Ineligible Notice for Regular Patients -->
+      <div v-if="!isEligible" class="p-8 text-center flex flex-col items-center">
+        <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4 border border-amber-200 shadow-sm">
+          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h4 class="text-lg font-bold text-gray-900 mb-1">Home Service Restricted</h4>
+        <p class="text-sm text-gray-600 max-w-md leading-relaxed mb-4">
+          Home Health Services are strictly reserved for <strong>PWD (Persons with Disability)</strong> and <strong>Senior Citizens (60 years and above)</strong> of Barangay Honrado.
+        </p>
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl max-w-md text-xs text-slate-600 text-left mb-6 space-y-1.5">
+          <p class="font-semibold text-slate-800 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            What you can do as a Regular Patient:
+          </p>
+          <p>&bull; Visit the Barangay Honrado Health Center during clinic hours (Mon–Fri, 8:00 AM – 5:00 PM).</p>
+          <p>&bull; Submit an online request under the <strong>Request Medicine</strong> tab for pick-up.</p>
+          <p>&bull; If your status changed to PWD or Senior Citizen, update your profile or contact the Health Center.</p>
+        </div>
       </div>
 
       <!-- Flash message -->
@@ -17,8 +50,8 @@
         {{ flash.message }}
       </div>
 
-      <!-- Form -->
-      <form @submit.prevent="submitRequest" class="p-6 flex flex-col gap-6">
+      <!-- Form (Only shown if eligible) -->
+      <form v-if="isEligible" @submit.prevent="submitRequest" class="p-6 flex flex-col gap-6">
         
         <!-- Service Type -->
         <div>
@@ -139,6 +172,22 @@ const props = defineProps({
   homeServiceStoreUrl: { type: String, required: true },
   bookedHomeServices: { type: Array, default: () => [] },
   homeServiceTypes: { type: Array, default: () => [] }
+});
+
+// Check if user is PWD or Senior Citizen
+const isEligible = computed(() => {
+  const u = props.user || {};
+  const classification = String(u.patient_classification || '').toLowerCase();
+  const ageCategory = String(u.age_category || '').toLowerCase();
+  const isSenior = (u.age !== null && u.age !== undefined && Number(u.age) >= 60) || ageCategory === 'senior citizen';
+  return classification === 'pwd' || classification === 'senior citizen' || isSenior;
+});
+
+const eligibilityLabel = computed(() => {
+  const u = props.user || {};
+  const classification = String(u.patient_classification || '').toLowerCase();
+  if (classification === 'pwd') return 'PWD';
+  return 'Senior Citizen';
 });
 
 const defaultServiceTypes = [

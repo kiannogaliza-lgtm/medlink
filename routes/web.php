@@ -59,6 +59,9 @@ Route::middleware(['auth'])->group(function () {
     // Global Search API (Nurse, BHW, Resident)
     Route::get('/api/search', [GlobalSearchController::class, 'search'])->name('global.search');
 
+    // Real-Time Auto-Sync API (Nurse, BHW, Resident)
+    Route::get('/api/sync-version', [\App\Http\Controllers\SyncController::class, 'version'])->name('api.sync-version');
+
     // Nurse routes
     Route::get('/nurse/medicine-requests', [MedicineRequestController::class, 'index'])->name('nurse.medicine-requests');
     Route::get('/nurse/inventory', [NurseDashboardController::class, 'inventory'])->name('nurse.inventory');
@@ -103,7 +106,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/nurse/users', [UserManagementController::class, 'index'])->name('nurse.users');
     Route::post('/nurse/users', [UserManagementController::class, 'store'])->name('users.store');
     Route::put('/nurse/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+    Route::patch('/nurse/users/{user}/toggle-nurse-access', [UserManagementController::class, 'toggleNurseAccess'])->name('users.toggle-nurse-access');
     Route::delete('/nurse/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+
+    // Account History Logs
+    Route::get('/nurse/account-history', [\App\Http\Controllers\AccountHistoryController::class, 'index'])->name('nurse.account-history');
 
     // Home Services
     Route::get('/nurse/home-services', [HomeServiceController::class, 'index'])->name('nurse.home-services');

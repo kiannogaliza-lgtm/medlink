@@ -13,8 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'first_name', 'last_name', 'phone_number', 'email', 'password', 'role', 
-    'status', 'is_maintenance', 'last_login_at', 'notifications_read_at', 'profile_photo', 'id_photo',
-    'dob', 'age', 'age_category', 'gender', 'blood_type', 'address', 'allergies', 
+    'status', 'is_maintenance', 'can_manage_nurses', 'last_login_at', 'notifications_read_at', 'profile_photo', 'id_photo',
+    'dob', 'age', 'age_category', 'patient_classification', 'gender', 'blood_type', 'address', 'allergies', 
     'chronic_conditions', 'last_checkup', 'emergency_contact_name', 
     'emergency_contact_relation', 'emergency_contact_phone'
 ])]
@@ -98,6 +98,7 @@ class User extends Authenticatable
             'dob' => 'date',
             'age' => 'integer',
             'is_maintenance' => 'boolean',
+            'can_manage_nurses' => 'boolean',
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AccountLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -14,12 +15,13 @@ class AuthController extends Controller
         $isResident = true;
 
         $rules = [
-            'first_name'   => ['required', 'string', 'max:255'],
-            'last_name'    => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'regex:/^09[0-9]{9}$/', 'unique:users'],
-            'age'          => ['required', 'integer', 'min:0', 'max:130'],
-            'password'     => ['required', 'string', 'min:8', 'confirmed'],
-            'id_photo'     => ['required', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
+            'first_name'             => ['required', 'string', 'max:255'],
+            'last_name'              => ['required', 'string', 'max:255'],
+            'phone_number'           => ['required', 'regex:/^09[0-9]{9}$/', 'unique:users'],
+            'age'                    => ['required', 'integer', 'min:0', 'max:130'],
+            'patient_classification' => ['required', 'in:Regular Patient,PWD,Senior Citizen'],
+            'password'               => ['required', 'string', 'min:8', 'confirmed'],
+            'id_photo'               => ['required', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
         ];
 
         $validated = $request->validate($rules, [
@@ -36,19 +38,32 @@ class AuthController extends Controller
         $ageCategory = \App\Models\User::resolveAgeCategory($age);
 
         $user = \App\Models\User::create([
-            'first_name'   => $validated['first_name'],
-            'last_name'    => $validated['last_name'],
-            'phone_number' => $validated['phone_number'],
-            'age'          => $age,
-            'age_category' => $ageCategory,
-            'password'     => Hash::make($validated['password']),
-            'role'         => $role,
-            'status'       => $isResident ? 'pending' : 'active',
-            'id_photo'     => $idPhotoPath,
+            'first_name'             => $validated['first_name'],
+            'last_name'              => $validated['last_name'],
+            'phone_number'           => $validated['phone_number'],
+            'age'                    => $age,
+            'age_category'           => $ageCategory,
+            'patient_classification' => $validated['patient_classification'] ?? 'Regular Patient',
+            'password'               => Hash::make($validated['password']),
+            'role'                   => $role,
+            'status'                 => $isResident ? 'pending' : 'active',
+            'id_photo'               => $idPhotoPath,
         ]);
+
+        // Record Account History Log: Account Created
+        AccountLog::record(
+            $user,
+            'Account Created',
+            "Resident account registered via Online Portal. Classification: " . ($user->patient_classification ?? 'Regular Patient'),
+            trim($user->first_name . ' ' . $user->last_name),
+            'resident'
+        );
 
         Auth::login($user);
         $request->session()->regenerate();
+
+        // Record Account History Log: First Logged In
+        AccountLog::record($user, 'Logged In', 'User logged in upon online registration.');
 
         if ($isResident) {
             // New residents go to the pending-approval waiting page
@@ -93,6 +108,7 @@ class AuthController extends Controller
             Auth::login($user, $request->boolean('remember'));
             $request->session()->regenerate();
             $user->update(['last_login_at' => now()]);
+            AccountLog::record($user, 'Logged In', 'Resident logged in (Status: Pending Verification).');
             return redirect()->route('pending.approval');
         }
 
@@ -108,8 +124,9 @@ class AuthController extends Controller
 
         // Track last login timestamp
         $user->update(['last_login_at' => now()]);
+        AccountLog::record($user, 'Logged In', 'Successful authentication.');
 
-        return redirect()->intended('dashboard');
+        return redirect()->route('dashboard');
     }
 
     public function logout(Request $request)

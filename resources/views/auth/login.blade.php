@@ -21,47 +21,53 @@
         body { font-family: 'Inter', sans-serif; }
         h1, h2, h3, h4, .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
+    <style>
+        .auth-bg {
+            background-image:
+                linear-gradient(
+                    135deg,
+                    rgba(2, 20, 11, 0.90) 0%,
+                    rgba(3, 30, 17, 0.82) 50%,
+                    rgba(2, 20, 11, 0.94) 100%
+                ),
+                url('{{ asset('honrado.png') }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: scroll;
+        }
+        @media (min-width: 768px) {
+            .auth-bg { background-attachment: fixed; }
+        }
+    </style>
 </head>
-<body class="text-slate-900 antialiased min-h-screen flex flex-col justify-between relative selection:bg-emerald-500 selection:text-white"
-      style="
-          background-image:
-              linear-gradient(
-                  135deg,
-                  rgba(2, 20, 11, 0.90) 0%,
-                  rgba(3, 30, 17, 0.82) 50%,
-                  rgba(2, 20, 11, 0.94) 100%
-              ),
-              url('{{ asset('honrado.png') }}');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          background-attachment: fixed;
-      ">
+<body class="auth-bg text-slate-900 antialiased min-h-[100dvh] flex flex-col justify-between relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
 
     {{-- Header / Brand --}}
-    <header class="w-full max-w-7xl mx-auto px-6 sm:px-8 h-24 flex items-center justify-between relative z-10">
-        <a href="/" class="flex items-center gap-3.5 group" aria-label="MEDLINK Home">
-            <img src="{{ asset('images/logo.png') }}?v={{ time() }}" alt="MEDLINK Logo" class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl object-contain flex-shrink-0 drop-shadow-xl group-hover:scale-105 transition-transform">
-            <div>
-                <div class="font-display font-black text-white text-lg sm:text-2xl tracking-tight leading-none flex items-center gap-2">
-                    MEDLINK
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">ONLINE</span>
+    <header class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-4 sm:h-24 flex items-center justify-between gap-3 relative z-10">
+        <a href="/" class="flex items-center gap-2.5 sm:gap-3.5 group min-w-0" aria-label="MEDLINK Home">
+            <img src="{{ asset('images/logo.png') }}?v={{ time() }}" alt="MEDLINK Logo" class="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl object-contain flex-shrink-0 drop-shadow-xl group-hover:scale-105 transition-transform">
+            <div class="min-w-0">
+                <div class="font-display font-black text-white text-base sm:text-2xl tracking-tight leading-none flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <span>MEDLINK</span>
+                    <span class="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">ONLINE</span>
                 </div>
-                <div class="text-xs sm:text-sm text-slate-300/80 mt-1 font-medium">Barangay Honrado Health Center</div>
+                <div class="text-[11px] sm:text-sm text-slate-300/80 mt-0.5 sm:mt-1 font-medium truncate">Barangay Honrado Health Center</div>
             </div>
         </a>
 
-        <a href="/" class="text-xs sm:text-sm font-semibold text-slate-200 hover:text-emerald-400 flex items-center gap-1.5 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <a href="/" class="text-xs sm:text-sm font-semibold text-slate-200 hover:text-emerald-400 flex items-center gap-1 sm:gap-1.5 transition-colors px-2.5 sm:px-3 py-2 rounded-lg hover:bg-white/5 shrink-0 whitespace-nowrap">
+            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
             </svg>
-            Back to Home
+            <span class="hidden xs:inline sm:inline">Back to Home</span>
+            <span class="sm:hidden">Home</span>
         </a>
     </header>
 
     {{-- Main Login Card Container --}}
-    <main class="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 relative overflow-hidden">
-        <div class="w-full max-w-md bg-white/95 backdrop-blur-xl border border-white/60 rounded-3xl shadow-2xl shadow-emerald-950/40 p-7 sm:p-9 relative z-10 transition-all">
+    <main class="flex-1 flex items-center justify-center px-3.5 sm:px-6 py-6 sm:py-12 relative overflow-hidden">
+        <div class="w-full max-w-md bg-white/95 backdrop-blur-xl border border-white/60 rounded-2xl sm:rounded-3xl shadow-2xl shadow-emerald-950/40 p-5 sm:p-9 relative z-10 transition-all">
             {{-- Form Header --}}
             <div class="text-center mb-7">
                 <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold uppercase tracking-wider mb-3">
@@ -134,7 +140,7 @@
                                inputmode="numeric"
                                oninput="validatePhoneDigits(this)"
                                title="Please enter an 11-digit Philippine phone number starting with 09 (e.g. 09123456789)"
-                               class="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 font-medium
+                               class="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm placeholder-slate-400 font-medium
                                       focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
                     </div>
                     <p id="phone-error-msg" class="text-xs text-rose-500 mt-1.5 hidden flex items-center gap-1 font-medium">
@@ -157,7 +163,7 @@
                             </svg>
                         </span>
                         <input type="password" name="password" id="password" required placeholder="••••••••"
-                               class="block w-full pl-10 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 font-medium
+                               class="block w-full pl-10 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm placeholder-slate-400 font-medium
                                       focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
                         <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none" aria-label="Toggle Password Visibility">
                             {{-- Eye Open Icon --}}

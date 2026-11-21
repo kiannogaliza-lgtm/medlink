@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-[#f3f6f9] font-sans overflow-hidden relative">
+  <div class="flex h-[100dvh] bg-[#f3f6f9] font-sans overflow-hidden relative">
     <!-- Mobile Sidebar Backdrop Overlay -->
     <div v-if="mobileMenuOpen"
          @click="mobileMenuOpen = false"
@@ -69,19 +69,29 @@
           </div>
         </div>
         
-        <div class="flex items-center gap-2 sm:gap-6">
-          <div class="relative hidden sm:block" id="bhw-search-container">
-            <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div class="flex items-center gap-1.5 sm:gap-6 shrink-0">
+          <!-- Mobile Search Toggle Button -->
+          <button type="button"
+                  id="bhw-mobile-search-toggle"
+                  @click="mobileSearchOpen = !mobileSearchOpen"
+                  aria-label="Search"
+                  class="sm:hidden text-gray-500 hover:text-[#1a5a89] transition-colors p-2 bg-gray-50 rounded-full border border-gray-100 focus:outline-none cursor-pointer">
+            <span class="material-icons-outlined block" style="font-size:20px;">{{ mobileSearchOpen ? 'close' : 'search' }}</span>
+          </button>
+
+          <div :class="[mobileSearchOpen ? 'block fixed left-3 right-3 top-[70px] z-50 bg-white p-2 rounded-2xl shadow-xl border border-gray-200 sm:static sm:p-0 sm:bg-transparent sm:shadow-none sm:border-0' : 'hidden sm:block relative']"
+               id="bhw-search-container">
+            <svg class="w-4 h-4 absolute left-5 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input type="text"
                    v-model="portalSearchQuery"
                    @input="handleSearchInput"
                    placeholder="Search..." 
-                   class="pl-11 pr-8 py-2 bg-white border border-gray-200 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] w-48 lg:w-72 transition-all">
+                   class="pl-11 pr-8 py-2 bg-white border border-gray-200 rounded-full text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] w-full sm:w-48 lg:w-72 transition-all">
             <button v-if="portalSearchQuery"
                     @click="clearPortalSearch"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
+                    class="absolute right-4 sm:right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -89,7 +99,7 @@
 
             <!-- Search Results Dropdown -->
             <div v-if="showSearchResults"
-                 class="absolute left-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50">
+                 class="absolute left-0 right-0 sm:right-auto mt-2 sm:w-96 max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50">
               <div class="px-4 py-2.5 bg-gray-50/80 border-b border-gray-100 flex items-center justify-between text-xs text-gray-500 font-semibold">
                 <span>Search Results</span>
                 <span class="text-[#1a5a89] font-bold">{{ searchResults.length }} found</span>
@@ -138,7 +148,7 @@
 
             <!-- Dropdown Panel -->
             <div v-if="showNotificationDropdown"
-                 class="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 transform origin-top-right transition-all animate-in fade-in zoom-in-95 duration-150">
+                 class="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-[70px] sm:top-auto sm:mt-3 sm:w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 transform origin-top-right transition-all animate-in fade-in zoom-in-95 duration-150">
               <div class="px-5 py-3.5 border-b border-gray-100 bg-gray-50/70 flex justify-between items-center">
                 <div class="flex items-center gap-2">
                   <span class="material-icons-outlined text-[#1a5a89]" style="font-size:18px;">notifications</span>
@@ -272,7 +282,7 @@
             </div>
           </div>
           
-          <div class="flex items-center gap-2 sm:gap-4 border-l border-gray-100 pl-3 sm:pl-6">
+          <div class="flex items-center gap-1.5 sm:gap-4 border-l border-gray-100 pl-2 sm:pl-6">
              <div class="text-right hidden md:block">
                 <div class="text-xs sm:text-sm font-semibold text-gray-700">{{ user.first_name }} {{ user.last_name }}</div>
                 <div class="text-[10px] sm:text-[11px] text-green-500 font-medium">Online</div>
@@ -283,9 +293,9 @@
                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
              </div>
-             <form method="POST" action="/logout" class="ml-1 sm:ml-2 border-l border-gray-100 pl-3 sm:pl-6">
+             <form ref="logoutFormRef" method="POST" action="/logout" class="sm:ml-2 sm:border-l border-gray-100 sm:pl-6">
                <input type="hidden" name="_token" :value="csrfToken">
-               <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 p-1.5 sm:p-2 rounded-full border border-gray-100 cursor-pointer" title="Logout">
+               <button type="button" @click="showLogoutModal = true" class="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 p-2 rounded-full border border-gray-100 cursor-pointer" title="Logout">
                  <svg class="w-4 h-4 sm:w-5 sm:h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                  </svg>
@@ -296,7 +306,7 @@
       </header>
       
       <!-- Content Area -->
-      <div class="flex-1 overflow-auto p-3 sm:p-6 lg:p-8 relative z-0">
+      <div class="flex-1 overflow-auto p-3 sm:p-6 lg:p-8 pb-20 sm:pb-8 relative z-0">
         <component :is="currentComponent" 
                    :user="user" 
                    :dashboard-data="dashboardData"
@@ -322,10 +332,31 @@
       </div>
 
       <!-- Floating help button -->
-      <button class="fixed bottom-6 right-6 w-12 h-12 bg-gray-800 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-700 transition-colors z-50">
+      <button class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-11 h-11 sm:w-12 sm:h-12 bg-gray-800 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-700 transition-colors z-40">
         <span class="font-bold">?</span>
       </button>
     </main>
+
+    <!-- Logout Confirmation Modal -->
+    <div v-if="showLogoutModal" id="logoutConfirmModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" @click.self="showLogoutModal = false">
+      <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm overflow-hidden">
+        <div class="p-6 text-center">
+          <div class="w-14 h-14 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-4">
+            <span class="material-icons-outlined" style="font-size:28px;">logout</span>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900">Confirm Logout</h3>
+          <p class="text-sm text-gray-500 mt-1.5">Are you sure you want to log out of your BHW account?</p>
+        </div>
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-2.5">
+          <button type="button" @click="showLogoutModal = false" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+            Cancel
+          </button>
+          <button type="button" @click="confirmLogout" class="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-colors cursor-pointer">
+            Confirm Logout
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -437,10 +468,32 @@ const props = defineProps({
 const showNotificationDropdown = ref(false);
 const localNotificationsList = ref([]);
 const mobileMenuOpen = ref(false);
+const mobileSearchOpen = ref(false);
+const showLogoutModal = ref(false);
+const logoutFormRef = ref(null);
+
+function confirmLogout() {
+  try { sessionStorage.removeItem('medlink_bhw_tab'); } catch (e) {}
+  if (logoutFormRef.value) {
+    logoutFormRef.value.submit();
+  }
+}
 
 function handleTabSelect(tabId) {
   currentTab.value = tabId;
+  try { sessionStorage.setItem('medlink_bhw_tab', tabId); } catch (e) {}
   mobileMenuOpen.value = false;
+}
+
+function handleNewRealtimeNotification(e) {
+  if (!e.detail) return;
+  const newNotif = e.detail;
+  // If not already in list, prepend it to localNotificationsList
+  if (!localNotificationsList.value.some(n => n.id === newNotif.id)) {
+    localNotificationsList.value.unshift(newNotif);
+    // Un-dismiss categories so unread indicators reactivate immediately
+    dismissedCategories.value = false;
+  }
 }
 
 onMounted(() => {
@@ -453,11 +506,13 @@ onMounted(() => {
   // Close dropdown when clicking outside
   document.addEventListener('click', handleClickOutside);
   window.addEventListener('notifications-read', markAllAsRead);
+  window.addEventListener('medlink-new-notification', handleNewRealtimeNotification);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
   window.removeEventListener('notifications-read', markAllAsRead);
+  window.removeEventListener('medlink-new-notification', handleNewRealtimeNotification);
 });
 
 function handleClickOutside(e) {
@@ -466,8 +521,12 @@ function handleClickOutside(e) {
     showNotificationDropdown.value = false;
   }
   const searchContainer = document.getElementById('bhw-search-container');
+  const mobileSearchBtn = document.getElementById('bhw-mobile-search-toggle');
   if (searchContainer && !searchContainer.contains(e.target)) {
     showSearchResults.value = false;
+    if (!mobileSearchBtn || !mobileSearchBtn.contains(e.target)) {
+      mobileSearchOpen.value = false;
+    }
   }
 }
 
@@ -578,25 +637,43 @@ async function markAllAsRead() {
 // ── Navigate to a sidebar tab ──
 function goToTab(tabId) {
   currentTab.value = tabId;
+  try { sessionStorage.setItem('medlink_bhw_tab', tabId); } catch (e) {}
   showNotificationDropdown.value = false;
 }
 
 const csrfToken = ref('');
 
-const currentTab = ref('dashboard');
+const canManageNurses = computed(() => Boolean(props.user?.can_manage_nurses));
 
-const tabs = computed(() => [
-  { id: 'dashboard', name: 'Dashboard', sectionHeader: 'Overview', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>', component: BhwDashboard },
-  { id: 'walkin', name: 'Walk-in Registration', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>', component: WalkinRegistration },
-  { id: 'inventory', name: 'View Inventory', sectionHeader: 'Medicine & Inventory', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>', component: ViewInventory },
-  { id: 'returned-medicines', name: 'Returned Medicines', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 15v-1a4 4 0 00-4-4H4m0 0l3-3m-3 3l3 3m5 4v1a3 3 0 003 3h4a3 3 0 003-3V7a3 3 0 00-3-3h-4a3 3 0 00-3 3v1" /></svg>', component: ReturnedMedicines },
-  { id: 'medicine-requests', name: 'Medicine Delivery', badge: pendingMedicineRequestsCount.value, icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m-4-4h8" /></svg>', component: MedicineDeliveryRequests },
-  { id: 'services', name: 'Home Services', badge: assignedHomeServicesCount.value, sectionHeader: 'Services & Community', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>', component: HomeServices },
-  { id: 'announcements', name: 'Schedule Announcements', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>', component: BhwAnnouncements },
-  { id: 'reports', name: 'Reports', sectionHeader: 'Administration', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>', component: Reports },
-  { id: 'nurses', name: 'Nurse Accounts', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>', component: NurseManagement },
-  { id: 'notifications', name: 'Notifications', badge: unreadCount.value, icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>', component: Notifications },
-]);
+const savedBhwTab = (() => {
+  try {
+    const t = sessionStorage.getItem('medlink_bhw_tab') || 'dashboard';
+    if (t === 'nurses' && !props.user?.can_manage_nurses) return 'dashboard';
+    return t;
+  } catch (e) { return 'dashboard'; }
+})();
+const currentTab = ref(savedBhwTab);
+
+const tabs = computed(() => {
+  const list = [
+    { id: 'dashboard', name: 'Dashboard', sectionHeader: 'Overview', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>', component: BhwDashboard },
+    { id: 'walkin', name: 'Walk-in Registration', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>', component: WalkinRegistration },
+    { id: 'inventory', name: 'View Inventory', sectionHeader: 'Medicine & Inventory', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>', component: ViewInventory },
+    { id: 'returned-medicines', name: 'Returned Medicines', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 15v-1a4 4 0 00-4-4H4m0 0l3-3m-3 3l3 3m5 4v1a3 3 0 003 3h4a3 3 0 003-3V7a3 3 0 00-3-3h-4a3 3 0 00-3 3v1" /></svg>', component: ReturnedMedicines },
+    { id: 'medicine-requests', name: 'Medicine Delivery', badge: pendingMedicineRequestsCount.value, icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m-4-4h8" /></svg>', component: MedicineDeliveryRequests },
+    { id: 'services', name: 'Home Services', badge: assignedHomeServicesCount.value, sectionHeader: 'Services & Community', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>', component: HomeServices },
+    { id: 'announcements', name: 'Schedule Announcements', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>', component: BhwAnnouncements },
+    { id: 'reports', name: 'Reports', sectionHeader: 'Administration', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>', component: Reports },
+  ];
+
+  if (canManageNurses.value) {
+    list.push({ id: 'nurses', name: 'Nurse Accounts', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>', component: NurseManagement });
+  }
+
+  list.push({ id: 'notifications', name: 'Notifications', badge: unreadCount.value, icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>', component: Notifications });
+
+  return list;
+});
 
 const currentComponent = computed(() => {
   return tabs.value.find(t => t.id === currentTab.value)?.component || BhwDashboard;
