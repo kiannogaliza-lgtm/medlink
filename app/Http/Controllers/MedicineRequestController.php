@@ -7,6 +7,7 @@ use App\Models\Medicine;
 use App\Models\User;
 use App\Models\AppNotification;
 use App\Models\MedicineReturn;
+use App\Models\Consultation;
 use Illuminate\Http\Request;
 
 class MedicineRequestController extends Controller
@@ -233,6 +234,43 @@ class MedicineRequestController extends Controller
 
         $medicineRequest->update(['status' => 'Accepted']);
 
+        // Record automatically into Consultations & Disease Monitoring so the nurse can conduct the consultation
+        $patientName = ($medicineRequest->patient_type === 'other' && !empty($medicineRequest->patient_name))
+            ? $medicineRequest->patient_name
+            : trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+        $patientAge = ($medicineRequest->patient_type === 'other' && !empty($medicineRequest->patient_age))
+            ? $medicineRequest->patient_age
+            : ($user->age ?? null);
+        $patientGender = ($medicineRequest->patient_type === 'other' && !empty($medicineRequest->patient_gender))
+            ? $medicineRequest->patient_gender
+            : ($user->gender ?? null);
+        $patientAddress = $user->address ?? 'Barangay Honrado';
+
+        $attendingNurse = auth()->check()
+            ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name)
+            : 'Barangay Nurse';
+
+        $notesText = !empty($medicineRequest->notes) ? $medicineRequest->notes : 'Medicine Request evaluation';
+        $requestIdStr = 'REQ-' . str_pad($medicineRequest->id, 3, '0', STR_PAD_LEFT);
+
+        Consultation::firstOrCreate(
+            ['medicine_request_id' => $medicineRequest->id],
+            [
+                'user_id'           => $medicineRequest->user_id,
+                'patient_name'      => $patientName,
+                'patient_age'       => $patientAge,
+                'patient_gender'    => $patientGender,
+                'address'           => $patientAddress,
+                'disease_case'      => 'General Consultation',
+                'symptoms'          => $notesText,
+                'diagnosis'         => "Prescription evaluation: {$medicineRequest->item_service} ({$requestIdStr})",
+                'treatment_notes'   => "Requested {$medicineRequest->quantity} unit(s) of {$medicineRequest->item_service}. Pending health center clinical assessment before dispensing.",
+                'consultation_date' => now()->toDateString(),
+                'attending_nurse'   => $attendingNurse,
+                'status'            => 'Active',
+            ]
+        );
+
         // Notify the resident to come for consultation first
         AppNotification::create([
             'user_id' => $medicineRequest->user_id,
@@ -286,6 +324,14 @@ class MedicineRequestController extends Controller
 
         // Mark the request as Approved
         $medicineRequest->update(['status' => 'Approved']);
+
+        // Update consultation status to Completed/Recovered if linked
+        if ($consultation = Consultation::where('medicine_request_id', $medicineRequest->id)->first()) {
+            $consultation->update([
+                'status' => 'Recovered',
+                'treatment_notes' => trim(($consultation->treatment_notes ?? '') . " | Approved & Dispensed ({$qty} unit(s))."),
+            ]);
+        }
 
         // Notify the resident
         AppNotification::create([

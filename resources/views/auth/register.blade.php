@@ -39,15 +39,15 @@
       ">
 
     {{-- Header / Brand --}}
-    <header class="w-full max-w-7xl mx-auto px-6 sm:px-8 h-20 flex items-center justify-between relative z-10">
-        <a href="/" class="flex items-center gap-3 group" aria-label="MEDLINK Home">
-            <img src="{{ asset('images/logo.png') }}?v={{ time() }}" alt="MEDLINK Logo" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-contain flex-shrink-0 shadow-md group-hover:scale-105 transition-transform">
+    <header class="w-full max-w-7xl mx-auto px-6 sm:px-8 h-24 flex items-center justify-between relative z-10">
+        <a href="/" class="flex items-center gap-3.5 group" aria-label="MEDLINK Home">
+            <img src="{{ asset('images/logo.png') }}?v={{ time() }}" alt="MEDLINK Logo" class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl object-contain flex-shrink-0 drop-shadow-xl group-hover:scale-105 transition-transform">
             <div>
-                <div class="font-display font-black text-white text-base sm:text-lg tracking-tight leading-none flex items-center gap-2">
+                <div class="font-display font-black text-white text-lg sm:text-2xl tracking-tight leading-none flex items-center gap-2">
                     MEDLINK
-                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">ONLINE</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">ONLINE</span>
                 </div>
-                <div class="text-[11px] text-slate-300/80 mt-1 font-medium">Barangay Honrado Health Center</div>
+                <div class="text-xs sm:text-sm text-slate-300/80 mt-1 font-medium">Barangay Honrado Health Center</div>
             </div>
         </a>
 

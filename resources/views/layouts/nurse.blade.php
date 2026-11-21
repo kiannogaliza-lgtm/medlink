@@ -205,12 +205,12 @@
         {{-- Sidebar --}}
         <aside id="nurse-sidebar" class="sidebar w-[240px] min-h-screen flex flex-col fixed left-0 top-0 bottom-0 z-40">
             {{-- Logo --}}
-            <div class="px-5 py-5 flex items-center justify-between">
+            <div class="px-5 py-5 flex items-center justify-between border-b border-white/10">
                 <div class="flex items-center gap-3">
-                    <img src="{{ asset('images/logo.png') }}?v={{ time() }}" alt="Logo" class="w-10 h-10 rounded-xl object-contain shadow-lg">
+                    <img src="{{ asset('images/logo.png') }}?v={{ time() }}" alt="Logo" class="w-14 h-14 rounded-2xl object-contain drop-shadow-xl shrink-0">
                     <div>
-                        <div class="text-white font-bold text-base tracking-wide">MEDLINK</div>
-                        <div class="text-blue-300 text-[10px] font-medium uppercase tracking-widest">Nurse Dashboard</div>
+                        <div class="text-white font-black text-lg tracking-wide">MEDLINK</div>
+                        <div class="text-blue-300 text-[10px] font-semibold uppercase tracking-wider">Nurse Dashboard</div>
                     </div>
                 </div>
                 {{-- Close button for mobile drawer --}}

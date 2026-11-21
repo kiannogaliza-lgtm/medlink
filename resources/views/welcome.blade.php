@@ -34,15 +34,15 @@
     <div class="w-full flex items-center justify-between">
         
         {{-- 1. Brand Logo (Strictly Left) --}}
-        <a href="/" class="flex items-center gap-3 group shrink-0">
+        <a href="/" class="flex items-center gap-3.5 group shrink-0">
             <img src="{{ asset('images/logo.png') }}?v={{ time() }}" alt="MEDLINK Logo" 
-                 class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-contain shadow-lg group-hover:scale-105 transition-transform">
+                 class="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl object-contain drop-shadow-xl group-hover:scale-105 transition-transform">
             <div>
-                <div class="font-display font-black text-white text-lg sm:text-xl tracking-tight leading-none flex items-center gap-2">
+                <div class="font-display font-black text-white text-xl sm:text-2xl md:text-3xl tracking-tight leading-none flex items-center gap-2.5">
                     MEDLINK
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">ONLINE</span>
+                    <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">ONLINE</span>
                 </div>
-                <div class="text-xs text-slate-300/80 mt-1 font-medium">Barangay Honrado Health Center</div>
+                <div class="text-xs sm:text-sm text-slate-300/80 mt-1 font-medium">Barangay Honrado Health Center</div>
             </div>
         </a>
 

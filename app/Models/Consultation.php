@@ -9,6 +9,7 @@ class Consultation extends Model
 {
     protected $fillable = [
         'user_id',
+        'medicine_request_id',
         'patient_name',
         'patient_age',
         'patient_gender',
@@ -30,6 +31,11 @@ class Consultation extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function medicineRequest(): BelongsTo
+    {
+        return $this->belongsTo(MedicineRequest::class);
     }
 }
 

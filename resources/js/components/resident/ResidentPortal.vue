@@ -8,12 +8,12 @@
     <!-- Sidebar -->
     <aside :class="['w-[260px] text-white flex flex-col h-full shrink-0 z-50 fixed inset-y-0 left-0 lg:static transition-transform duration-300 ease-in-out', mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0']"
            style="background: linear-gradient(180deg, #0c2d48 0%, #0a2540 50%, #081d33 100%)">
-      <div class="p-5 flex items-center justify-between h-[72px] border-b border-white/10">
+      <div class="p-4 flex items-center justify-between min-h-[76px] border-b border-white/10">
         <div class="flex items-center gap-3">
-          <img src="/images/logo.png" alt="MEDLINK Logo" class="w-10 h-10 rounded-xl object-contain shrink-0 shadow-lg">
+          <img src="/images/logo.png" alt="MEDLINK Logo" class="w-14 h-14 rounded-2xl object-contain shrink-0 drop-shadow-xl">
           <div class="leading-tight">
-            <div class="font-extrabold tracking-wider text-base text-white">MEDLINK</div>
-            <div class="text-[10px] text-cyan-200 font-semibold tracking-widest uppercase">Patient Portal</div>
+            <div class="font-black tracking-wider text-lg text-white">MEDLINK</div>
+            <div class="text-[10px] text-cyan-200 font-semibold tracking-wider uppercase">Patient Portal</div>
           </div>
         </div>
         <!-- Close Mobile Button -->

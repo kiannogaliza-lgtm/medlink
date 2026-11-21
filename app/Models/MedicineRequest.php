@@ -76,6 +76,14 @@ class MedicineRequest extends Model
     }
 
     /**
+     * Get the consultation linked to this request.
+     */
+    public function consultation()
+    {
+        return $this->hasOne(Consultation::class);
+    }
+
+    /**
      * Generate a formatted request ID like REQ-001.
      */
     public function getRequestIdAttribute(): string
