@@ -111,6 +111,15 @@ class PatientVerificationController extends Controller
             return back()->with('error', 'Only resident accounts can be deleted here.');
         }
 
+        $actorName = auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Barangay Nurse';
+        \App\Models\AccountLog::record(
+            $user,
+            'Account Deleted',
+            "Resident account permanently deleted from Patient Verification by Nurse {$actorName}.",
+            $actorName,
+            'nurse'
+        );
+
         if ($user->profile_photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_photo)) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_photo);
         }

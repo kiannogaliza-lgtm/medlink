@@ -78,6 +78,16 @@
                 <p class="text-slate-500 text-xs sm:text-sm mt-1.5 font-medium">Sign in to your MEDLINK account to continue</p>
             </div>
 
+            {{-- Success Status Notification --}}
+            @if(session('status'))
+                <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-3">
+                    <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="text-sm text-emerald-800 font-medium">{{ session('status') }}</p>
+                </div>
+            @endif
+
             {{-- Error Notification --}}
             @if($errors->any())
                 <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
@@ -179,11 +189,17 @@
                     </div>
                 </div>
 
-                {{-- Remember Me --}}
-                <div class="flex items-center">
-                    <input type="checkbox" id="remember" name="remember" 
-                           class="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 focus:ring-offset-0">
-                    <label for="remember" class="ml-2 text-xs sm:text-sm text-slate-600 font-medium select-none">Remember this device</label>
+                {{-- Remember Me & Forgot Account --}}
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember" name="remember" 
+                               class="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 focus:ring-offset-0">
+                        <label for="remember" class="ml-2 text-xs sm:text-sm text-slate-600 font-medium select-none">Remember this device</label>
+                    </div>
+                    <button type="button" onclick="openForgotModal('reset')"
+                            class="text-xs sm:text-sm font-semibold text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer">
+                        Forgot account?
+                    </button>
                 </div>
 
                 {{-- Submit Button --}}
@@ -213,7 +229,191 @@
         </div>
     </footer>
 
+    {{-- Forgot Account Modal --}}
+    <div id="forgotAccountModal" role="dialog" aria-modal="true" aria-labelledby="forgotModalTitle"
+         onclick="if(event.target === this) closeForgotModal()"
+         class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/75 backdrop-blur-sm p-3.5 sm:p-6">
+        <div class="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-7 relative max-h-[92dvh] overflow-y-auto">
+            <button type="button" onclick="closeForgotModal()" aria-label="Close modal"
+                    class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+
+            <div class="mb-5 pr-8">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">
+                    Account Recovery
+                </span>
+                <h2 id="forgotModalTitle" class="font-display text-xl font-extrabold text-slate-900 mt-2">Forgot your account?</h2>
+                <p class="text-xs text-slate-500 mt-1">Reset your password or look up your registered phone number.</p>
+            </div>
+
+            {{-- Modal Tabs --}}
+            <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-100 mb-5">
+                <button type="button" id="tabBtnReset" onclick="switchForgotTab('reset')"
+                        class="py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer bg-white text-emerald-700 shadow-sm">
+                    Reset Password
+                </button>
+                <button type="button" id="tabBtnFind" onclick="switchForgotTab('find')"
+                        class="py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900">
+                    Find My Account
+                </button>
+            </div>
+
+            {{-- Tab 1: Reset Password --}}
+            <div id="forgotTabReset">
+                @if($errors->forgot->any())
+                    <div class="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-medium space-y-1">
+                        @foreach($errors->forgot->all() as $err)
+                            <p>{{ $err }}</p>
+                        @endforeach
+                    </div>
+                @endif
+
+                <form action="{{ route('forgot.reset-password') }}" method="POST" class="space-y-3.5">
+                    @csrf
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Role</label>
+                        <select name="recover_role" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
+                            <option value="resident" {{ old('recover_role', 'resident') === 'resident' ? 'selected' : '' }}>Resident</option>
+                            <option value="bhw" {{ old('recover_role') === 'bhw' ? 'selected' : '' }}>BHW</option>
+                            <option value="nurse" {{ old('recover_role') === 'nurse' ? 'selected' : '' }}>Nurse</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">First Name</label>
+                            <input type="text" name="recover_first_name" required value="{{ old('recover_first_name') }}" placeholder="Juan"
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Last Name</label>
+                            <input type="text" name="recover_last_name" required value="{{ old('recover_last_name') }}" placeholder="Dela Cruz"
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Registered Phone Number</label>
+                        <input type="tel" name="recover_phone_number" required value="{{ old('recover_phone_number') }}" placeholder="09123456789"
+                               minlength="11" maxlength="11" pattern="09[0-9]{9}" inputmode="numeric"
+                               oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,11)"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">New Password</label>
+                        <input type="password" name="new_password" required minlength="8" placeholder="At least 8 characters"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Confirm New Password</label>
+                        <input type="password" name="new_password_confirmation" required minlength="8" placeholder="Re-enter new password"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
+                    </div>
+                    <button type="submit"
+                            class="w-full py-3 px-4 rounded-xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-md cursor-pointer mt-1">
+                        Reset Password
+                    </button>
+                </form>
+            </div>
+
+            {{-- Tab 2: Find My Account --}}
+            <div id="forgotTabFind" class="hidden">
+                @if(session('found_account_hint'))
+                    <div class="mb-4 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold">
+                        {{ session('found_account_hint') }}
+                    </div>
+                @endif
+                @if($errors->find->any())
+                    <div class="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-medium space-y-1">
+                        @foreach($errors->find->all() as $err)
+                            <p>{{ $err }}</p>
+                        @endforeach
+                    </div>
+                @endif
+
+                <form action="{{ route('forgot.find') }}" method="POST" class="space-y-3.5">
+                    @csrf
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Role</label>
+                        <select name="find_role" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
+                            <option value="resident" {{ old('find_role', 'resident') === 'resident' ? 'selected' : '' }}>Resident</option>
+                            <option value="bhw" {{ old('find_role') === 'bhw' ? 'selected' : '' }}>BHW</option>
+                            <option value="nurse" {{ old('find_role') === 'nurse' ? 'selected' : '' }}>Nurse</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">First Name</label>
+                        <input type="text" name="find_first_name" required value="{{ old('find_first_name') }}" placeholder="Juan"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Last Name</label>
+                        <input type="text" name="find_last_name" required value="{{ old('find_last_name') }}" placeholder="Dela Cruz"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
+                    </div>
+                    <button type="submit"
+                            class="w-full py-3 px-4 rounded-xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-md cursor-pointer mt-1">
+                        Find Registered Number
+                    </button>
+                </form>
+
+                <p class="mt-4 text-[11px] text-slate-400 text-center leading-relaxed">
+                    Still locked out? Visit the Barangay Honrado Health Center Nurse or BHW desk with a valid ID for manual recovery.
+                </p>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function openForgotModal(tab = 'reset') {
+            const modal = document.getElementById('forgotAccountModal');
+            if (!modal) return;
+            switchForgotTab(tab);
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeForgotModal() {
+            const modal = document.getElementById('forgotAccountModal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        function switchForgotTab(tab) {
+            const resetTab = document.getElementById('forgotTabReset');
+            const findTab = document.getElementById('forgotTabFind');
+            const btnReset = document.getElementById('tabBtnReset');
+            const btnFind = document.getElementById('tabBtnFind');
+            if (!resetTab || !findTab) return;
+
+            const isReset = tab === 'reset';
+            resetTab.classList.toggle('hidden', !isReset);
+            findTab.classList.toggle('hidden', isReset);
+
+            btnReset.className = isReset
+                ? 'py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer bg-white text-emerald-700 shadow-sm'
+                : 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900';
+            btnFind.className = !isReset
+                ? 'py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer bg-white text-emerald-700 shadow-sm'
+                : 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 hover:text-slate-900';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeForgotModal();
+        });
+
+        @if(session('open_forgot_modal'))
+            openForgotModal('{{ session('open_forgot_modal') }}');
+        @elseif($errors->forgot->any())
+            openForgotModal('reset');
+        @elseif($errors->find->any())
+            openForgotModal('find');
+        @endif
+
         function validatePhoneDigits(input) {
             let val = input.value.replace(/[^0-9]/g, '');
             // Only allow starting with 0, then 9

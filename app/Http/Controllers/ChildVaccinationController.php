@@ -43,11 +43,11 @@ class ChildVaccinationController extends Controller
 
         $vaccinations = $query->paginate(15)->withQueryString();
 
-        // Counts
+        // Counts (only Completed doses count as "Given")
         $totalVaccinations = ChildVaccination::count();
-        $firstDoseCount    = ChildVaccination::where('dose_number', '1st Dose')->count();
-        $secondDoseCount   = ChildVaccination::where('dose_number', '2nd Dose')->count();
-        $succeedingCount   = ChildVaccination::whereIn('dose_number', ['3rd Dose', 'Booster 1', 'Booster 2'])->count();
+        $firstDoseCount    = ChildVaccination::where('dose_number', '1st Dose')->where('status', 'Completed')->count();
+        $secondDoseCount   = ChildVaccination::where('dose_number', '2nd Dose')->where('status', 'Completed')->count();
+        $succeedingCount   = ChildVaccination::whereIn('dose_number', ['3rd Dose', 'Booster 1', 'Booster 2'])->where('status', 'Completed')->count();
 
         $parents = User::where('role', 'resident')->orderBy('first_name')->get();
 
@@ -116,6 +116,23 @@ class ChildVaccinationController extends Controller
         }
 
         return redirect()->route('nurse.vaccinations')->with('success', "Vaccination dose recorded successfully for {$validated['child_name']}!");
+    }
+
+    /**
+     * Update a vaccination dose status (Completed / Scheduled / Missed).
+     */
+    public function updateStatus(Request $request, ChildVaccination $childVaccination)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:Completed,Scheduled,Missed',
+        ]);
+
+        $childVaccination->update([
+            'status' => $validated['status'],
+        ]);
+
+        return redirect()->route('nurse.vaccinations')
+            ->with('success', "Updated {$childVaccination->child_name}'s {$childVaccination->vaccine_name} status to {$validated['status']}.");
     }
 
     /**

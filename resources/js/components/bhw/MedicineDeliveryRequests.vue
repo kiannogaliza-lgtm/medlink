@@ -796,7 +796,7 @@ function printReceipt(req) {
   const relation = req.claimed_relationship || 'Self';
   const med = req.item_service || 'Medicine';
   const qty = req.quantity || 1;
-  const address = req.user?.address || 'Barangay Honorato';
+  const address = req.user?.address || 'Barangay Honrado';
   const dateStr = req.claimed_at ? new Date(req.claimed_at).toLocaleString() : new Date().toLocaleString();
 
   const printWindow = window.open('', '_blank', 'width=650,height=750');
@@ -827,7 +827,7 @@ function printReceipt(req) {
       <body>
         <div class="receipt-box">
           <div class="header">
-            <h2>Barangay Honorato Health Center</h2>
+            <h2>Barangay Honrado Health Center</h2>
             <p>Official Medicine Home Delivery & Claiming Receipt</p>
             <div class="badge">OFFICIALLY CLAIMED / DELIVERED</div>
           </div>
@@ -885,7 +885,7 @@ function printReceipt(req) {
           </div>
 
           <div class="footer">
-            Electronic Proof of Delivery &bull; Barangay Honorato Health Information System &bull; Keep for your records
+            Electronic Proof of Delivery &bull; Barangay Honrado Health Information System &bull; Keep for your records
           </div>
         </div>
         <script>

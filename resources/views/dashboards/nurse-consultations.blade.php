@@ -60,7 +60,7 @@
 
     {{-- Printable Header (Shows only on print) --}}
     <div class="print-only p-6 border-b-2 border-gray-800 text-center">
-        <h1 class="text-2xl font-black text-gray-900 uppercase">Barangay Honorato Health Center</h1>
+        <h1 class="text-2xl font-black text-gray-900 uppercase">Barangay Honrado Health Center</h1>
         <h2 class="text-base font-bold text-gray-700 mt-1">Official Disease Surveillance & Consultation Report</h2>
         <p class="text-xs text-gray-500 mt-0.5">Municipal Health Office Reporting & Epidemic Case Monitoring &bull; Date: {{ now()->format('F d, Y h:i A') }}</p>
     </div>
@@ -362,7 +362,7 @@
 
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Barangay Address / Zone</label>
-                <input type="text" name="address" id="modal_patient_address" placeholder="e.g. Purok 4, Barangay Honorato" class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30">
+                <input type="text" name="address" id="modal_patient_address" placeholder="e.g. Purok 4, Barangay Honrado" class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30">
             </div>
 
             <div class="grid grid-cols-2 gap-3">

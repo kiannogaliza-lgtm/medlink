@@ -277,7 +277,7 @@
 
         {{-- Printable Header (Visible only when printed) --}}
         <div class="hidden print:block mb-6 text-center border-b-2 border-gray-800 pb-4">
-            <h1 class="text-xl font-bold uppercase text-gray-900">Barangay Honorato Health Center</h1>
+            <h1 class="text-xl font-bold uppercase text-gray-900">Barangay Honrado Health Center</h1>
             <h2 class="text-sm font-semibold text-gray-700">Official Medicine Delivery & Claiming Report</h2>
             <p class="text-xs text-gray-500">Generated on: {{ now()->format('F d, Y h:i A') }} by Nurse {{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</p>
         </div>
@@ -412,7 +412,7 @@
             {{-- Receipt Card Inner --}}
             <div style="border: 2px dashed #0c2d48; padding: 22px; border-radius: 12px; background: #fff;">
                 <div style="text-align: center; border-bottom: 2px solid #0c2d48; padding-bottom: 12px; margin-bottom: 16px;">
-                    <h2 style="margin: 0; font-size: 18px; color: #0c2d48; text-transform: uppercase; font-weight: 800;">Barangay Honorato Health Center</h2>
+                    <h2 style="margin: 0; font-size: 18px; color: #0c2d48; text-transform: uppercase; font-weight: 800;">Barangay Honrado Health Center</h2>
                     <p style="margin: 3px 0 0; font-size: 11px; color: #64748b;">Official Medicine Delivery & Claiming Receipt</p>
                     <div id="rcptBadge" style="display: inline-block; background: #ecfdf5; color: #059669; padding: 3px 10px; border-radius: 20px; font-weight: bold; font-size: 10px; margin-top: 8px; border: 1px solid #a7f3d0;">
                         OFFICIALLY RECORDED
@@ -490,7 +490,7 @@
                 </div>
 
                 <div style="text-align: center; font-size: 9px; color: #94a3b8; margin-top: 20px;">
-                    Electronic Proof of Delivery &bull; Barangay Honorato Health Information System &bull; Keep for your records
+                    Electronic Proof of Delivery &bull; Barangay Honrado Health Information System &bull; Keep for your records
                 </div>
             </div>
         </div>
@@ -522,7 +522,7 @@
         document.getElementById('rcptDateRequested').textContent = req.created_at ? new Date(req.created_at).toLocaleString() : 'N/A';
         document.getElementById('rcptDateClaimed').textContent = req.claimed_at ? new Date(req.claimed_at).toLocaleString() : (req.status === 'Completed' ? 'Completed' : 'Pending Completion');
         document.getElementById('rcptMethod').textContent = req.delivery_method === 'delivery' ? 'Home Delivery' : 'Pickup at Health Center';
-        document.getElementById('rcptAddress').textContent = req.user?.address || 'Barangay Honorato';
+        document.getElementById('rcptAddress').textContent = req.user?.address || 'Barangay Honrado';
 
         document.getElementById('rcptMedName').textContent = req.item_service || req.medicine?.name || 'Medicine';
         document.getElementById('rcptQty').textContent = `${req.quantity || 1} units`;

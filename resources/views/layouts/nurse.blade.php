@@ -262,6 +262,10 @@
                 <a href="{{ route('nurse.patient-verification') }}" class="sidebar-link @if(request()->routeIs('nurse.patient-verification')) active @endif">
                     <span class="material-icons-outlined" style="font-size:20px;">how_to_reg</span> <span>Patient Verification</span>
                 </a>
+                <a href="{{ route('nurse.notifications') }}" class="sidebar-link @if(request()->routeIs('nurse.notifications')) active @endif">
+                    <span class="material-icons-outlined" style="font-size:20px;">notifications</span> <span>Notifications</span>
+                    <span id="nurse-sidebar-notif-badge" class="ml-auto bg-red-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full {{ $totalNotifications > 0 ? '' : 'hidden' }}">{{ $totalNotifications > 99 ? '99+' : $totalNotifications }}</span>
+                </a>
 
                 <div class="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-cyan-200/70">Medicine & Inventory</div>
                 <a href="{{ route('nurse.medicine-requests') }}" class="sidebar-link @if(request()->routeIs('nurse.medicine-requests*')) active @endif">
@@ -308,7 +312,7 @@
 
             {{-- Footer --}}
             <div class="px-5 py-4 text-[10px] text-blue-400/50">
-                Barangay Honorato<br>
+                Barangay Honrado<br>
                 Health System v1.0
             </div>
         </aside>
@@ -441,7 +445,7 @@
                                     <a href="{{ route('nurse.home-services') }}" class="block px-4 py-3.5 hover:bg-blue-50/60 transition-colors">
                                         <div class="flex gap-3 items-start">
                                             <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-                                                <span class="material-icons-outlined" style="font-size: 18px;">home_health</span>
+                                                <span class="material-icons-outlined" style="font-size: 18px;">health_and_safety</span>
                                             </div>
                                             <div class="flex-1 min-w-0">
                                                 <div class="flex items-center justify-between">
@@ -461,6 +465,9 @@
                                     </div>
                                 @endif
                             </div>
+                            <a href="{{ route('nurse.notifications') }}" class="block px-4 py-3 text-center text-xs font-bold text-blue-600 hover:bg-blue-50/70 border-t border-gray-100 transition-colors">
+                                View All Notifications &rarr;
+                            </a>
                         </div>
                     </div>
 
@@ -494,30 +501,87 @@
         </div>
     </div>
 
-    {{-- Logout Confirmation Modal --}}
+    {{-- Logout & Account Action Confirmation Modal --}}
     <div id="logoutConfirmModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" onclick="closeNurseLogoutModal(event)">
         <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm overflow-hidden" onclick="event.stopPropagation()">
-            <div class="p-6 text-center">
-                <div class="w-14 h-14 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-4">
-                    <span class="material-icons-outlined" style="font-size:28px;">logout</span>
+            {{-- Step 1: Confirm Logout + Account Options --}}
+            <div id="nurseLogoutStepMain">
+                <div class="p-6 text-center">
+                    <div class="w-14 h-14 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-4">
+                        <span class="material-icons-outlined" style="font-size:28px;">logout</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Confirm Logout</h3>
+                    <p class="text-sm text-gray-500 mt-1.5">Are you sure you want to log out of your Nurse account?</p>
                 </div>
-                <h3 class="text-lg font-bold text-gray-900">Confirm Logout</h3>
-                <p class="text-sm text-gray-500 mt-1.5">Are you sure you want to log out of your Nurse account?</p>
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-2.5">
+                    <button type="button" onclick="closeNurseLogoutModal()" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="button" onclick="confirmNurseLogout()" class="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-colors cursor-pointer">
+                        Confirm Logout
+                    </button>
+                </div>
+                <div class="px-6 py-3.5 bg-white border-t border-gray-100">
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 text-center mb-2.5">Account Options</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="openNurseAccountAction('deactivate')" class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 transition-colors cursor-pointer">
+                            <span class="material-icons-outlined" style="font-size:16px;">person_off</span>
+                            <span>Deactivate</span>
+                        </button>
+                        <button type="button" onclick="openNurseAccountAction('delete')" class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 transition-colors cursor-pointer">
+                            <span class="material-icons-outlined" style="font-size:16px;">delete_forever</span>
+                            <span>Delete Account</span>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-2.5">
-                <button type="button" onclick="closeNurseLogoutModal()" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
-                    Cancel
-                </button>
-                <button type="button" onclick="confirmNurseLogout()" class="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-colors cursor-pointer">
-                    Confirm Logout
-                </button>
+
+            {{-- Step 2: Deactivate / Delete Account Confirmation --}}
+            <div id="nurseLogoutStepAction" class="hidden">
+                <div class="p-6">
+                    <div class="flex items-start gap-3">
+                        <div id="nurseActionIconWrap" class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                            <span id="nurseActionIcon" class="material-icons-outlined" style="font-size:22px;">person_off</span>
+                        </div>
+                        <div>
+                            <h3 id="nurseActionTitle" class="text-base font-bold text-gray-900">Deactivate Account?</h3>
+                            <p id="nurseActionDesc" class="text-xs text-gray-500 mt-1 leading-relaxed"></p>
+                        </div>
+                    </div>
+
+                    <div id="nurseActionError" class="hidden mt-4 p-3 rounded-xl bg-red-50 text-xs text-red-700 font-semibold"></div>
+
+                    <form id="nurseAccountActionForm" onsubmit="submitNurseAccountAction(event)" class="mt-4 space-y-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Confirm Current Password *</label>
+                            <input type="password" id="nurseActionPassword" required placeholder="Enter your password"
+                                   class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Reason (Optional)</label>
+                            <textarea id="nurseActionReason" rows="2" maxlength="500" placeholder="Optional reason..."
+                                      class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 resize-none"></textarea>
+                        </div>
+                        <div class="pt-2 flex items-center justify-end gap-2">
+                            <button type="button" onclick="backToNurseLogoutStep()" class="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer">
+                                Back
+                            </button>
+                            <button type="submit" id="nurseActionSubmitBtn" class="px-4 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm transition-colors cursor-pointer">
+                                Confirm
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 
     @yield('scripts')
     <script>
+        let nurseAccountActionType = 'deactivate';
+
         function openNurseLogoutModal() {
+            backToNurseLogoutStep();
             const modal = document.getElementById('logoutConfirmModal');
             if (modal) {
                 modal.classList.remove('hidden');
@@ -531,10 +595,94 @@
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             }
+            backToNurseLogoutStep();
         }
         function confirmNurseLogout() {
             const form = document.getElementById('nurse-logout-form');
             if (form) form.submit();
+        }
+        function openNurseAccountAction(type) {
+            nurseAccountActionType = type;
+            const mainStep = document.getElementById('nurseLogoutStepMain');
+            const actionStep = document.getElementById('nurseLogoutStepAction');
+            const iconWrap = document.getElementById('nurseActionIconWrap');
+            const icon = document.getElementById('nurseActionIcon');
+            const title = document.getElementById('nurseActionTitle');
+            const desc = document.getElementById('nurseActionDesc');
+            const submitBtn = document.getElementById('nurseActionSubmitBtn');
+            const errBox = document.getElementById('nurseActionError');
+
+            if (errBox) { errBox.classList.add('hidden'); errBox.textContent = ''; }
+            const pw = document.getElementById('nurseActionPassword');
+            const rs = document.getElementById('nurseActionReason');
+            if (pw) pw.value = '';
+            if (rs) rs.value = '';
+
+            if (type === 'delete') {
+                iconWrap.className = 'w-11 h-11 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0';
+                icon.textContent = 'delete_forever';
+                title.textContent = 'Delete Account Permanently?';
+                desc.textContent = 'This permanently deletes your Nurse account, logs the event in Account History, and signs you out immediately.';
+                submitBtn.className = 'px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-colors cursor-pointer';
+                submitBtn.textContent = 'Yes, Delete Account';
+            } else {
+                iconWrap.className = 'w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0';
+                icon.textContent = 'person_off';
+                title.textContent = 'Deactivate Your Account?';
+                desc.textContent = 'Your Nurse account will be set to inactive, logged in Account History, and you will be signed out until reactivated.';
+                submitBtn.className = 'px-4 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm transition-colors cursor-pointer';
+                submitBtn.textContent = 'Yes, Deactivate';
+            }
+
+            mainStep.classList.add('hidden');
+            actionStep.classList.remove('hidden');
+        }
+        function backToNurseLogoutStep() {
+            const mainStep = document.getElementById('nurseLogoutStepMain');
+            const actionStep = document.getElementById('nurseLogoutStepAction');
+            if (mainStep) mainStep.classList.remove('hidden');
+            if (actionStep) actionStep.classList.add('hidden');
+        }
+        async function submitNurseAccountAction(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('nurseActionSubmitBtn');
+            const errBox = document.getElementById('nurseActionError');
+            const password = document.getElementById('nurseActionPassword').value;
+            const reason = document.getElementById('nurseActionReason').value;
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const isDelete = nurseAccountActionType === 'delete';
+
+            submitBtn.disabled = true;
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Processing...';
+            errBox.classList.add('hidden');
+
+            try {
+                const res = await fetch(isDelete ? '/account/delete' : '/account/deactivate', {
+                    method: isDelete ? 'DELETE' : 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ password, reason })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    errBox.textContent = data.message || 'Incorrect password or unable to process request.';
+                    errBox.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                    return;
+                }
+                window.location.href = data.redirect || '/login';
+            } catch (err) {
+                errBox.textContent = 'Network error. Please try again.';
+                errBox.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
         }
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeNurseLogoutModal();

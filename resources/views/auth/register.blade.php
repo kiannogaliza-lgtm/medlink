@@ -108,6 +108,7 @@
                                 </svg>
                             </span>
                             <input type="text" name="first_name" id="first_name" required placeholder="Kian"
+                                   value="{{ old('first_name') }}"
                                    class="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm placeholder-slate-400 font-medium
                                           focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
                         </div>
@@ -121,57 +122,113 @@
                                 </svg>
                             </span>
                             <input type="text" name="last_name" id="last_name" required placeholder="Nogaliza"
+                                   value="{{ old('last_name') }}"
                                    class="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm placeholder-slate-400 font-medium
                                           focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
                         </div>
                     </div>
                 </div>
 
-                {{-- Phone Number & Age --}}
-                <div class="grid sm:grid-cols-2 gap-4">
-                    <div>
-                        <label for="phone_number" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Phone Number</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                </svg>
-                            </span>
-                            <input type="tel" name="phone_number" id="phone_number" required placeholder="09123456789"
-                                   value="{{ old('phone_number') }}"
-                                   minlength="11"
-                                   maxlength="11"
-                                   pattern="09[0-9]{9}"
-                                   inputmode="numeric"
-                                   oninput="validatePhoneDigits(this)"
-                                   title="Please enter an 11-digit Philippine phone number starting with 09 (e.g. 09123456789)"
-                                   class="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm placeholder-slate-400 font-medium
-                                          focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
-                        </div>
-                        <p id="phone-error-msg" class="text-xs text-rose-500 mt-1.5 hidden flex items-center gap-1 font-medium">
-                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                {{-- Phone Number --}}
+                <div>
+                    <label for="phone_number" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Phone Number</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
-                            <span id="phone-error-text">Phone number must be an 11-digit Philippine number starting with 09 (e.g. 09XXXXXXXXX).</span>
-                        </p>
+                        </span>
+                        <input type="tel" name="phone_number" id="phone_number" required placeholder="09123456789"
+                               value="{{ old('phone_number') }}"
+                               minlength="11"
+                               maxlength="11"
+                               pattern="09[0-9]{9}"
+                               inputmode="numeric"
+                               oninput="validatePhoneDigits(this)"
+                               title="Please enter an 11-digit Philippine phone number starting with 09 (e.g. 09123456789)"
+                               class="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm placeholder-slate-400 font-medium
+                                      focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
                     </div>
-                    <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <label for="age" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Age</label>
-                            <span id="age-category-badge" class="hidden text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 transition-all"></span>
+                    <p id="phone-error-msg" class="text-xs text-rose-500 mt-1.5 hidden flex items-center gap-1 font-medium">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <span id="phone-error-text">Phone number must be an 11-digit Philippine number starting with 09 (e.g. 09XXXXXXXXX).</span>
+                    </p>
+                </div>
+
+                {{-- Senior-Friendly Birthday Selector (Month / Day / Year + Auto Age) --}}
+                <div class="rounded-2xl bg-emerald-50/55 p-4 sm:p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <label class="flex items-center gap-1.5 text-xs font-extrabold text-slate-800 uppercase tracking-wider">
+                            <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Birthday (Date of Birth)</span>
+                        </label>
+                        <span id="age-category-badge" class="hidden text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 transition-all"></span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {{-- Birth Month --}}
+                        <div>
+                            <label for="birth_month" class="block text-[11px] font-bold text-slate-600 mb-1">Month</label>
+                            <select id="birth_month" required onchange="syncBirthdayParts()"
+                                    class="block w-full px-3.5 py-3 bg-white border border-slate-200 rounded-xl text-base sm:text-sm text-slate-800 font-semibold cursor-pointer
+                                           focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
+                                <option value="">Select Month</option>
+                                <option value="01">January</option>
+                                <option value="02">February</option>
+                                <option value="03">March</option>
+                                <option value="04">April</option>
+                                <option value="05">May</option>
+                                <option value="06">June</option>
+                                <option value="07">July</option>
+                                <option value="08">August</option>
+                                <option value="09">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
                         </div>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                            </span>
-                            <input type="number" name="age" id="age" required min="0" max="130" placeholder="e.g. 20"
-                                   value="{{ old('age') }}"
-                                   oninput="updateAgeCategory(this.value)"
-                                   class="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm placeholder-slate-400 font-medium
-                                          focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
+
+                        {{-- Birth Day --}}
+                        <div>
+                            <label for="birth_day" class="block text-[11px] font-bold text-slate-600 mb-1">Day</label>
+                            <select id="birth_day" required onchange="syncBirthdayParts()"
+                                    class="block w-full px-3.5 py-3 bg-white border border-slate-200 rounded-xl text-base sm:text-sm text-slate-800 font-semibold cursor-pointer
+                                           focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
+                                <option value="">Select Day</option>
+                                @for ($d = 1; $d <= 31; $d++)
+                                    <option value="{{ str_pad($d, 2, '0', STR_PAD_LEFT) }}">{{ $d }}</option>
+                                @endfor
+                            </select>
                         </div>
+
+                        {{-- Birth Year --}}
+                        <div>
+                            <label for="birth_year" class="block text-[11px] font-bold text-slate-600 mb-1">Year</label>
+                            <select id="birth_year" required onchange="syncBirthdayParts()"
+                                    class="block w-full px-3.5 py-3 bg-white border border-slate-200 rounded-xl text-base sm:text-sm text-slate-800 font-semibold cursor-pointer
+                                           focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
+                                <option value="">Select Year</option>
+                                @for ($y = now()->year; $y >= 1900; $y--)
+                                    <option value="{{ $y }}">{{ $y }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="dob" id="dob" value="{{ old('dob') }}">
+                    <input type="hidden" name="age" id="age" value="{{ old('age') }}">
+
+                    {{-- Clear Auto-Age Summary Banner --}}
+                    <div id="auto-age-preview" class="hidden mt-3 px-4 py-2.5 rounded-xl bg-white shadow-xs flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 text-xs sm:text-sm text-slate-700">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                            <span>Your Computed Age:</span>
+                        </div>
+                        <span id="auto-age-number" class="font-display font-extrabold text-sm sm:text-base text-emerald-700"></span>
                     </div>
                 </div>
 
@@ -385,6 +442,78 @@
             return { label: 'Infant', color: 'bg-pink-100 text-pink-800 border-pink-300' };
         }
 
+        function calculateAgeFromDob(dobValue) {
+            if (!dobValue) return null;
+            const parts = dobValue.split('-').map(Number);
+            if (parts.length !== 3 || parts.some(isNaN)) return null;
+            const birthDate = new Date(parts[0], parts[1] - 1, parts[2]);
+            const today = new Date();
+            if (birthDate > today) return null;
+
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age >= 0 && age <= 130 ? age : null;
+        }
+
+        function syncBirthdayParts() {
+            const monthEl = document.getElementById('birth_month');
+            const dayEl = document.getElementById('birth_day');
+            const yearEl = document.getElementById('birth_year');
+            const dobHidden = document.getElementById('dob');
+            if (!monthEl || !dayEl || !yearEl || !dobHidden) return;
+
+            const m = monthEl.value;
+            const y = yearEl.value;
+
+            // Clamp valid days for selected month & year (handles Feb 28/29 & 30-day months)
+            if (m) {
+                const refYear = y ? parseInt(y, 10) : 2024;
+                const maxDays = new Date(refYear, parseInt(m, 10), 0).getDate();
+                Array.from(dayEl.options).forEach((opt) => {
+                    if (!opt.value) return;
+                    const dayNum = parseInt(opt.value, 10);
+                    opt.hidden = dayNum > maxDays;
+                    opt.disabled = dayNum > maxDays;
+                });
+                if (dayEl.value && parseInt(dayEl.value, 10) > maxDays) {
+                    dayEl.value = String(maxDays).padStart(2, '0');
+                }
+            }
+
+            const d = dayEl.value;
+            if (y && m && d) {
+                const iso = `${y}-${m}-${d}`;
+                dobHidden.value = iso;
+                updateAgeFromBirthday(iso);
+            } else {
+                dobHidden.value = '';
+                updateAgeFromBirthday('');
+            }
+        }
+
+        function updateAgeFromBirthday(dobValue) {
+            const ageHidden = document.getElementById('age');
+            const preview = document.getElementById('auto-age-preview');
+            const ageNum = document.getElementById('auto-age-number');
+            const computedAge = calculateAgeFromDob(dobValue);
+
+            if (computedAge === null) {
+                if (ageHidden) ageHidden.value = '';
+                if (preview) preview.classList.add('hidden');
+                if (ageNum) ageNum.textContent = '';
+                updateAgeCategory('');
+                return;
+            }
+
+            if (ageHidden) ageHidden.value = String(computedAge);
+            if (ageNum) ageNum.textContent = `${computedAge} ${computedAge === 1 ? 'year' : 'years'} old`;
+            if (preview) preview.classList.remove('hidden');
+            updateAgeCategory(computedAge);
+        }
+
         function updateAgeCategory(val) {
             const badge = document.getElementById('age-category-badge');
             const classificationSelect = document.getElementById('patient_classification');
@@ -425,9 +554,18 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const ageInput = document.getElementById('age');
-            if (ageInput && ageInput.value) {
-                updateAgeCategory(ageInput.value);
+            const dobInput = document.getElementById('dob');
+            if (dobInput && dobInput.value) {
+                const parts = dobInput.value.split('-');
+                if (parts.length === 3) {
+                    const yEl = document.getElementById('birth_year');
+                    const mEl = document.getElementById('birth_month');
+                    const dEl = document.getElementById('birth_day');
+                    if (yEl) yEl.value = parts[0];
+                    if (mEl) mEl.value = parts[1];
+                    if (dEl) dEl.value = parts[2];
+                }
+                syncBirthdayParts();
             }
 
             const selectedRole = document.querySelector('input[name="role"]:checked');

@@ -133,6 +133,7 @@ class UserManagementController extends Controller
             $validated['age_category'] = User::resolveAgeCategory($validated['age']);
         }
 
+        $previousStatus = $user->status;
         $user->update($validated);
 
         // Notify BHW if Nurse Account access permission changed
@@ -147,13 +148,32 @@ class UserManagementController extends Controller
             ]);
         }
 
-        AccountLog::record(
-            $user,
-            'Account Updated',
-            "User details updated by Nurse " . (auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Staff') . ".",
-            auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Barangay Nurse',
-            'nurse'
-        );
+        $actorName = auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Barangay Nurse';
+        if ($previousStatus !== 'inactive' && $user->status === 'inactive') {
+            AccountLog::record(
+                $user,
+                'Account Deactivated',
+                "Account deactivated by Nurse {$actorName}.",
+                $actorName,
+                'nurse'
+            );
+        } elseif ($previousStatus === 'inactive' && $user->status === 'active') {
+            AccountLog::record(
+                $user,
+                'Account Reactivated',
+                "Account reactivated by Nurse {$actorName}.",
+                $actorName,
+                'nurse'
+            );
+        } else {
+            AccountLog::record(
+                $user,
+                'Account Updated',
+                "User details updated by Nurse {$actorName}.",
+                $actorName,
+                'nurse'
+            );
+        }
 
         // Optional password change
         if ($request->filled('password')) {
@@ -218,6 +238,15 @@ class UserManagementController extends Controller
         if ($user->id === auth()->id()) {
             return redirect()->route('nurse.users')->with('error', 'You cannot delete your own account.');
         }
+
+        $actorName = auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Barangay Nurse';
+        AccountLog::record(
+            $user,
+            'Account Deleted',
+            "Account permanently deleted by Nurse {$actorName}.",
+            $actorName,
+            'nurse'
+        );
 
         if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo)) {
             Storage::disk('public')->delete($user->profile_photo);

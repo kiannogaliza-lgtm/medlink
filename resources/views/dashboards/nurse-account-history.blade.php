@@ -93,6 +93,22 @@
                         {{ $loginCount }}
                     </span>
                 </a>
+                <a href="{{ route('nurse.account-history', ['action' => 'Account Deactivated', 'search' => request('search'), 'role' => request('role')]) }}"
+                   class="log-filter-tab {{ request('action') === 'Account Deactivated' ? 'active' : '' }}">
+                    <span class="material-icons-outlined" style="font-size:16px;">person_off</span>
+                    <span>Deactivated</span>
+                    <span class="text-xs px-1.5 py-0.2 rounded-full {{ request('action') === 'Account Deactivated' ? 'bg-white/25' : 'bg-amber-100 text-amber-700' }}">
+                        {{ $deactivatedCount ?? 0 }}
+                    </span>
+                </a>
+                <a href="{{ route('nurse.account-history', ['action' => 'Account Deleted', 'search' => request('search'), 'role' => request('role')]) }}"
+                   class="log-filter-tab {{ request('action') === 'Account Deleted' ? 'active' : '' }}">
+                    <span class="material-icons-outlined" style="font-size:16px;">delete_forever</span>
+                    <span>Deleted</span>
+                    <span class="text-xs px-1.5 py-0.2 rounded-full {{ request('action') === 'Account Deleted' ? 'bg-white/25' : 'bg-red-100 text-red-700' }}">
+                        {{ $deletedCount ?? 0 }}
+                    </span>
+                </a>
             </div>
 
             {{-- Search & Role filter --}}
@@ -214,6 +230,26 @@
                                     <span class="action-badge-updated inline-flex items-center gap-1.5 text-xs font-bold">
                                         <span class="material-icons-outlined" style="font-size:16px;">edit_note</span>
                                         Account Updated
+                                    </span>
+                                @elseif($log->action === 'Account Deactivated')
+                                    <span class="text-amber-600 inline-flex items-center gap-1.5 text-xs font-bold">
+                                        <span class="material-icons-outlined" style="font-size:16px;">person_off</span>
+                                        Account Deactivated
+                                    </span>
+                                @elseif($log->action === 'Account Reactivated')
+                                    <span class="text-emerald-600 inline-flex items-center gap-1.5 text-xs font-bold">
+                                        <span class="material-icons-outlined" style="font-size:16px;">how_to_reg</span>
+                                        Account Reactivated
+                                    </span>
+                                @elseif($log->action === 'Account Deleted')
+                                    <span class="text-red-600 inline-flex items-center gap-1.5 text-xs font-bold">
+                                        <span class="material-icons-outlined" style="font-size:16px;">delete_forever</span>
+                                        Account Deleted
+                                    </span>
+                                @elseif($log->action === 'Password Reset')
+                                    <span class="text-indigo-600 inline-flex items-center gap-1.5 text-xs font-bold">
+                                        <span class="material-icons-outlined" style="font-size:16px;">lock_reset</span>
+                                        Password Reset
                                     </span>
                                 @else
                                     <span class="action-badge-reset inline-flex items-center gap-1.5 text-xs font-bold">

@@ -82,6 +82,13 @@ class SyncController extends Controller
 
         // 8. User Profile changes / status updates / permissions
         $userSelf = User::find($user->id);
+        if (!$userSelf || $userSelf->status === 'inactive') {
+            \Illuminate\Support\Facades\Auth::logout();
+            return response()->json([
+                'authenticated' => false,
+                'reason'        => !$userSelf ? 'deleted' : 'deactivated',
+            ]);
+        }
         $signatures[] = "USR_SELF:{$userSelf?->updated_at}:{$userSelf?->status}:{$userSelf?->patient_classification}:{$userSelf?->can_manage_nurses}";
 
         // Role-specific signals:

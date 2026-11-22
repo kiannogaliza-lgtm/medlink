@@ -41,6 +41,8 @@ class AccountHistoryController extends Controller
         $totalLogs           = AccountLog::count();
         $accountCreatedCount = AccountLog::where('action', 'Account Created')->count();
         $loginCount          = AccountLog::where('action', 'Logged In')->count();
+        $deactivatedCount    = AccountLog::where('action', 'Account Deactivated')->count();
+        $deletedCount        = AccountLog::where('action', 'Account Deleted')->count();
         $todayActivities     = AccountLog::whereDate('logged_at', today())->count();
 
         return view('dashboards.nurse-account-history', compact(
@@ -48,6 +50,8 @@ class AccountHistoryController extends Controller
             'totalLogs',
             'accountCreatedCount',
             'loginCount',
+            'deactivatedCount',
+            'deletedCount',
             'todayActivities'
         ));
     }

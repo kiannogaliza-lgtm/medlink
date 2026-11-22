@@ -165,6 +165,9 @@ class MedLinkAutoSync {
                 const data = await res.json();
                 if (!data.authenticated) {
                     this.stop();
+                    if (data.reason === 'deactivated' || data.reason === 'deleted') {
+                        window.location.href = '/login';
+                    }
                     return;
                 }
 
@@ -188,6 +191,7 @@ class MedLinkAutoSync {
                 // Update Nurse Portal Notification Badge if present on page
                 if (data.role === 'nurse') {
                     const nurseBadge = document.getElementById('nurse-notif-badge');
+                    const nurseSidebarBadge = document.getElementById('nurse-sidebar-notif-badge');
                     const nurseCount = document.getElementById('nurse-notif-count');
                     const totalPending = data.pending_total || 0;
                     if (nurseBadge) {
@@ -196,6 +200,14 @@ class MedLinkAutoSync {
                             nurseBadge.style.display = 'flex';
                         } else {
                             nurseBadge.style.display = 'none';
+                        }
+                    }
+                    if (nurseSidebarBadge) {
+                        if (totalPending > 0) {
+                            nurseSidebarBadge.innerText = totalPending > 99 ? '99+' : String(totalPending);
+                            nurseSidebarBadge.classList.remove('hidden');
+                        } else {
+                            nurseSidebarBadge.classList.add('hidden');
                         }
                     }
                     if (nurseCount) {

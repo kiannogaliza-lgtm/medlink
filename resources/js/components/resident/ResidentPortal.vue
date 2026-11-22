@@ -252,7 +252,7 @@
                    class="block px-4 py-3.5 hover:bg-blue-50/60 transition-colors">
                   <div class="flex gap-3 items-start">
                     <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-                      <span class="material-icons-outlined" style="font-size: 18px;">home_health</span>
+                      <span class="material-icons-outlined" style="font-size: 18px;">health_and_safety</span>
                     </div>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center justify-between">
@@ -354,24 +354,89 @@
       </button>
     </main>
 
-    <!-- Logout Confirmation Modal -->
-    <div v-if="showLogoutModal" id="logoutConfirmModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" @click.self="showLogoutModal = false">
+    <!-- Logout & Account Action Confirmation Modal -->
+    <div v-if="showLogoutModal" id="logoutConfirmModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" @click.self="closeLogoutModal">
       <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm overflow-hidden">
-        <div class="p-6 text-center">
-          <div class="w-14 h-14 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-4">
-            <span class="material-icons-outlined" style="font-size:28px;">logout</span>
+        <!-- Step 1: Confirm Logout + Account Options -->
+        <template v-if="accountModalMode === 'logout'">
+          <div class="p-6 text-center">
+            <div class="w-14 h-14 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-4">
+              <span class="material-icons-outlined" style="font-size:28px;">logout</span>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900">Confirm Logout</h3>
+            <p class="text-sm text-gray-500 mt-1.5">Are you sure you want to log out of your Resident account?</p>
           </div>
-          <h3 class="text-lg font-bold text-gray-900">Confirm Logout</h3>
-          <p class="text-sm text-gray-500 mt-1.5">Are you sure you want to log out of your Resident account?</p>
-        </div>
-        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-2.5">
-          <button type="button" @click="showLogoutModal = false" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
-            Cancel
-          </button>
-          <button type="button" @click="confirmLogout" class="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-colors cursor-pointer">
-            Confirm Logout
-          </button>
-        </div>
+          <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-2.5">
+            <button type="button" @click="closeLogoutModal" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+              Cancel
+            </button>
+            <button type="button" @click="confirmLogout" class="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm transition-colors cursor-pointer">
+              Confirm Logout
+            </button>
+          </div>
+          <div class="px-6 py-3.5 bg-white border-t border-gray-100">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 text-center mb-2.5">Account Options</p>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" @click="switchAccountModalMode('deactivate')" class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 transition-colors cursor-pointer">
+                <span class="material-icons-outlined" style="font-size:16px;">person_off</span>
+                <span>Deactivate</span>
+              </button>
+              <button type="button" @click="switchAccountModalMode('delete')" class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 transition-colors cursor-pointer">
+                <span class="material-icons-outlined" style="font-size:16px;">delete_forever</span>
+                <span>Delete Account</span>
+              </button>
+            </div>
+          </div>
+        </template>
+
+        <!-- Step 2: Deactivate / Delete Confirmation -->
+        <template v-else>
+          <div class="p-6">
+            <div class="flex items-start gap-3">
+              <div :class="accountModalMode === 'delete' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'" class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0">
+                <span class="material-icons-outlined" style="font-size:22px;">{{ accountModalMode === 'delete' ? 'delete_forever' : 'person_off' }}</span>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-gray-900">
+                  {{ accountModalMode === 'delete' ? 'Delete Account Permanently?' : 'Deactivate Your Account?' }}
+                </h3>
+                <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+                  {{ accountModalMode === 'delete'
+                    ? 'This permanently deletes your Resident account, logs the event in Account History, and signs you out immediately.'
+                    : 'Your Resident account will be set to inactive, logged in Account History, and you will be signed out until reactivated by a Nurse.' }}
+                </p>
+              </div>
+            </div>
+
+            <div v-if="accountActionError" class="mt-4 p-3 rounded-xl bg-red-50 text-xs text-red-700 font-semibold">
+              {{ accountActionError }}
+            </div>
+
+            <form @submit.prevent="submitAccountAction" class="mt-4 space-y-3">
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Confirm Current Password *</label>
+                <input v-model="accountActionPassword" type="password" required placeholder="Enter your password"
+                       class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Reason (Optional)</label>
+                <textarea v-model="accountActionReason" rows="2" maxlength="500" placeholder="Optional reason..."
+                          class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 resize-none"></textarea>
+              </div>
+              <div class="pt-2 flex items-center justify-end gap-2">
+                <button type="button" @click="accountModalMode = 'logout'" :disabled="accountActionLoading" class="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer">
+                  Back
+                </button>
+                <button type="submit" :disabled="accountActionLoading"
+                        :class="accountModalMode === 'delete' ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-600 hover:bg-amber-700'"
+                        class="px-4 py-2 text-xs font-semibold text-white rounded-xl shadow-sm transition-colors cursor-pointer disabled:opacity-50">
+                  <span v-if="accountActionLoading">Processing...</span>
+                  <span v-else>{{ accountModalMode === 'delete' ? 'Yes, Delete Account' : 'Yes, Deactivate' }}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </template>
       </div>
     </div>
   </div>
@@ -469,6 +534,61 @@ function confirmLogout() {
   try { sessionStorage.removeItem('medlink_resident_tab'); } catch (e) {}
   if (logoutFormRef.value) {
     logoutFormRef.value.submit();
+  }
+}
+
+const accountModalMode = ref('logout');
+const accountActionPassword = ref('');
+const accountActionReason = ref('');
+const accountActionLoading = ref(false);
+const accountActionError = ref('');
+
+function closeLogoutModal() {
+  if (accountActionLoading.value) return;
+  showLogoutModal.value = false;
+  accountModalMode.value = 'logout';
+  accountActionPassword.value = '';
+  accountActionReason.value = '';
+  accountActionError.value = '';
+}
+
+function switchAccountModalMode(mode) {
+  accountModalMode.value = mode;
+  accountActionPassword.value = '';
+  accountActionReason.value = '';
+  accountActionError.value = '';
+}
+
+async function submitAccountAction() {
+  accountActionLoading.value = true;
+  accountActionError.value = '';
+  const isDelete = accountModalMode.value === 'delete';
+
+  try {
+    const res = await fetch(isDelete ? '/account/delete' : '/account/deactivate', {
+      method: isDelete ? 'DELETE' : 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken.value,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({
+        password: accountActionPassword.value,
+        reason: accountActionReason.value,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      accountActionError.value = data.message || 'Incorrect password or unable to process request.';
+      return;
+    }
+    try { sessionStorage.removeItem('medlink_resident_tab'); } catch (e) {}
+    window.location.href = data.redirect || '/login';
+  } catch (err) {
+    accountActionError.value = 'Network error. Please try again.';
+  } finally {
+    accountActionLoading.value = false;
   }
 }
 

@@ -55,7 +55,7 @@
 
     {{-- Printable Header --}}
     <div class="print-only p-6 border-b-2 border-gray-800 text-center">
-        <h1 class="text-2xl font-black text-gray-900 uppercase">Barangay Honorato Health Center</h1>
+        <h1 class="text-2xl font-black text-gray-900 uppercase">Barangay Honrado Health Center</h1>
         <h2 class="text-base font-bold text-gray-700 mt-1">Immunization Masterlist & Dose Tracking Report</h2>
         <p class="text-xs text-gray-500 mt-0.5">Municipal Health Office National Immunization Program &bull; Date: {{ now()->format('F d, Y') }}</p>
     </div>
@@ -224,7 +224,24 @@
                                     {{ $v->administered_by ?? 'Health Center Staff' }}
                                 </td>
                                 <td class="py-4 px-5 text-center whitespace-nowrap">
-                                    <span class="text-[11px] font-bold text-green-700">
+                                    @php
+                                        $statusColor = $v->status === 'Completed'
+                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                            : ($v->status === 'Missed'
+                                                ? 'bg-red-50 text-red-700 border-red-200'
+                                                : 'bg-blue-50 text-blue-700 border-blue-200');
+                                    @endphp
+                                    <form method="POST" action="{{ route('nurse.vaccinations.update-status', $v->id) }}" class="inline-block no-print">
+                                        @csrf
+                                        @method('PATCH')
+                                        <select name="status" onchange="this.form.submit()" aria-label="Update vaccination status"
+                                                class="text-[11px] font-bold px-2.5 py-1 rounded-full border cursor-pointer focus:outline-none {{ $statusColor }}">
+                                            <option value="Completed" {{ $v->status === 'Completed' ? 'selected' : '' }}>Completed</option>
+                                            <option value="Scheduled" {{ $v->status === 'Scheduled' ? 'selected' : '' }}>Scheduled</option>
+                                            <option value="Missed" {{ $v->status === 'Missed' ? 'selected' : '' }}>Missed</option>
+                                        </select>
+                                    </form>
+                                    <span class="print-only text-[11px] font-bold {{ $v->status === 'Completed' ? 'text-emerald-700' : ($v->status === 'Missed' ? 'text-red-700' : 'text-blue-700') }}">
                                         {{ $v->status }}
                                     </span>
                                 </td>

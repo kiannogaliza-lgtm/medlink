@@ -224,7 +224,124 @@
           </div>
         </div>
       </div>
+
+      <!-- Account Management (Deactivate / Delete Account) -->
+      <div class="bg-white rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <h3 class="font-bold text-gray-800">Account Management</h3>
+          <p class="text-xs text-gray-500 mt-0.5">Temporarily deactivate or permanently delete your MEDLINK account.</p>
+        </div>
+        <div class="p-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div class="flex-1">
+            <p class="text-sm font-semibold text-gray-800">Deactivate or Delete Account</p>
+            <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+              Deactivating pauses your login until reactivated by a Barangay Nurse. Deleting permanently removes your account while preserving the audit entry in Account History.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button
+              type="button"
+              @click="openAccountActionModal('deactivate')"
+              class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 transition-colors cursor-pointer"
+            >
+              Deactivate Account
+            </button>
+            <button
+              type="button"
+              @click="openAccountActionModal('delete')"
+              class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm cursor-pointer"
+            >
+              Delete Account
+            </button>
+          </div>
+        </div>
+      </div>
     </template>
+
+    <!-- Deactivate / Delete Confirmation Modal -->
+    <div
+      v-if="accountActionModal.open"
+      id="accountActionModal"
+      class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4"
+      @click.self="closeAccountActionModal"
+    >
+      <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-md overflow-hidden">
+        <div class="p-6">
+          <div class="flex items-start gap-3.5">
+            <div
+              :class="accountActionModal.type === 'delete' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'"
+              class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+            >
+              <span class="material-icons-outlined" style="font-size: 24px;">
+                {{ accountActionModal.type === 'delete' ? 'delete_forever' : 'person_off' }}
+              </span>
+            </div>
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-gray-900">
+                {{ accountActionModal.type === 'delete' ? 'Delete Account Permanently?' : 'Deactivate Your Account?' }}
+              </h3>
+              <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+                {{ accountActionModal.type === 'delete'
+                  ? 'This will permanently delete your account and sign you out immediately. This action cannot be undone.'
+                  : 'Your account will be set to inactive and you will be signed out. A Barangay Nurse can reactivate it later.' }}
+              </p>
+            </div>
+          </div>
+
+          <div v-if="accountActionModal.error" class="mt-4 p-3 rounded-xl bg-red-50 text-xs text-red-700 font-semibold">
+            {{ accountActionModal.error }}
+          </div>
+
+          <form @submit.prevent="confirmAccountAction" class="mt-5 space-y-3.5">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                Confirm Current Password *
+              </label>
+              <input
+                v-model="accountActionModal.password"
+                type="password"
+                required
+                placeholder="Enter your password"
+                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1a5a89]/30"
+              >
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                Reason (Optional)
+              </label>
+              <textarea
+                v-model="accountActionModal.reason"
+                rows="2"
+                maxlength="500"
+                placeholder="Let the health center know why (optional)"
+                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1a5a89]/30 resize-none"
+              ></textarea>
+            </div>
+
+            <div class="pt-3 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                @click="closeAccountActionModal"
+                :disabled="accountActionModal.loading"
+                class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                :disabled="accountActionModal.loading"
+                :class="accountActionModal.type === 'delete' ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-600 hover:bg-amber-700'"
+                class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+              >
+                <span v-if="accountActionModal.loading">Processing...</span>
+                <span v-else>{{ accountActionModal.type === 'delete' ? 'Yes, Delete Account' : 'Yes, Deactivate' }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
     <!-- EDIT FORM MODE -->
     <form v-else @submit.prevent="submitProfile" class="flex flex-col gap-6">
@@ -749,5 +866,70 @@ const formatDate = (dateString) => {
   if (!dateString) return 'Not specified';
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
   return new Date(dateString).toLocaleDateString('en-US', options);
+};
+
+// Account Deactivate / Delete Modal state & handler
+const accountActionModal = ref({
+  open: false,
+  type: 'deactivate',
+  password: '',
+  reason: '',
+  loading: false,
+  error: ''
+});
+
+const openAccountActionModal = (type) => {
+  accountActionModal.value = {
+    open: true,
+    type,
+    password: '',
+    reason: '',
+    loading: false,
+    error: ''
+  };
+};
+
+const closeAccountActionModal = () => {
+  if (accountActionModal.value.loading) return;
+  accountActionModal.value.open = false;
+};
+
+const confirmAccountAction = async () => {
+  accountActionModal.value.loading = true;
+  accountActionModal.value.error = '';
+
+  try {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const isDelete = accountActionModal.value.type === 'delete';
+    const endpoint = isDelete ? '/account/delete' : '/account/deactivate';
+
+    const response = await fetch(endpoint, {
+      method: isDelete ? 'DELETE' : 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({
+        password: accountActionModal.value.password,
+        reason: accountActionModal.value.reason
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      accountActionModal.value.error = data.message || 'Unable to process request. Please check your password.';
+      return;
+    }
+
+    window.location.href = data.redirect || '/login';
+  } catch (err) {
+    console.error('Account action failed:', err);
+    accountActionModal.value.error = 'Network error. Please try again.';
+  } finally {
+    accountActionModal.value.loading = false;
+  }
 };
 </script>
