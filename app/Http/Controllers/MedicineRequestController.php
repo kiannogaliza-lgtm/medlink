@@ -189,6 +189,20 @@ class MedicineRequestController extends Controller
             'status'               => 'Pending',
         ]);
 
+        // Notify all active Nurses (and active BHWs if Home Delivery)
+        $requesterName = trim((auth()->user()->first_name ?? '') . ' ' . (auth()->user()->last_name ?? '')) ?: 'A resident';
+        $methodLabel = $validated['delivery_method'] === 'delivery' ? 'Home Delivery' : 'Health Center Pickup';
+        $notifyRoles = $validated['delivery_method'] === 'delivery' ? ['nurse', 'bhw'] : ['nurse'];
+        $staffRecipients = User::whereIn('role', $notifyRoles)->where('status', 'active')->get();
+        foreach ($staffRecipients as $staff) {
+            AppNotification::create([
+                'user_id' => $staff->id,
+                'type'    => 'info',
+                'title'   => $validated['delivery_method'] === 'delivery' ? 'New Medicine Delivery Request' : 'New Medicine Request',
+                'message' => "{$requesterName} requested {$medicine->name} (x{$qty}) via {$methodLabel}.",
+            ]);
+        }
+
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -279,6 +293,19 @@ class MedicineRequestController extends Controller
             'message' => "Your request for {$medicineRequest->item_service} has been accepted. Please proceed to the Barangay Health Center for a consultation first before claiming your medicine.",
         ]);
 
+        // If accepted by BHW, notify all active Nurses
+        if (auth()->user()->role === 'bhw') {
+            $bhwName = 'BHW ' . trim(auth()->user()->first_name . ' ' . auth()->user()->last_name);
+            foreach (User::where('role', 'nurse')->where('status', 'active')->get() as $nurse) {
+                AppNotification::create([
+                    'user_id' => $nurse->id,
+                    'type'    => 'info',
+                    'title'   => 'Medicine Delivery Accepted by BHW',
+                    'message' => "{$bhwName} accepted {$patientName}'s delivery request for {$medicineRequest->item_service} (x{$medicineRequest->quantity}).",
+                ]);
+            }
+        }
+
         $msg = "Request accepted. Resident notified to visit the health center for consultation.";
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => $msg, 'data' => $medicineRequest->fresh(['user', 'medicine'])]);
@@ -341,6 +368,28 @@ class MedicineRequestController extends Controller
             'message' => "Your request for {$medicineRequest->item_service} (x{$qty}) has been approved after consultation! Ready for " . ($medicineRequest->delivery_method === 'pickup' ? 'pickup.' : 'delivery.'),
         ]);
 
+        $residentName = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: 'Resident';
+        if (auth()->user()->role === 'bhw') {
+            $bhwName = 'BHW ' . trim(auth()->user()->first_name . ' ' . auth()->user()->last_name);
+            foreach (User::where('role', 'nurse')->where('status', 'active')->get() as $nurse) {
+                AppNotification::create([
+                    'user_id' => $nurse->id,
+                    'type'    => 'success',
+                    'title'   => 'Medicine Delivery Approved by BHW',
+                    'message' => "{$bhwName} approved {$residentName}'s delivery request for {$medicineRequest->item_service} (x{$qty}).",
+                ]);
+            }
+        } elseif ($medicineRequest->delivery_method === 'delivery') {
+            foreach (User::where('role', 'bhw')->where('status', 'active')->get() as $bhw) {
+                AppNotification::create([
+                    'user_id' => $bhw->id,
+                    'type'    => 'info',
+                    'title'   => 'Medicine Approved — Ready for Delivery',
+                    'message' => "Nurse approved {$residentName}'s medicine request ({$medicineRequest->item_service} x{$qty}). Ready for home delivery.",
+                ]);
+            }
+        }
+
         $msg = "Request approved for {$qty} x {$medicineRequest->item_service}.";
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => $msg, 'data' => $medicineRequest->fresh(['user', 'medicine'])]);
@@ -394,6 +443,21 @@ class MedicineRequestController extends Controller
             'title' => 'Medicine Request Rejected',
             'message' => $rejectReasonNotice,
         ]);
+
+        // If rejected by BHW, notify all active Nurses
+        if (auth()->user()->role === 'bhw') {
+            $bhwName = 'BHW ' . trim(auth()->user()->first_name . ' ' . auth()->user()->last_name);
+            $residentUser = User::find($medicineRequest->user_id);
+            $residentName = $residentUser ? trim($residentUser->first_name . ' ' . $residentUser->last_name) : 'Resident';
+            foreach (User::where('role', 'nurse')->where('status', 'active')->get() as $nurse) {
+                AppNotification::create([
+                    'user_id' => $nurse->id,
+                    'type'    => 'warning',
+                    'title'   => 'Medicine Delivery Rejected by BHW',
+                    'message' => "{$bhwName} rejected {$residentName}'s delivery request for {$medicineRequest->item_service} (x{$qty}). Stock restored.",
+                ]);
+            }
+        }
 
         $msg = "Request rejected. {$qty} item(s) returned back to inventory stock.";
         if ($request->expectsJson()) {
@@ -637,6 +701,19 @@ class MedicineRequestController extends Controller
             'title'   => 'Medicine Claimed / Delivered Successfully',
             'message' => "Your medicine ({$medicineRequest->item_service} x{$medicineRequest->quantity}) has been successfully received by {$validated['claimed_by']} ({$validated['claimed_relationship']}). Receipt No: {$receiptNo}.",
         ]);
+
+        // If completed by BHW, notify all active Nurses
+        if (auth()->user()->role === 'bhw') {
+            $bhwName = 'BHW ' . trim(auth()->user()->first_name . ' ' . auth()->user()->last_name);
+            foreach (User::where('role', 'nurse')->where('status', 'active')->get() as $nurse) {
+                AppNotification::create([
+                    'user_id' => $nurse->id,
+                    'type'    => 'success',
+                    'title'   => 'Medicine Delivery Completed',
+                    'message' => "{$bhwName} delivered {$medicineRequest->item_service} (x{$medicineRequest->quantity}) — claimed by {$validated['claimed_by']} ({$validated['claimed_relationship']}). Receipt: {$receiptNo}.",
+                ]);
+            }
+        }
 
         $msg = "Delivery/Claim recorded successfully! Official Receipt: {$receiptNo}";
         if ($request->expectsJson()) {

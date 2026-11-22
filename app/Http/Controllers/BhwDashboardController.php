@@ -19,12 +19,12 @@ class BhwDashboardController extends Controller
         // 1. Assigned Services Today
         $assignedServicesToday = HomeServiceRequest::where('assigned_to', $user->id)
             ->whereDate('preferred_date', $today)
-            ->where('status', 'assigned')
+            ->whereIn('status', ['Accepted', 'Approved', 'Confirmed', 'assigned'])
             ->count();
 
         // 2. Completed Services
         $completedServices = HomeServiceRequest::where('assigned_to', $user->id)
-            ->where('status', 'completed')
+            ->where('status', 'Completed')
             ->count();
 
         // 3. Walk-in Patients Today (overall or BHW specific?)
@@ -34,12 +34,12 @@ class BhwDashboardController extends Controller
 
         // 4. Pending Tasks
         $pendingTasks = HomeServiceRequest::where('assigned_to', $user->id)
-            ->where('status', 'assigned')
+            ->whereIn('status', ['Accepted', 'Approved', 'Confirmed', 'assigned'])
             ->count();
 
         // My Assigned Services (next upcoming 5) — home service requests
         $myAssignedHomeServices = HomeServiceRequest::where('assigned_to', $user->id)
-            ->where('status', 'assigned')
+            ->whereIn('status', ['Accepted', 'Approved', 'Confirmed', 'assigned'])
             ->orderBy('preferred_date', 'asc')
             ->orderBy('preferred_time', 'asc')
             ->take(5)
@@ -261,7 +261,7 @@ class BhwDashboardController extends Controller
 
         $pendingHomeServicesQuery = HomeServiceRequest::where('status', 'Pending');
         $assignedHomeServicesQuery = HomeServiceRequest::where('assigned_to', $user->id)
-            ->whereIn('status', ['Approved', 'Confirmed', 'assigned']);
+            ->whereIn('status', ['Accepted', 'Approved', 'Confirmed', 'assigned']);
         $pendingAssignedSchedulesQuery = Schedule::where('assigned_to', $user->id)
             ->where('assignment_status', 'assigned');
         $unassignedSchedulesQuery = Schedule::where('status', 'Confirmed')

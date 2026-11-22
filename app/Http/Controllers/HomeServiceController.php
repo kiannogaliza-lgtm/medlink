@@ -150,31 +150,72 @@ class HomeServiceController extends Controller
     }
 
     /**
-     * Accept a home service request (Nurse accepts & notifies resident that request has been accepted).
+     * Accept a home service request (Nurse assigns a BHW & notifies resident and BHW).
      */
     public function accept(Request $request, HomeServiceRequest $homeServiceRequest)
     {
+        $validated = $request->validate([
+            'assigned_to' => 'nullable|exists:users,id',
+            'assigned_bhw_name' => 'nullable|string|max:255',
+        ]);
+
+        $customBhwName = trim($validated['assigned_bhw_name'] ?? '');
+
+        if (empty($validated['assigned_to']) && $customBhwName === '') {
+            $msg = 'Please select a BHW or enter the name of the BHW to assign this patient for home service.';
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->back()->with('error', $msg);
+        }
+
         $homeServiceRequest->status = 'Accepted';
+
+        if (!empty($validated['assigned_to'])) {
+            $homeServiceRequest->assigned_to = $validated['assigned_to'];
+            $bhw = User::find($validated['assigned_to']);
+            if ($customBhwName !== '') {
+                $homeServiceRequest->assigned_bhw_name = $customBhwName;
+            } elseif ($bhw) {
+                $homeServiceRequest->assigned_bhw_name = 'BHW ' . $bhw->first_name . ' ' . $bhw->last_name;
+            }
+        } else {
+            $homeServiceRequest->assigned_to = null;
+            $homeServiceRequest->assigned_bhw_name = $customBhwName;
+        }
+
         $homeServiceRequest->save();
 
-        // Notify the resident that the home service request has been accepted
+        $workerName = $homeServiceRequest->assigned_name ?: 'Our healthcare team';
+
+        // Notify the resident that the home service request has been accepted & assigned
         if ($homeServiceRequest->user_id) {
             AppNotification::create([
                 'user_id' => $homeServiceRequest->user_id,
                 'type' => 'info',
-                'title' => 'Home Service Accepted',
-                'message' => "Your {$homeServiceRequest->service_type} home service request has been accepted.",
+                'title' => 'Home Service Accepted & Assigned',
+                'message' => "Your {$homeServiceRequest->service_type} home service request has been accepted and assigned to {$workerName}.",
+            ]);
+        }
+
+        // Notify the assigned BHW
+        if (!empty($homeServiceRequest->assigned_to)) {
+            AppNotification::create([
+                'user_id' => $homeServiceRequest->assigned_to,
+                'type' => 'info',
+                'title' => 'New Home Service Assignment',
+                'message' => "You have been assigned to {$homeServiceRequest->service_type} for {$homeServiceRequest->patient_name} on " . ($homeServiceRequest->preferred_date ? $homeServiceRequest->preferred_date->format('M d, Y') : 'schedule') . " ({$homeServiceRequest->preferred_time}).",
             ]);
         }
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Request accepted successfully. Resident has been notified that your request has been accepted.'
+                'message' => "Request accepted and assigned to {$workerName}."
             ]);
         }
 
-        return redirect()->back()->with('success', 'Request ' . $homeServiceRequest->formatted_id . ' accepted. Resident notified that request has been accepted.');
+        return redirect()->back()->with('success', 'Request ' . $homeServiceRequest->formatted_id . ' accepted and assigned to ' . $workerName . '.');
     }
 
     /**
@@ -292,14 +333,23 @@ class HomeServiceController extends Controller
             'assigned_bhw_name' => 'nullable|string|max:255',
         ]);
 
+        $customBhwName = trim($validated['assigned_bhw_name'] ?? '');
+
+        if (empty($validated['assigned_to']) && $customBhwName === '') {
+            return redirect()->back()->with('error', 'Please select a BHW or enter the name of the BHW.');
+        }
+
         if (!empty($validated['assigned_to'])) {
             $homeServiceRequest->assigned_to = $validated['assigned_to'];
             $bhw = User::find($validated['assigned_to']);
-            if ($bhw) {
+            if ($customBhwName !== '') {
+                $homeServiceRequest->assigned_bhw_name = $customBhwName;
+            } elseif ($bhw) {
                 $homeServiceRequest->assigned_bhw_name = 'BHW ' . $bhw->first_name . ' ' . $bhw->last_name;
             }
-        } elseif (!empty($validated['assigned_bhw_name'])) {
-            $homeServiceRequest->assigned_bhw_name = $validated['assigned_bhw_name'];
+        } else {
+            $homeServiceRequest->assigned_to = null;
+            $homeServiceRequest->assigned_bhw_name = $customBhwName;
         }
 
         $homeServiceRequest->save();

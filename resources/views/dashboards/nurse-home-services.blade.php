@@ -333,6 +333,10 @@
 
                         {{-- Actions for Accepted --}}
                         <div class="flex items-center gap-2">
+                            <button type="button" onclick="viewDetails({{ json_encode($req) }})" class="btn-action-view">
+                                <span class="material-icons-outlined" style="font-size:15px;">visibility</span>
+                                <span>View</span>
+                            </button>
                             <form method="POST" action="/nurse/home-services/{{ $req->id }}/complete" class="inline">
                                 @csrf
                                 @method('PATCH')
@@ -367,7 +371,7 @@
                             <div class="text-sm font-semibold text-gray-800 mt-0.5">{{ $req->preferred_time }}</div>
                         </div>
 
-                        {{-- Col 3: Contact & Status Info --}}
+                        {{-- Col 3: Contact & Assigned BHW --}}
                         <div>
                             <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wide flex items-center gap-1">
                                 <span class="material-icons-outlined text-gray-400" style="font-size:14px;">call</span>
@@ -375,8 +379,8 @@
                             </div>
                             <div class="text-sm font-semibold text-gray-800 mt-0.5">{{ $req->contact_number }}</div>
 
-                            <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wide mt-3">Notification Status</div>
-                            <div class="text-sm font-semibold text-blue-600 mt-0.5">Resident notified (team coming)</div>
+                            <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wide mt-3">Assigned BHW</div>
+                            <div class="text-sm font-semibold text-blue-600 mt-0.5">{{ $req->assigned_name ?: 'Unassigned' }}</div>
                         </div>
                     </div>
 
@@ -650,6 +654,40 @@
             <div class="p-3 bg-gray-50 rounded-xl border border-gray-100" id="modalAssignedContainer">
                 <span class="text-[11px] font-medium text-gray-400 uppercase tracking-wider block">Assigned Health Worker</span>
                 <span id="modalAssignedTo" class="text-sm font-bold text-blue-600 mt-0.5 block">—</span>
+            </div>
+
+            {{-- Assign Patient for Home Service (BHW) --}}
+            <div class="p-4 bg-blue-50/60 rounded-xl border border-blue-200 space-y-3 hidden" id="modalAssignBhwSection">
+                <div class="flex items-center justify-between gap-2">
+                    <div>
+                        <span class="text-[11px] font-bold text-blue-800 uppercase tracking-wider block">Assign Patient for Home Service (BHW) <span class="text-red-500">*</span></span>
+                        <p class="text-[11px] text-blue-700/80 mt-0.5">Select a BHW or enter the name of the BHW assigned to this patient.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="modalBhwSelect" class="block text-xs font-semibold text-gray-700 mb-1">Select Registered BHW</label>
+                    <select id="modalBhwSelect" onchange="handleModalBhwSelect(this)" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <option value="">-- Select BHW (optional if typing name below) --</option>
+                        @foreach($bhwUsers as $bhw)
+                            <option value="{{ $bhw->id }}" data-name="BHW {{ $bhw->first_name }} {{ $bhw->last_name }}">BHW {{ $bhw->first_name }} {{ $bhw->last_name }}@if($bhw->phone_number) ({{ $bhw->phone_number }})@endif</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label for="modalBhwNameInput" class="block text-xs font-semibold text-gray-700 mb-1">Name of BHW <span class="text-red-500">*</span></label>
+                    <input type="text" id="modalBhwNameInput" oninput="clearModalBhwError()" placeholder="Enter BHW name (e.g. BHW Maria Santos)" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                </div>
+
+                <p id="modalBhwError" class="text-xs font-semibold text-red-600 hidden">Please select a BHW or enter the name of the BHW to assign this patient.</p>
+
+                <div id="modalUpdateBhwBtnRow" class="hidden pt-1 flex justify-end">
+                    <button type="button" onclick="submitModalAssignBhw()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
+                        <span class="material-icons-outlined" style="font-size:15px;">person_add</span>
+                        <span>Save BHW Assignment</span>
+                    </button>
+                </div>
             </div>
 
             <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
@@ -1117,15 +1155,28 @@
 
         const assignedContainer = document.getElementById('modalAssignedContainer');
         const assignedToEl = document.getElementById('modalAssignedTo');
-        const assignedName = req.assigned_name || req.assigned_bhw_name;
-        if (assignedName) {
-            assignedToEl.textContent = assignedName;
-            assignedContainer.classList.remove('hidden');
-        } else if (req.status === 'Pending') {
-            assignedToEl.textContent = 'Pending Assignment';
-            assignedContainer.classList.remove('hidden');
+        const assignBhwSection = document.getElementById('modalAssignBhwSection');
+        const updateBhwBtnRow = document.getElementById('modalUpdateBhwBtnRow');
+        const bhwSelect = document.getElementById('modalBhwSelect');
+        const bhwNameInput = document.getElementById('modalBhwNameInput');
+        const assignedName = req.assigned_name || req.assigned_bhw_name || '';
+
+        clearModalBhwError();
+        if (bhwSelect) bhwSelect.value = req.assigned_to || '';
+        if (bhwNameInput) bhwNameInput.value = assignedName;
+
+        if (req.status === 'Pending' || req.status === 'Accepted' || req.status === 'Approved') {
+            assignedContainer.classList.add('hidden');
+            assignBhwSection.classList.remove('hidden');
+            if (req.status === 'Pending') {
+                updateBhwBtnRow.classList.add('hidden');
+            } else {
+                updateBhwBtnRow.classList.remove('hidden');
+            }
         } else {
-            assignedToEl.textContent = 'Unassigned';
+            assignBhwSection.classList.add('hidden');
+            updateBhwBtnRow.classList.add('hidden');
+            assignedToEl.textContent = assignedName || 'Unassigned';
             assignedContainer.classList.remove('hidden');
         }
 
@@ -1148,14 +1199,10 @@
 
         if (req.status === 'Pending') {
             actionsContainer.innerHTML = `
-                <form method="POST" action="/nurse/home-services/${req.id}/accept" class="inline">
-                    <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').getAttribute('content')}">
-                    <input type="hidden" name="_method" value="PATCH">
-                    <button type="submit" class="btn-action-approve" style="background:#2563eb;">
-                        <span class="material-icons-outlined" style="font-size:15px;">check_circle</span>
-                        <span>Accept</span>
-                    </button>
-                </form>
+                <button type="button" onclick="submitModalAcceptWithBhw()" class="btn-action-approve" style="background:#2563eb;">
+                    <span class="material-icons-outlined" style="font-size:15px;">check_circle</span>
+                    <span>Accept &amp; Assign BHW</span>
+                </button>
                 <button type="button" onclick="closeModal('viewModal'); openRejectModal(${JSON.stringify(req).replace(/"/g, '&quot;')})" class="btn-action-reject">
                     <span class="material-icons-outlined" style="font-size:15px;">close</span>
                     <span>Reject</span>
@@ -1186,6 +1233,73 @@
         }
 
         openModal('viewModal');
+    }
+
+    function handleModalBhwSelect(selectEl) {
+        const selectedOption = selectEl.options[selectEl.selectedIndex];
+        const bhwNameInput = document.getElementById('modalBhwNameInput');
+        if (selectedOption && selectedOption.dataset && selectedOption.dataset.name) {
+            bhwNameInput.value = selectedOption.dataset.name;
+        }
+        clearModalBhwError();
+    }
+
+    function clearModalBhwError() {
+        const errEl = document.getElementById('modalBhwError');
+        const bhwNameInput = document.getElementById('modalBhwNameInput');
+        if (errEl) errEl.classList.add('hidden');
+        if (bhwNameInput) {
+            bhwNameInput.classList.remove('border-red-400', 'ring-2', 'ring-red-500/20');
+        }
+    }
+
+    function submitModalBhwAction(endpoint) {
+        if (!activeRequest) return;
+        const bhwSelect = document.getElementById('modalBhwSelect');
+        const bhwNameInput = document.getElementById('modalBhwNameInput');
+        const errEl = document.getElementById('modalBhwError');
+
+        const assignedTo = bhwSelect ? bhwSelect.value : '';
+        const assignedBhwName = bhwNameInput ? bhwNameInput.value.trim() : '';
+
+        if (!assignedTo && !assignedBhwName) {
+            if (errEl) errEl.classList.remove('hidden');
+            if (bhwNameInput) {
+                bhwNameInput.classList.add('border-red-400', 'ring-2', 'ring-red-500/20');
+                bhwNameInput.focus();
+            }
+            return;
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/nurse/home-services/${activeRequest.id}/${endpoint}`;
+
+        const fields = {
+            _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            _method: 'PATCH',
+            assigned_to: assignedTo,
+            assigned_bhw_name: assignedBhwName,
+        };
+
+        Object.entries(fields).forEach(([name, value]) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function submitModalAcceptWithBhw() {
+        submitModalBhwAction('accept');
+    }
+
+    function submitModalAssignBhw() {
+        submitModalBhwAction('assign');
     }
 
     // Approve Modal

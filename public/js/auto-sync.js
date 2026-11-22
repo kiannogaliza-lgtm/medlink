@@ -11,6 +11,7 @@ class MedLinkAutoSync {
         this.intervalMs = intervalMs;
         this.currentVersion = null;
         this.lastNotifId = null;
+        this.hasInitializedNotif = false;
         this.timer = null;
         this.isChecking = false;
         this.isTypingOrInteracting = false;
@@ -20,6 +21,26 @@ class MedLinkAutoSync {
     }
 
     setupInteractionListeners() {
+        // Unlock Web Audio on first user gesture so notification chimes work reliably
+        const unlockAudio = () => {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                if (!this.audioContext) {
+                    this.audioContext = new AudioCtx();
+                }
+                if (this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+            } catch (e) {}
+            window.removeEventListener('click', unlockAudio);
+            window.removeEventListener('touchstart', unlockAudio);
+            window.removeEventListener('keydown', unlockAudio);
+        };
+        window.addEventListener('click', unlockAudio, { passive: true });
+        window.addEventListener('touchstart', unlockAudio, { passive: true });
+        window.addEventListener('keydown', unlockAudio, { passive: true });
+
         // Avoid refreshing while user is actively filling out a form or typing
         const setInteracting = () => {
             this.isTypingOrInteracting = true;
@@ -177,15 +198,15 @@ class MedLinkAutoSync {
                     return;
                 }
 
-                // Track if a new notification arrived on this poll
+                // Track if a new notification arrived on this poll (even if the user started with 0 notifications)
                 let newNotifForToast = null;
-                if (data.latest_notif) {
-                    if (this.lastNotifId === null) {
-                        this.lastNotifId = data.latest_notif.id;
-                    } else if (this.lastNotifId !== data.latest_notif.id) {
-                        this.lastNotifId = data.latest_notif.id;
-                        newNotifForToast = data.latest_notif;
-                    }
+                const incomingNotifId = data.latest_notif ? data.latest_notif.id : 0;
+                if (!this.hasInitializedNotif) {
+                    this.hasInitializedNotif = true;
+                    this.lastNotifId = incomingNotifId;
+                } else if (data.latest_notif && this.lastNotifId !== incomingNotifId) {
+                    this.lastNotifId = incomingNotifId;
+                    newNotifForToast = data.latest_notif;
                 }
 
                 // Update Nurse Portal Notification Badge if present on page
@@ -197,9 +218,9 @@ class MedLinkAutoSync {
                     if (nurseBadge) {
                         if (totalPending > 0) {
                             nurseBadge.innerText = totalPending > 9 ? '9+' : String(totalPending);
-                            nurseBadge.style.display = 'flex';
+                            nurseBadge.classList.remove('hidden');
                         } else {
-                            nurseBadge.style.display = 'none';
+                            nurseBadge.classList.add('hidden');
                         }
                     }
                     if (nurseSidebarBadge) {

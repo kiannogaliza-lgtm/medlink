@@ -107,7 +107,7 @@ class SchedulingController extends Controller
         // Default service name based on type
         $service = $validated['type'] === 'Immunization' ? 'Vaccination' : 'Prenatal/General Ultrasound';
 
-        Schedule::create([
+        $schedule = Schedule::create([
             'user_id' => $user->id,
             'patient_name' => $user->first_name . ' ' . $user->last_name,
             'type' => $validated['type'],
@@ -117,6 +117,16 @@ class SchedulingController extends Controller
             'notes' => $validated['notes'] ?? null,
             'status' => 'Pending',
         ]);
+
+        // Notify all active Nurses about the new schedule request
+        foreach (User::where('role', 'nurse')->where('status', 'active')->get() as $nurse) {
+            AppNotification::create([
+                'user_id' => $nurse->id,
+                'type'    => 'info',
+                'title'   => 'New Appointment Request',
+                'message' => "{$schedule->patient_name} booked a {$schedule->type} appointment on {$schedule->scheduled_date->format('M d, Y')} at {$schedule->formatted_time}.",
+            ]);
+        }
 
         return redirect()->route('dashboard')->with('success', 'Appointment scheduled successfully.');
     }
@@ -198,13 +208,25 @@ class SchedulingController extends Controller
         $schedule->assignment_status = 'confirmed';
         $schedule->save();
 
-        // Notify the nurse / resident
+        $bhwLabel = $schedule->assigned_bhw_name ?: ('BHW ' . trim(auth()->user()->first_name . ' ' . auth()->user()->last_name));
+
+        // Notify the resident
         if ($schedule->user_id) {
             AppNotification::create([
                 'user_id' => $schedule->user_id,
                 'type'    => 'success',
                 'title'   => 'Appointment BHW Confirmed',
-                'message' => "BHW {$schedule->assigned_bhw_name} has confirmed your {$schedule->type} appointment on {$schedule->scheduled_date->format('M d, Y')}.",
+                'message' => "{$bhwLabel} has confirmed your {$schedule->type} appointment on {$schedule->scheduled_date->format('M d, Y')}.",
+            ]);
+        }
+
+        // Notify all active Nurses
+        foreach (User::where('role', 'nurse')->where('status', 'active')->get() as $nurse) {
+            AppNotification::create([
+                'user_id' => $nurse->id,
+                'type'    => 'success',
+                'title'   => 'Schedule Confirmed by BHW',
+                'message' => "{$bhwLabel} confirmed the {$schedule->type} appointment for {$schedule->patient_name} on {$schedule->scheduled_date->format('M d, Y')}.",
             ]);
         }
 

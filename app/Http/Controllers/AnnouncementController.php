@@ -33,7 +33,7 @@ class AnnouncementController extends Controller
 
         $user = auth()->user();
 
-        Announcement::create([
+        $announcement = Announcement::create([
             'user_id'     => $user->id,
             'author_name' => $user->first_name . ' ' . $user->last_name,
             'author_role' => $user->role,
@@ -42,6 +42,25 @@ class AnnouncementController extends Controller
             'date'        => $validated['date'] ?? now()->toDateString(),
             'status'      => $validated['status'] ?? 'active',
         ]);
+
+        // Notify active residents and the other staff role when an active announcement is posted
+        if ($announcement->status === 'active') {
+            $targetRoles = $user->role === 'nurse' ? ['resident', 'bhw'] : ['resident', 'nurse'];
+            $recipients = \App\Models\User::whereIn('role', $targetRoles)
+                ->where('status', 'active')
+                ->where('id', '!=', $user->id)
+                ->get();
+
+            $snippet = \Illuminate\Support\Str::limit($announcement->content, 120);
+            foreach ($recipients as $recipient) {
+                \App\Models\AppNotification::create([
+                    'user_id' => $recipient->id,
+                    'type'    => 'info',
+                    'title'   => 'New Announcement: ' . $announcement->title,
+                    'message' => $snippet,
+                ]);
+            }
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Announcement posted successfully!']);

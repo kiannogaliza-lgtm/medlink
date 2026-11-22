@@ -78,7 +78,8 @@ class SyncController extends Controller
         // 7. Notifications for this specific user
         $notifMax = AppNotification::where('user_id', $user->id)->max('created_at');
         $notifCount = AppNotification::where('user_id', $user->id)->count();
-        $signatures[] = "NO:{$notifCount}:{$notifMax}";
+        $unreadPersonalNotifs = AppNotification::where('user_id', $user->id)->where('is_read', false)->count();
+        $signatures[] = "NO:{$notifCount}:{$unreadPersonalNotifs}:{$notifMax}:{$nurseReadAt}";
 
         // 8. User Profile changes / status updates / permissions
         $userSelf = User::find($user->id);
@@ -149,8 +150,8 @@ class SyncController extends Controller
             'role'           => $role,
             'status'         => $userSelf?->status ?? 'active',
             'version'        => $versionHash,
-            'unread_notifs'  => AppNotification::where('user_id', $user->id)->where('is_read', false)->count(),
-            'pending_total'  => $role === 'nurse' ? $nurseTotalNotifs : 0,
+            'unread_notifs'  => $unreadPersonalNotifs,
+            'pending_total'  => $role === 'nurse' ? ($nurseTotalNotifs + $unreadPersonalNotifs) : 0,
             'latest_notif'   => $latestNotif ? [
                 'id'         => $latestNotif->id,
                 'title'      => $latestNotif->title,

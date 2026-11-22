@@ -320,7 +320,7 @@
                    :assigned-home-services="assignedHomeServices"
                    :completed-home-services="completedHomeServices"
                    :report-data="reportData"
-                   :notifications="notifications"
+                   :notifications="localNotificationsList"
                    :mark-read-url="markReadUrl"
                    :bhw-confirm-schedule-url="bhwConfirmScheduleUrl"
                    :announcements="announcements"
@@ -615,6 +615,11 @@ function handleNewRealtimeNotification(e) {
   }
 }
 
+function handleNotificationsReadLocally() {
+  dismissedCategories.value = true;
+  localNotificationsList.value = localNotificationsList.value.map(n => ({ ...n, is_read: true }));
+}
+
 onMounted(() => {
   const tokenMeta = document.querySelector('meta[name="csrf-token"]');
   if (tokenMeta) {
@@ -624,13 +629,13 @@ onMounted(() => {
   localNotificationsList.value = [...props.notifications];
   // Close dropdown when clicking outside
   document.addEventListener('click', handleClickOutside);
-  window.addEventListener('notifications-read', markAllAsRead);
+  window.addEventListener('notifications-read', handleNotificationsReadLocally);
   window.addEventListener('medlink-new-notification', handleNewRealtimeNotification);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
-  window.removeEventListener('notifications-read', markAllAsRead);
+  window.removeEventListener('notifications-read', handleNotificationsReadLocally);
   window.removeEventListener('medlink-new-notification', handleNewRealtimeNotification);
 });
 

@@ -62,6 +62,16 @@ class AuthController extends Controller
             'resident'
         );
 
+        // Notify all active Nurses about the new resident awaiting verification
+        foreach (\App\Models\User::where('role', 'nurse')->where('status', 'active')->get() as $nurse) {
+            \App\Models\AppNotification::create([
+                'user_id' => $nurse->id,
+                'type'    => 'info',
+                'title'   => 'New Resident Verification Needed',
+                'message' => trim($user->first_name . ' ' . $user->last_name) . ' (' . ($user->phone_number ?? 'No phone') . ') registered and is awaiting account verification.',
+            ]);
+        }
+
         Auth::login($user);
         $request->session()->regenerate();
 

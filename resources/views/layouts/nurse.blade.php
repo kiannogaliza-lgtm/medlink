@@ -216,7 +216,13 @@
         $pendingPat = $pendingPatQuery->count();
         $pendingSch = $pendingSchQuery->count();
         $pendingHome = $pendingHomeQuery->count();
-        $totalNotifications = $pendingMed + $pendingPat + $pendingSch + $pendingHome;
+        $nursePersonalNotifs = $nurseUser
+            ? \App\Models\AppNotification::where('user_id', $nurseUser->id)->orderBy('created_at', 'desc')->take(6)->get()
+            : collect();
+        $unreadPersonalNotifs = $nurseUser
+            ? \App\Models\AppNotification::where('user_id', $nurseUser->id)->where('is_read', false)->count()
+            : 0;
+        $totalNotifications = $pendingMed + $pendingPat + $pendingSch + $pendingHome + $unreadPersonalNotifs;
     @endphp
 
     {{-- Toast Notifications --}}
@@ -363,11 +369,9 @@
                     <div class="relative" id="notification-dropdown-container">
                         <button onclick="toggleNotifications()" class="relative text-gray-500 hover:text-[#1a5a89] transition-colors p-2 bg-gray-50 rounded-full border border-gray-100 focus:outline-none cursor-pointer">
                             <span class="material-icons-outlined block" style="font-size:20px;">notifications</span>
-                            @if($totalNotifications > 0)
-                                <span id="nurse-notif-badge" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 border-2 border-white rounded-full text-[10px] text-white flex items-center justify-center font-bold">
-                                    {{ $totalNotifications > 9 ? '9+' : $totalNotifications }}
-                                </span>
-                            @endif
+                            <span id="nurse-notif-badge" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 border-2 border-white rounded-full text-[10px] text-white flex items-center justify-center font-bold {{ $totalNotifications > 0 ? '' : 'hidden' }}">
+                                {{ $totalNotifications > 9 ? '9+' : $totalNotifications }}
+                            </span>
                         </button>
                         
                         {{-- Dropdown Panel (Viewport-safe on mobile) --}}
@@ -457,6 +461,43 @@
                                         </div>
                                     </a>
                                     @endif
+
+                                    @foreach($nursePersonalNotifs as $pn)
+                                    <a href="{{ route('nurse.notifications') }}" class="block px-4 py-3 transition-colors {{ !$pn->is_read ? 'bg-blue-50/40 hover:bg-blue-50/70' : 'hover:bg-gray-50' }}">
+                                        <div class="flex gap-3 items-start">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 {{ $pn->type === 'success' ? 'bg-green-100 text-green-600' : ($pn->type === 'error' ? 'bg-red-100 text-red-600' : ($pn->type === 'warning' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600')) }}">
+                                                <span class="material-icons-outlined" style="font-size: 16px;">
+                                                    {{ $pn->type === 'success' ? 'check_circle' : ($pn->type === 'error' ? 'cancel' : ($pn->type === 'warning' ? 'warning' : 'info')) }}
+                                                </span>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-xs font-bold text-gray-800 truncate">{{ $pn->title }}</p>
+                                                <p class="text-xs text-gray-500 mt-0.5 leading-snug line-clamp-2">{{ $pn->message }}</p>
+                                                <span class="text-[10px] text-gray-400 mt-1 block">{{ $pn->time_ago }}</span>
+                                            </div>
+                                            @if(!$pn->is_read)
+                                                <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-1.5"></span>
+                                            @endif
+                                        </div>
+                                    </a>
+                                    @endforeach
+                                @elseif($nursePersonalNotifs->isNotEmpty())
+                                    @foreach($nursePersonalNotifs as $pn)
+                                    <a href="{{ route('nurse.notifications') }}" class="block px-4 py-3 hover:bg-gray-50 transition-colors">
+                                        <div class="flex gap-3 items-start">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 {{ $pn->type === 'success' ? 'bg-green-100 text-green-600' : ($pn->type === 'error' ? 'bg-red-100 text-red-600' : ($pn->type === 'warning' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600')) }}">
+                                                <span class="material-icons-outlined" style="font-size: 16px;">
+                                                    {{ $pn->type === 'success' ? 'check_circle' : ($pn->type === 'error' ? 'cancel' : ($pn->type === 'warning' ? 'warning' : 'info')) }}
+                                                </span>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-xs font-bold text-gray-800 truncate">{{ $pn->title }}</p>
+                                                <p class="text-xs text-gray-500 mt-0.5 leading-snug line-clamp-2">{{ $pn->message }}</p>
+                                                <span class="text-[10px] text-gray-400 mt-1 block">{{ $pn->time_ago }}</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    @endforeach
                                 @else
                                     <div class="px-4 py-8 text-center text-gray-400">
                                         <span class="material-icons-outlined mb-2 text-gray-300" style="font-size: 36px;">notifications_none</span>
@@ -717,13 +758,16 @@
 
         function markAllNurseNotificationsRead() {
             const badge = document.getElementById('nurse-notif-badge');
-            if (badge) badge.remove();
+            if (badge) badge.classList.add('hidden');
+
+            const sidebarBadge = document.getElementById('nurse-sidebar-notif-badge');
+            if (sidebarBadge) sidebarBadge.classList.add('hidden');
 
             const count = document.getElementById('nurse-notif-count');
             if (count) count.innerText = '0 New';
 
             const btn = document.getElementById('nurse-mark-read-btn');
-            if (btn) btn.remove();
+            if (btn) btn.classList.add('hidden');
 
             const list = document.getElementById('nurse-notif-list');
             if (list) {
