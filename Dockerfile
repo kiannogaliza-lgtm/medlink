@@ -31,7 +31,10 @@ COPY --from=node:20 /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 RUN node --version && npm ci && npm run build
 
-RUN chown -R www-data:www-data storage bootstrap/cache \
+RUN rm -rf public/storage \
+    && mkdir -p storage/app/public/id_photos storage/app/public/profile_photos \
+    && php artisan storage:link --force \
+    && chown -R www-data:www-data storage bootstrap/cache public/storage \
     && chmod -R 775 storage bootstrap/cache
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh

@@ -1,14 +1,19 @@
 #!/bin/bash
 set -e
 
-# 1. Setup folders and full permissions
+# 1. Setup folders, storage symlink, and full permissions
 mkdir -p /var/www/html/storage/logs \
          /var/www/html/storage/framework/sessions \
          /var/www/html/storage/framework/views \
-         /var/www/html/storage/framework/cache
+         /var/www/html/storage/framework/cache \
+         /var/www/html/storage/app/public/id_photos \
+         /var/www/html/storage/app/public/profile_photos
 touch /var/www/html/storage/logs/laravel.log
 
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+rm -rf /var/www/html/public/storage
+php artisan storage:link --force || ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage
+
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/storage
 chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # 2. Initialize and start MySQL (MariaDB)
