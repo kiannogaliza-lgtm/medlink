@@ -213,15 +213,16 @@ class GlobalSearchController extends Controller
             ];
         }
 
-        // 2. Home Services (all or assigned)
-        $homeServices = HomeServiceRequest::where(function ($sub) use ($q) {
-            $sub->where('patient_name', 'like', "%{$q}%")
-                ->orWhere('service_type', 'like', "%{$q}%")
-                ->orWhere('address', 'like', "%{$q}%")
-                ->orWhere('contact_number', 'like', "%{$q}%");
-        })
-        ->limit(6)
-        ->get();
+        // 2. Home Services (assigned to this BHW)
+        $homeServices = HomeServiceRequest::where('assigned_to', $user->id)
+            ->where(function ($sub) use ($q) {
+                $sub->where('patient_name', 'like', "%{$q}%")
+                    ->orWhere('service_type', 'like', "%{$q}%")
+                    ->orWhere('address', 'like', "%{$q}%")
+                    ->orWhere('contact_number', 'like', "%{$q}%");
+            })
+            ->limit(6)
+            ->get();
 
         foreach ($homeServices as $hs) {
             $dateStr = $hs->preferred_date ? $hs->preferred_date->format('M d, Y') : 'N/A';
@@ -236,8 +237,9 @@ class GlobalSearchController extends Controller
             ];
         }
 
-        // 3. Medicine Delivery Requests
+        // 3. Medicine Delivery Requests (strictly delivery only for BHW)
         $medicineRequests = MedicineRequest::with('user')
+            ->where('delivery_method', 'delivery')
             ->where(function ($sub) use ($q) {
                 $sub->where('item_service', 'like', "%{$q}%")
                     ->orWhere('notes', 'like', "%{$q}%")

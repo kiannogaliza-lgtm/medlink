@@ -532,7 +532,7 @@
                             <div class="text-sm font-semibold text-gray-800 mt-0.5">{{ $req->contact_number }}</div>
 
                             <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wide mt-3">Assigned To</div>
-                            <div class="text-sm font-semibold text-blue-600 mt-0.5">{{ $req->assigned_name ?: 'BHW Carlos Lopez' }}</div>
+                            <div class="text-sm font-semibold text-blue-600 mt-0.5">{{ $req->assigned_name ?: 'Unassigned' }}</div>
                         </div>
                     </div>
 
@@ -779,6 +779,13 @@
                             </div>
                         </label>
                         <label class="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                            <input type="radio" name="status" value="Accepted" class="text-red-600 focus:ring-red-500">
+                            <div>
+                                <div class="text-xs font-bold text-gray-800">Accepted Requests Only ({{ $acceptedCount }})</div>
+                                <div class="text-[11px] text-gray-400">Clear all accepted / assigned requests</div>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
                             <input type="radio" name="status" value="Approved" class="text-red-600 focus:ring-red-500">
                             <div>
                                 <div class="text-xs font-bold text-gray-800">Approved Requests Only ({{ $approvedCount }})</div>
@@ -788,7 +795,7 @@
                         <label class="flex items-center gap-3 p-3 bg-red-50/40 border border-red-200 rounded-xl cursor-pointer hover:bg-red-50 transition-colors">
                             <input type="radio" name="status" value="all" class="text-red-600 focus:ring-red-500">
                             <div>
-                                <div class="text-xs font-bold text-red-700">Clear ALL Requests ({{ $pendingCount + $approvedCount + $completedCount + $rejectedCount }})</div>
+                                <div class="text-xs font-bold text-red-700">Clear ALL Requests ({{ $pendingCount + $acceptedCount + $approvedCount + $completedCount + $rejectedCount }})</div>
                                 <div class="text-[11px] text-red-500">Wipe all home service request records completely</div>
                             </div>
                         </label>
@@ -974,6 +981,22 @@
                             <option value="2:00 PM - 4:00 PM">2:00 PM - 4:00 PM</option>
                             <option value="3:00 PM - 5:00 PM">3:00 PM - 5:00 PM</option>
                         </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Assign BHW (Optional)</label>
+                        <select name="assigned_to" onchange="const opt=this.options[this.selectedIndex]; if(opt && opt.dataset.name) document.getElementById('newRequestBhwName').value=opt.dataset.name;" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                            <option value="">-- Unassigned --</option>
+                            @foreach($bhwUsers as $bhw)
+                                <option value="{{ $bhw->id }}" data-name="BHW {{ $bhw->first_name }} {{ $bhw->last_name }}">BHW {{ $bhw->first_name }} {{ $bhw->last_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Name of BHW (Optional)</label>
+                        <input type="text" name="assigned_bhw_name" id="newRequestBhwName" placeholder="e.g. BHW Maria Santos" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                 </div>
 

@@ -82,12 +82,30 @@ class HomeServiceController extends Controller
             'preferred_date' => 'required|date',
             'preferred_time' => 'required|string|max:100',
             'reason_symptoms' => 'nullable|string',
+            'assigned_to' => 'nullable|exists:users,id',
             'assigned_bhw_name' => 'nullable|string|max:255',
         ], [
             'contact_number.regex' => 'The contact number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',
         ]);
 
-        HomeServiceRequest::create($validated);
+        if (!empty($validated['assigned_to'])) {
+            $bhw = User::find($validated['assigned_to']);
+            if ($bhw && empty(trim($validated['assigned_bhw_name'] ?? ''))) {
+                $validated['assigned_bhw_name'] = 'BHW ' . $bhw->first_name . ' ' . $bhw->last_name;
+            }
+            $validated['status'] = 'Accepted';
+        }
+
+        $hsRequest = HomeServiceRequest::create($validated);
+
+        if (!empty($hsRequest->assigned_to)) {
+            AppNotification::create([
+                'user_id' => $hsRequest->assigned_to,
+                'type' => 'info',
+                'title' => 'New Home Service Assignment',
+                'message' => "You have been assigned to {$hsRequest->service_type} for {$hsRequest->patient_name} on " . ($hsRequest->preferred_date ? $hsRequest->preferred_date->format('M d, Y') : $validated['preferred_date']) . " ({$hsRequest->preferred_time}).",
+            ]);
+        }
 
         return redirect()->route('nurse.home-services')->with('success', 'Home service request created successfully.');
     }

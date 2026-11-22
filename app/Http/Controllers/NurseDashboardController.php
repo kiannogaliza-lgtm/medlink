@@ -38,9 +38,9 @@ class NurseDashboardController extends Controller
         $medicines = Medicine::orderBy('stock', 'desc')->limit(6)->get();
 
         // Request distribution for pie chart
-        $totalRequests = MedicineRequest::count();
         $medicineRequestCount = MedicineRequest::where('type', 'Medicine')->count();
-        $homeServiceCount = MedicineRequest::where('type', 'Home Service')->count();
+        $homeServiceCount = \App\Models\HomeServiceRequest::count();
+        $totalRequests = $medicineRequestCount + $homeServiceCount;
 
         // Patients verified today
         $verifiedTodayCount = \App\Models\User::where('role', 'resident')
@@ -101,10 +101,10 @@ class NurseDashboardController extends Controller
             }
         }
 
-        // Sort
+        // Sort (only actual database columns; 'status' is a computed accessor)
         $sort = $request->input('sort', 'name');
         $direction = $request->input('direction', 'asc');
-        $allowedSorts = ['name', 'dosage', 'category', 'stock', 'unit', 'expiration_date', 'status'];
+        $allowedSorts = ['name', 'dosage', 'category', 'stock', 'unit', 'expiration_date'];
 
         if (in_array($sort, $allowedSorts)) {
             $query->orderBy($sort, $direction);

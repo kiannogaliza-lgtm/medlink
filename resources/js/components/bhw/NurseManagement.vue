@@ -105,8 +105,8 @@
                   <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                   Nurse
                 </span>
-                <span class="inline-flex items-center ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  Active
+                <span :class="['inline-flex items-center ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border', (nurse.status || 'active') === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200']">
+                  {{ (nurse.status || 'active') === 'active' ? 'Active' : 'Inactive' }}
                 </span>
               </td>
               <td class="py-3 px-4 whitespace-nowrap text-gray-500">

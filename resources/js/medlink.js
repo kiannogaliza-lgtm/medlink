@@ -30,6 +30,8 @@ if (appEl && window.__BHW_DATA__) {
                 announcementsStoreUrl: d.announcementsStoreUrl,
                 medicineRequests: d.medicineRequests,
                 medicineReturns: d.medicineReturns,
+                nurseAccounts: d.nurseAccounts,
+                createNurseUrl: d.createNurseUrl,
             });
         }
     });

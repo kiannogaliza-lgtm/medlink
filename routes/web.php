@@ -95,6 +95,8 @@ Route::middleware(['auth'])->group(function () {
 
         // Account History Logs
         Route::get('/nurse/account-history', [\App\Http\Controllers\AccountHistoryController::class, 'index'])->name('nurse.account-history');
+        Route::get('/nurse/account-history/export-excel', [\App\Http\Controllers\AccountHistoryController::class, 'exportExcel'])->name('nurse.account-history.export-excel');
+        Route::post('/nurse/account-history/clear', [\App\Http\Controllers\AccountHistoryController::class, 'clear'])->name('nurse.account-history.clear');
 
         // Home Service Types Maintenance (Nurse/Admin)
         Route::get('/nurse/home-service-types', [HomeServiceTypeController::class, 'index'])->name('home-service-types.index');
@@ -129,6 +131,10 @@ Route::middleware(['auth'])->group(function () {
         // Nurse - notifications page & mark as read
         Route::get('/nurse/notifications', [NurseDashboardController::class, 'notifications'])->name('nurse.notifications');
         Route::post('/nurse/notifications/read', [NurseDashboardController::class, 'markNotificationsRead'])->name('nurse.notifications.read');
+
+        // Home Services destructive management (Nurse only)
+        Route::delete('/nurse/home-services/{homeServiceRequest}', [HomeServiceController::class, 'destroy'])->name('home-services.destroy');
+        Route::post('/nurse/home-services/clear', [HomeServiceController::class, 'clear'])->name('home-services.clear');
     });
 
     // ── Shared Staff routes (Nurse & BHW) ────────────────────────────────────
@@ -150,8 +156,6 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/nurse/home-services/{homeServiceRequest}/reject', [HomeServiceController::class, 'reject'])->name('home-services.reject');
         Route::patch('/nurse/home-services/{homeServiceRequest}/complete', [HomeServiceController::class, 'complete'])->name('home-services.complete');
         Route::patch('/nurse/home-services/{homeServiceRequest}/assign', [HomeServiceController::class, 'assign'])->name('home-services.assign');
-        Route::delete('/nurse/home-services/{homeServiceRequest}', [HomeServiceController::class, 'destroy'])->name('home-services.destroy');
-        Route::post('/nurse/home-services/clear', [HomeServiceController::class, 'clear'])->name('home-services.clear');
 
         // Announcements Management (Nurse & BHW)
         Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');

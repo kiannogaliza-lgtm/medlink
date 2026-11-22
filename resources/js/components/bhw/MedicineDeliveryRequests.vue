@@ -388,6 +388,17 @@
                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
           </div>
 
+          <div v-if="editQtyValue < (editingRequest.quantity || 1)">
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Reason for Reducing Quantity</label>
+            <select v-model="editQtyReason"
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+              <option value="Patient declined / partially returned">Patient declined / partially returned (Restock)</option>
+              <option value="Dosage adjusted during consultation">Dosage adjusted during consultation (Restock)</option>
+              <option value="Damaged / Broken medicine upon claiming">Damaged / Broken medicine upon claiming (Do not restock)</option>
+              <option value="Expired medicine">Expired medicine (Do not restock)</option>
+            </select>
+          </div>
+
           <div v-if="editQtyError" class="text-xs text-rose-600 font-medium">
             {{ editQtyError }}
           </div>
@@ -693,9 +704,10 @@ function openClaimModal(req) {
   const defaultClaimant = req.patient_type === 'other' && req.patient_name
     ? req.patient_name
     : `${req.user?.first_name || ''} ${req.user?.last_name || ''}`.trim();
+  const bhwFullName = `${props.user?.first_name || ''} ${props.user?.last_name || ''}`.trim();
 
   claimForm.value = {
-    delivered_by: 'BHW Elena Gomez',
+    delivered_by: bhwFullName ? `BHW ${bhwFullName}` : 'BHW Staff',
     claimed_by: defaultClaimant,
     claimed_relationship: req.patient_type === 'other' ? (req.patient_relationship || 'Parent') : 'Self (Resident)',
   };
@@ -900,6 +912,7 @@ function printReceipt(req) {
 // Edit Quantity Modal state
 const editingRequest = ref(null);
 const editQtyValue = ref(1);
+const editQtyReason = ref('Patient declined / partially returned');
 const editQtyError = ref('');
 const isSavingQty = ref(false);
 
@@ -913,12 +926,14 @@ const maxAllowedQty = computed(() => {
 function openEditQtyModal(req) {
   editingRequest.value = req;
   editQtyValue.value = req.quantity ?? 1;
+  editQtyReason.value = 'Patient declined / partially returned';
   editQtyError.value = '';
 }
 
 function closeEditQtyModal() {
   editingRequest.value = null;
   editQtyValue.value = 1;
+  editQtyReason.value = 'Patient declined / partially returned';
   editQtyError.value = '';
 }
 
@@ -943,6 +958,7 @@ async function saveQuantity() {
       },
       body: JSON.stringify({
         quantity: editQtyValue.value,
+        reason: editQtyReason.value,
       }),
     });
 

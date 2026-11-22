@@ -58,10 +58,22 @@
                     Audit trail tracking resident, BHW, and nurse account creation dates, creator details, and log-in events.
                 </p>
             </div>
-            <div class="flex items-center gap-2">
-                <button onclick="window.print()" class="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer">
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="{{ route('nurse.account-history.export-excel', request()->only(['action', 'role', 'search'])) }}"
+                   class="px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer">
+                    <span class="material-icons-outlined" style="font-size:16px;">download</span>
+                    <span>Export to Excel</span>
+                </a>
+                @if($totalLogs > 0)
+                <button type="button" onclick="openClearHistoryModal()"
+                        class="px-3.5 py-2 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer">
+                    <span class="material-icons-outlined" style="font-size:16px;">delete_sweep</span>
+                    <span>Clear All History</span>
+                </button>
+                @endif
+                <button type="button" onclick="window.print()" class="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer">
                     <span class="material-icons-outlined" style="font-size:16px;">print</span>
-                    Print Log
+                    <span>Print Log</span>
                 </button>
             </div>
         </div>
@@ -303,4 +315,55 @@
     </div>
 
 </div>
+
+{{-- Clear All Account History Confirmation Modal --}}
+<div id="clearHistoryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" onclick="closeClearHistoryModal(event)">
+    <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-md overflow-hidden" onclick="event.stopPropagation()">
+        <form method="POST" action="{{ route('nurse.account-history.clear') }}">
+            @csrf
+            <div class="p-6 text-center space-y-3">
+                <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+                    <span class="material-icons-outlined text-2xl">delete_sweep</span>
+                </div>
+                <h3 class="font-bold text-gray-900 text-base">Clear All Account History Logs?</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">
+                    Are you sure you want to permanently clear all <strong>{{ $totalLogs }}</strong> account history log(s)? This action cannot be undone.
+                </p>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2.5 bg-gray-50/70">
+                <button type="button" onclick="closeClearHistoryModal()" class="px-4 py-2 bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors cursor-pointer">
+                    Yes, Clear All History
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection
+
+@section('scripts')
+<script>
+    function openClearHistoryModal() {
+        const modal = document.getElementById('clearHistoryModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+
+    function closeClearHistoryModal(e) {
+        if (e && e.target !== document.getElementById('clearHistoryModal')) return;
+        const modal = document.getElementById('clearHistoryModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeClearHistoryModal();
+    });
+</script>
 @endsection

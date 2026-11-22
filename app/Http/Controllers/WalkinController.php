@@ -52,10 +52,12 @@ class WalkinController extends Controller
             $ageCategory = $validated['agecategory'];
         }
 
-        // Check if user with same phone already exists (if phone provided)
+        // Check if a resident user with same phone already exists (never overwrite Nurse/BHW accounts)
         $existingUser = null;
         if (!empty($validated['phone_number'])) {
-            $existingUser = User::where('phone_number', $validated['phone_number'])->first();
+            $existingUser = User::where('role', 'resident')
+                ->where('phone_number', $validated['phone_number'])
+                ->first();
         }
 
         $patientClassification = $validated['patient_classification'] ?? 'Regular Patient';
@@ -64,15 +66,16 @@ class WalkinController extends Controller
         }
 
         if ($existingUser) {
-            // Use the existing user — update any missing fields
-            $existingUser->update(array_filter([
+            // Use the existing resident — update provided fields (preserving age = 0 for infants)
+            $updateData = array_filter([
                 'dob'                    => $validated['dob'] ?? null,
                 'age'                    => $age,
                 'age_category'           => $ageCategory,
                 'patient_classification' => $patientClassification,
                 'gender'                 => $validated['gender'] ?? null,
                 'address'                => $validated['address'] ?? null,
-            ]));
+            ], fn ($v) => $v !== null && $v !== '');
+            $existingUser->update($updateData);
             $user = $existingUser;
         } else {
             // Create a new resident account — auto-approved, walk-in type

@@ -78,7 +78,7 @@
           <div v-if="!myAssignedServices || myAssignedServices.length === 0" class="text-center py-6 text-gray-500 border border-dashed border-gray-200 rounded-xl bg-gray-50">
             No assigned services pending.
           </div>
-          <div v-for="service in myAssignedServices" :key="service.id" class="border border-blue-50 rounded-xl p-4 bg-blue-50/30">
+          <div v-for="service in myAssignedServices" :key="`${service.item_type || 'item'}-${service.id}`" class="border border-blue-50 rounded-xl p-4 bg-blue-50/30">
             <div class="flex justify-between items-start mb-2">
               <div>
                 <h4 class="font-bold text-gray-900">{{ service.patient_name }}</h4>
@@ -123,10 +123,10 @@
             </div>
             
             <div class="grid grid-cols-2 gap-3 mt-4" v-else>
-              <button class="bg-[#10b981] hover:bg-emerald-600 text-white font-medium py-2 rounded-lg text-sm transition-colors shadow-sm">
+              <button type="button" @click="emit('navigate', 'services')" class="bg-[#10b981] hover:bg-emerald-600 text-white font-medium py-2 rounded-lg text-sm transition-colors shadow-sm cursor-pointer">
                 Start Service
               </button>
-              <button class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 rounded-lg text-sm transition-colors shadow-sm">
+              <button type="button" @click="viewScheduleDetails(service)" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 rounded-lg text-sm transition-colors shadow-sm cursor-pointer">
                 View Details
               </button>
             </div>
@@ -159,7 +159,7 @@
 
     <!-- Quick Actions Bottom -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-[#1a4a6b] rounded-2xl p-6 text-white hover:bg-[#143a54] transition-colors cursor-pointer shadow-md">
+      <div @click="emit('navigate', 'walkin')" class="bg-[#1a4a6b] rounded-2xl p-6 text-white hover:bg-[#143a54] transition-colors cursor-pointer shadow-md">
         <svg class="w-8 h-8 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
         </svg>
@@ -167,7 +167,7 @@
         <p class="text-white/70 text-sm mt-1">Quickly register patients who visit the health center</p>
       </div>
 
-      <div class="bg-[#3ac1eb] rounded-2xl p-6 text-white hover:bg-[#2bb4e0] transition-colors cursor-pointer shadow-md">
+      <div @click="emit('navigate', 'inventory')" class="bg-[#3ac1eb] rounded-2xl p-6 text-white hover:bg-[#2bb4e0] transition-colors cursor-pointer shadow-md">
         <svg class="w-8 h-8 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
@@ -175,7 +175,7 @@
         <p class="text-white/70 text-sm mt-1">View current medicine stock levels</p>
       </div>
 
-      <div class="bg-[#10b981] rounded-2xl p-6 text-white hover:bg-emerald-600 transition-colors cursor-pointer shadow-md">
+      <div @click="emit('navigate', 'services')" class="bg-[#10b981] rounded-2xl p-6 text-white hover:bg-emerald-600 transition-colors cursor-pointer shadow-md">
         <svg class="w-8 h-8 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
           <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
@@ -213,7 +213,7 @@
             </div>
             <div>
               <p class="text-xs text-gray-500 font-medium mb-1">Service</p>
-              <p class="font-semibold text-gray-900">{{ selectedSchedule.service }}</p>
+              <p class="font-semibold text-gray-900">{{ selectedSchedule.service_type || selectedSchedule.service }}</p>
             </div>
             <div>
               <p class="text-xs text-gray-500 font-medium mb-1">Date</p>
@@ -223,6 +223,10 @@
               <p class="text-xs text-gray-500 font-medium mb-1">Time</p>
               <p class="font-semibold text-gray-900">{{ formatTime(selectedSchedule.preferred_time) }}</p>
             </div>
+          </div>
+          <div v-if="selectedSchedule.address">
+            <p class="text-xs text-gray-500 font-medium mb-1">Address</p>
+            <p class="font-semibold text-gray-900">{{ selectedSchedule.address }}</p>
           </div>
         </div>
         
@@ -266,6 +270,8 @@ const props = defineProps({
     default: ''
   }
 });
+
+const emit = defineEmits(['navigate']);
 
 const isConfirming = ref(null);
 const selectedSchedule = ref(null);

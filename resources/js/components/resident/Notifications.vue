@@ -25,8 +25,10 @@
           <p class="text-gray-400 text-xs mt-1">We'll notify you when something happens</p>
         </div>
 
-        <div v-for="notif in localNotifications" :key="notif.id"
-             :class="['flex items-start gap-4 p-5 transition-colors', !notif.is_read ? 'bg-blue-50/30' : 'bg-white hover:bg-gray-50/50']">
+        <button v-for="notif in localNotifications" :key="notif.id"
+                type="button"
+                @click="handleNotificationClick(notif)"
+                :class="['w-full text-left flex items-start gap-4 p-5 transition-colors cursor-pointer group', !notif.is_read ? 'bg-blue-50/30 hover:bg-blue-50/60' : 'bg-white hover:bg-gray-50/80']">
           
           <!-- Icon -->
           <div :class="['w-9 h-9 rounded-full flex items-center justify-center shrink-0 mt-0.5', iconBg(notif.type)]">
@@ -50,7 +52,7 @@
 
           <!-- Content -->
           <div class="flex-1 min-w-0">
-            <h4 class="text-sm font-semibold text-gray-800">{{ notif.title }}</h4>
+            <h4 class="text-sm font-semibold text-gray-800 group-hover:text-[#1a5a89] transition-colors">{{ notif.title }}</h4>
             <p class="text-sm text-gray-500 mt-0.5 leading-relaxed">{{ notif.message }}</p>
             <div class="flex items-center gap-1.5 mt-2 text-xs text-gray-400">
               <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -60,9 +62,12 @@
             </div>
           </div>
 
-          <!-- Unread dot -->
-          <div v-if="!notif.is_read" class="w-2.5 h-2.5 bg-[#3ac1eb] rounded-full shrink-0 mt-2"></div>
-        </div>
+          <!-- Unread dot & arrow -->
+          <div class="flex items-center gap-2 shrink-0 self-center">
+            <div v-if="!notif.is_read" class="w-2.5 h-2.5 bg-[#3ac1eb] rounded-full"></div>
+            <span class="material-icons-outlined text-gray-300 group-hover:text-[#1a5a89] transition-colors" style="font-size: 18px;">chevron_right</span>
+          </div>
+        </button>
       </div>
     </div>
   </div>
@@ -108,7 +113,12 @@ const iconColor = (type) => {
   return map[type] || 'text-gray-500';
 };
 
-const emit = defineEmits(['all-read']);
+const emit = defineEmits(['all-read', 'open-notification']);
+
+const handleNotificationClick = (notif) => {
+  notif.is_read = true;
+  emit('open-notification', notif);
+};
 
 const markAllRead = async () => {
   try {

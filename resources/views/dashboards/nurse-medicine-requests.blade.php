@@ -145,6 +145,13 @@
                     <span class="mr-badge">{{ $counts['approved'] }}</span>
                 </a>
 
+                <a href="{{ route('nurse.medicine-requests', ['status' => 'Completed', 'search' => $search]) }}"
+                   class="mr-tab {{ $status === 'Completed' ? 'active' : '' }}">
+                    <span class="material-icons-outlined" style="font-size:18px;">verified</span>
+                    <span>Completed</span>
+                    <span class="mr-badge">{{ $counts['completed'] ?? 0 }}</span>
+                </a>
+
                 <a href="{{ route('nurse.medicine-requests', ['status' => 'Rejected', 'search' => $search]) }}"
                    class="mr-tab {{ $status === 'Rejected' ? 'active' : '' }}">
                     <span class="material-icons-outlined" style="font-size:18px;">block</span>

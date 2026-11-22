@@ -272,22 +272,27 @@
 
                 <!-- Individual Notifications List -->
                 <template v-if="localNotificationsList.length > 0">
-                  <div v-for="notif in localNotificationsList.slice(0, 6)" :key="notif.id"
-                       :class="['px-4 py-3 transition-colors', !notif.is_read ? 'bg-blue-50/40 hover:bg-blue-50/70' : 'hover:bg-gray-50']">
+                  <button v-for="notif in localNotificationsList.slice(0, 6)" :key="notif.id"
+                          type="button"
+                          @click="openResidentNotification(notif)"
+                          :class="['w-full text-left px-4 py-3 transition-colors cursor-pointer group', !notif.is_read ? 'bg-blue-50/40 hover:bg-blue-50/80' : 'hover:bg-gray-50']">
                     <div class="flex gap-3 items-start">
-                      <div :class="['w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5', notif.type === 'success' ? 'bg-green-100 text-green-600' : (notif.type === 'error' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600')]">
+                      <div :class="['w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5', notif.type === 'success' ? 'bg-green-100 text-green-600' : (notif.type === 'error' ? 'bg-red-100 text-red-600' : (notif.type === 'warning' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'))]">
                         <span class="material-icons-outlined" style="font-size: 16px;">
-                          {{ notif.type === 'success' ? 'check_circle' : (notif.type === 'error' ? 'cancel' : 'info') }}
+                          {{ notif.type === 'success' ? 'check_circle' : (notif.type === 'error' ? 'cancel' : (notif.type === 'warning' ? 'warning' : 'info')) }}
                         </span>
                       </div>
                       <div class="flex-1 min-w-0">
-                        <p class="text-xs font-bold text-gray-800 truncate">{{ notif.title }}</p>
+                        <p class="text-xs font-bold text-gray-800 truncate group-hover:text-[#1a5a89]">{{ notif.title }}</p>
                         <p class="text-xs text-gray-500 mt-0.5 leading-snug line-clamp-2">{{ notif.message }}</p>
                         <span class="text-[10px] text-gray-400 mt-1 block">{{ notif.time_ago || 'Recent' }}</span>
                       </div>
-                      <span v-if="!notif.is_read" class="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-1.5"></span>
+                      <div class="flex items-center gap-1 shrink-0 mt-1.5">
+                        <span v-if="!notif.is_read" class="w-2 h-2 rounded-full bg-blue-500"></span>
+                        <span class="material-icons-outlined text-gray-300 group-hover:text-[#1a5a89] transition-colors" style="font-size: 16px;">chevron_right</span>
+                      </div>
                     </div>
-                  </div>
+                  </button>
                 </template>
 
                 <!-- Empty State -->
@@ -347,6 +352,7 @@
           :mark-read-url="markReadUrl"
           :profile-update-url="profileUpdateUrl"
           @profile-updated="handleProfileUpdated"
+          @open-notification="openResidentNotification"
         />
       </div>
 
@@ -771,6 +777,23 @@ function goToTab(tabId) {
   currentTab.value = tabId;
   try { sessionStorage.setItem('medlink_resident_tab', tabId); } catch (e) {}
   showNotificationDropdown.value = false;
+}
+
+function resolveResidentNotificationTab(notif) {
+  const text = `${notif?.title || ''} ${notif?.message || ''}`.toLowerCase();
+  if (text.includes('home service')) return 'service';
+  if (text.includes('medicine') || text.includes('claimed') || text.includes('delivered') || text.includes('returned') || text.includes('damaged')) return 'medicine';
+  if (text.includes('announcement') || text.includes('advisory') || text.includes('appointment') || text.includes('schedule')) return 'schedule';
+  if (text.includes('account') || text.includes('verified') || text.includes('profile')) return 'profile';
+  return 'dashboard';
+}
+
+function openResidentNotification(notif) {
+  if (notif) {
+    notif.is_read = true;
+  }
+  const targetTab = resolveResidentNotificationTab(notif);
+  goToTab(targetTab);
 }
 
 const savedResidentTab = (() => {

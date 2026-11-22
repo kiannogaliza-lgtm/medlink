@@ -22,8 +22,8 @@ class ReportsController extends Controller
         // ── Stat cards ──────────────────────────────────────────────
         $totalPatients     = User::where('role', 'resident')->count();
         $totalRequests     = MedicineRequest::count();
-        $homeServiceCount  = MedicineRequest::where('type', 'Home Service')->count();
-        $immunizationCount = MedicineRequest::where('type', 'Immunization')->count();
+        $homeServiceCount  = HomeServiceRequest::count();
+        $immunizationCount = ChildVaccination::count() + \App\Models\Schedule::where('type', 'Immunization')->count();
 
         // Month-over-month change helpers (current vs previous month)
         $now       = Carbon::now();
@@ -53,26 +53,20 @@ class ReportsController extends Controller
             ? round(($requestsThisMonth - $requestsLastMonth) / $requestsLastMonth * 100)
             : ($requestsThisMonth > 0 ? 100 : 0);
 
-        $hsThisMonth = MedicineRequest::where('type', 'Home Service')
-            ->whereMonth('created_at', $thisMonth)
+        $hsThisMonth = HomeServiceRequest::whereMonth('created_at', $thisMonth)
             ->whereYear('created_at', $thisYear)
             ->count();
-        $hsLastMonth = MedicineRequest::where('type', 'Home Service')
-            ->whereMonth('created_at', $lastMonth->month)
+        $hsLastMonth = HomeServiceRequest::whereMonth('created_at', $lastMonth->month)
             ->whereYear('created_at', $lastMonth->year)
             ->count();
         $hsChange = $hsLastMonth > 0
             ? round(($hsThisMonth - $hsLastMonth) / $hsLastMonth * 100)
             : ($hsThisMonth > 0 ? 100 : 0);
 
-        $immThisMonth = MedicineRequest::where('type', 'Immunization')
-            ->whereMonth('created_at', $thisMonth)
-            ->whereYear('created_at', $thisYear)
-            ->count();
-        $immLastMonth = MedicineRequest::where('type', 'Immunization')
-            ->whereMonth('created_at', $lastMonth->month)
-            ->whereYear('created_at', $lastMonth->year)
-            ->count();
+        $immThisMonth = ChildVaccination::whereMonth('created_at', $thisMonth)->whereYear('created_at', $thisYear)->count()
+            + \App\Models\Schedule::where('type', 'Immunization')->whereMonth('created_at', $thisMonth)->whereYear('created_at', $thisYear)->count();
+        $immLastMonth = ChildVaccination::whereMonth('created_at', $lastMonth->month)->whereYear('created_at', $lastMonth->year)->count()
+            + \App\Models\Schedule::where('type', 'Immunization')->whereMonth('created_at', $lastMonth->month)->whereYear('created_at', $lastMonth->year)->count();
         $immChange = $immLastMonth > 0
             ? round(($immThisMonth - $immLastMonth) / $immLastMonth * 100)
             : ($immThisMonth > 0 ? 100 : 0);
@@ -104,28 +98,32 @@ class ReportsController extends Controller
         for ($i = 4; $i >= 0; $i--) {
             $month = $now->copy()->subMonths($i);
 
-            $homeServiceTrend[] = MedicineRequest::where('type', 'Home Service')
-                ->whereMonth('created_at', $month->month)
+            $homeServiceTrend[] = HomeServiceRequest::whereMonth('created_at', $month->month)
                 ->whereYear('created_at', $month->year)
                 ->count();
 
-            $immunizationTrend[] = MedicineRequest::where('type', 'Immunization')
-                ->whereMonth('created_at', $month->month)
-                ->whereYear('created_at', $month->year)
-                ->count();
+            $immunizationTrend[] = ChildVaccination::whereMonth('created_at', $month->month)->whereYear('created_at', $month->year)->count()
+                + \App\Models\Schedule::where('type', 'Immunization')->whereMonth('created_at', $month->month)->whereYear('created_at', $month->year)->count();
 
-            $ultrasoundTrend[] = MedicineRequest::where('type', 'Ultrasound')
+            $ultrasoundTrend[] = \App\Models\Schedule::where('type', 'Ultrasound')
                 ->whereMonth('created_at', $month->month)
                 ->whereYear('created_at', $month->year)
                 ->count();
         }
+
+        // Pre-aggregate medicine request counts per user (eliminates N+1 query)
+        $userMedRequestCounts = MedicineRequest::where('type', 'Medicine')
+            ->whereNotNull('user_id')
+            ->selectRaw('user_id, COUNT(*) as cnt')
+            ->groupBy('user_id')
+            ->pluck('cnt', 'user_id');
 
         // ── Resident Medicine Requests (for Resident Requests Report Table) ──────
         $residentRequests = MedicineRequest::with(['user', 'medicine'])
             ->where('type', 'Medicine')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($req) {
+            ->map(function ($req) use ($userMedRequestCounts) {
                 $residentName = $req->user ? ($req->user->first_name . ' ' . $req->user->last_name) : 'Unknown Resident';
                 $medName = $req->medicine->name ?? ($req->item_service ?? 'Medicine');
                 
@@ -140,8 +138,8 @@ class ReportsController extends Controller
                 $patientRel = $isForOther ? ($req->patient_relationship ?? 'Dependent') : 'Self';
 
                 // Total requests made by this resident
-                $userTotalRequests = $req->user_id 
-                    ? MedicineRequest::where('user_id', $req->user_id)->where('type', 'Medicine')->count() 
+                $userTotalRequests = $req->user_id
+                    ? (int) ($userMedRequestCounts[$req->user_id] ?? 1)
                     : 1;
 
                 return (object)[

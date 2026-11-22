@@ -108,8 +108,9 @@ class ResidentDashboardController extends Controller
                 }
             }
 
-            $medData['can_request'] = ($med->status !== 'Critical');
-            $medData['lock_reason'] = $med->status === 'Critical' ? 'Out of stock' : null;
+            $isExpired = $med->expiration_date && \Carbon\Carbon::parse($med->expiration_date)->lte(\Carbon\Carbon::today());
+            $medData['can_request'] = ($med->status !== 'Critical' && !$isExpired);
+            $medData['lock_reason'] = $isExpired ? 'Expired medicine' : ($med->status === 'Critical' ? 'Out of stock' : null);
             $medData['days_remaining'] = 0;
             $medData['available_date'] = null;
 
@@ -179,7 +180,10 @@ class ResidentDashboardController extends Controller
         $completedHsCount  = HomeServiceRequest::where('user_id', $user->id)->where('status', 'Completed')->count();
         $completedCount    = $completedMedCount + $completedHsCount;
 
-        $upcomingSchedulesCount = Schedule::where('patient_name', 'like', '%' . $user->first_name . '%')->where('status', 'upcoming')->count();
+        $upcomingSchedulesCount = Schedule::where('user_id', $user->id)
+            ->whereIn('status', ['Pending', 'Confirmed'])
+            ->whereDate('scheduled_date', '>=', \Carbon\Carbon::today())
+            ->count();
 
         // Expired medicines count
         $expiredMedicinesCount = Medicine::whereNotNull('expiration_date')->where('expiration_date', '<=', \Carbon\Carbon::today())->count();

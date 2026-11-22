@@ -33,18 +33,19 @@ class MedicineRequestController extends Controller
             });
         }
 
-        if (in_array($status, ['Pending', 'Accepted', 'Approved', 'Rejected'])) {
+        if (in_array($status, ['Pending', 'Accepted', 'Approved', 'Completed', 'Rejected'])) {
             $query->where('status', $status);
         }
 
         $requests = $query->paginate(15)->withQueryString();
 
         $counts = [
-            'pending'  => MedicineRequest::where('status', 'Pending')->count(),
-            'accepted' => MedicineRequest::where('status', 'Accepted')->count(),
-            'approved' => MedicineRequest::where('status', 'Approved')->count(),
-            'rejected' => MedicineRequest::where('status', 'Rejected')->count(),
-            'all'      => MedicineRequest::count(),
+            'pending'   => MedicineRequest::where('status', 'Pending')->count(),
+            'accepted'  => MedicineRequest::where('status', 'Accepted')->count(),
+            'approved'  => MedicineRequest::where('status', 'Approved')->count(),
+            'completed' => MedicineRequest::where('status', 'Completed')->count(),
+            'rejected'  => MedicineRequest::where('status', 'Rejected')->count(),
+            'all'       => MedicineRequest::count(),
         ];
 
         return view('dashboards.nurse-medicine-requests', compact('requests', 'counts', 'status', 'search'));
@@ -69,6 +70,15 @@ class MedicineRequestController extends Controller
         ]);
 
         $medicine = Medicine::findOrFail($validated['medicine_id']);
+
+        // Block requesting expired medicines
+        if ($medicine->expiration_date && \Carbon\Carbon::parse($medicine->expiration_date)->lte(\Carbon\Carbon::today())) {
+            $msg = "{$medicine->name} is expired and cannot be requested.";
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+            return redirect()->back()->withErrors(['medicine_id' => $msg])->withInput();
+        }
 
         // Determine actual patient age
         $actualAge = ($validated['patient_type'] === 'other')
@@ -643,6 +653,15 @@ class MedicineRequestController extends Controller
      */
     public function complete(Request $request, MedicineRequest $medicineRequest)
     {
+        // If current user is BHW, they can only complete delivery requests
+        if (auth()->user()->role === 'bhw' && $medicineRequest->delivery_method !== 'delivery') {
+            $msg = 'BHW can only manage delivery requests.';
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 403);
+            }
+            return redirect()->back()->with('error', $msg);
+        }
+
         $validated = $request->validate([
             'delivered_by'         => 'required|string|max:255',
             'claimed_by'           => 'required|string|max:255',

@@ -133,7 +133,10 @@ class ConsultationController extends Controller
         $autoAnnounced = false;
         if ($caseCount >= $threshold) {
             // Check if an announcement for this threshold was already posted recently
-            $recentAnnouncement = Announcement::where('title', 'like', "%{$validated['disease_case']} Alert%")
+            $recentAnnouncement = Announcement::where(function ($q) use ($validated) {
+                    $q->where('title', 'like', "%{$validated['disease_case']} Cases in Barangay%")
+                      ->orWhere('title', 'like', "%{$validated['disease_case']} Alert%");
+                })
                 ->where('created_at', '>=', now()->subDays(3))
                 ->first();
 
@@ -150,13 +153,13 @@ class ConsultationController extends Controller
                 ]);
 
                 // Notify all active resident users
-                $residents = User::where('role', 'resident')->get();
+                $residents = User::where('role', 'resident')->where('status', 'active')->get();
                 foreach ($residents as $resident) {
                     AppNotification::create([
                         'user_id'    => $resident->id,
                         'title'      => "Health Advisory: {$validated['disease_case']} Alert",
                         'message'    => "The health center has monitored an increase in {$validated['disease_case']} cases ({$caseCount} cases). Please review the official advisory.",
-                        'type'       => 'announcement',
+                        'type'       => 'warning',
                         'is_read'    => false,
                     ]);
                 }

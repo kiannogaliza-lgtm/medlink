@@ -16,10 +16,6 @@
         </button>
 
         <div class="ml-auto flex items-center gap-2">
-          <button type="button" @click="openClearModal" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer" title="Clear requests in list">
-            <span class="material-icons-outlined text-sm">delete_sweep</span>
-            <span>Clear List</span>
-          </button>
           <button type="button" @click="openNewRequestModal" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer">
             <span class="material-icons-outlined text-sm">add</span>
             <span>New Request</span>
@@ -125,10 +121,6 @@
               <button type="button" @click="viewDetails(req)" class="btn-action-view">
                 <span class="material-icons-outlined" style="font-size:15px;">visibility</span>
                 <span>View</span>
-              </button>
-              <button type="button" @click="openDeleteModal(req)" class="btn-action-delete" title="Delete Request">
-                <span class="material-icons-outlined" style="font-size:15px;">delete</span>
-                <span>Delete</span>
               </button>
             </div>
           </div>
@@ -295,10 +287,6 @@
           </div>
 
           <div class="flex items-center gap-2 ml-auto">
-            <button v-if="selectedReq?.status === 'Completed'" type="button" @click="openDeleteModal(selectedReq)" class="btn-action-delete">
-              <span class="material-icons-outlined" style="font-size:15px;">delete</span>
-              <span>Delete</span>
-            </button>
             <button type="button" @click="closeModal" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer">
               Close
             </button>
