@@ -184,19 +184,20 @@ class BhwDashboardController extends Controller
             ];
         }
 
-        // Recent Activities for Reports (combined walk-ins + home services)
+        // Recent Activities for Reports (combined walk-ins + home services + vaccinations)
         // Pull recent walk-in registrations
         $recentWalkinActivities = Schedule::where('type', 'Walk-in')
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get()
+            ->toBase()
             ->map(function ($schedule) {
                 return [
                     'patient_name' => $schedule->patient_name,
                     'activity_type' => 'Walk-in Registration',
                     'service' => $schedule->service,
                     'status' => $schedule->status,
-                    'date' => $schedule->scheduled_date->format('Y-m-d'),
+                    'date' => $schedule->scheduled_date ? $schedule->scheduled_date->format('Y-m-d') : ($schedule->created_at ? $schedule->created_at->format('Y-m-d') : null),
                     'created_at' => $schedule->created_at,
                 ];
             });
@@ -205,6 +206,7 @@ class BhwDashboardController extends Controller
         $recentHomeServiceActivities = HomeServiceRequest::orderBy('created_at', 'desc')
             ->take(10)
             ->get()
+            ->toBase()
             ->map(function ($hs) {
                 $statusLabel = $hs->status === 'Completed'
                     ? $hs->service_type . ' - Completed'
@@ -224,21 +226,23 @@ class BhwDashboardController extends Controller
         $recentVaccinationActivities = \App\Models\ChildVaccination::orderBy('created_at', 'desc')
             ->take(10)
             ->get()
+            ->toBase()
             ->map(function ($vac) {
                 return [
                     'patient_name' => $vac->child_name . ' (' . ($vac->age_category ?? 'Child') . ')',
                     'activity_type' => 'Child Vaccination',
                     'service' => $vac->vaccine_name . ' — ' . $vac->dose_number,
                     'status' => $vac->status,
-                    'date' => $vac->date_administered ? $vac->date_administered->format('Y-m-d') : $vac->created_at->format('Y-m-d'),
+                    'date' => $vac->date_administered ? $vac->date_administered->format('Y-m-d') : ($vac->created_at ? $vac->created_at->format('Y-m-d') : null),
                     'created_at' => $vac->created_at,
                 ];
             });
 
-        // Merge and sort by date descending, take top 10
-        $reportActivities = $recentWalkinActivities
-            ->merge($recentHomeServiceActivities)
-            ->merge($recentVaccinationActivities)
+        // Combine using base Support\Collection concat (avoids Eloquent\Collection::merge getKey() crash on arrays)
+        $reportActivities = collect()
+            ->concat($recentWalkinActivities)
+            ->concat($recentHomeServiceActivities)
+            ->concat($recentVaccinationActivities)
             ->sortByDesc('created_at')
             ->take(15)
             ->values()
