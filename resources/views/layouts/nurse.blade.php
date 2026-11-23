@@ -314,6 +314,9 @@
                 <a href="{{ route('nurse.account-history') }}" class="sidebar-link @if(request()->routeIs('nurse.account-history*')) active @endif">
                     <span class="material-icons-outlined" style="font-size:20px;">history</span> <span>Account History Logs</span>
                 </a>
+                <a href="{{ route('nurse.profile') }}" class="sidebar-link @if(request()->routeIs('nurse.profile*')) active @endif">
+                    <span class="material-icons-outlined" style="font-size:20px;">account_circle</span> <span>My Profile</span>
+                </a>
             </nav>
 
             {{-- Footer --}}
@@ -514,17 +517,19 @@
 
                         {{-- User --}}
                         <div class="flex items-center gap-2 sm:gap-3">
-                            <div class="text-right hidden sm:block">
-                                <div class="text-sm font-semibold text-gray-800">{{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</div>
-                                <div class="text-[10px] text-green-500 font-medium">Online</div>
-                            </div>
-                            @if(auth()->user()->profile_photo)
-                                <img src="{{ asset('storage/' . auth()->user()->profile_photo) }}" alt="{{ auth()->user()->first_name }}" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-gray-200 shadow-sm">
-                            @else
-                                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-xs sm:text-sm">
-                                    {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}{{ strtoupper(substr(auth()->user()->last_name, 0, 1)) }}
+                            <a href="{{ route('nurse.profile') }}" class="flex items-center gap-2 sm:gap-3 hover:opacity-85 transition-opacity" title="View Staff Profile">
+                                <div class="text-right hidden sm:block">
+                                    <div class="text-sm font-semibold text-gray-800">{{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</div>
+                                    <div class="text-[10px] text-green-500 font-medium">Online</div>
                                 </div>
-                            @endif
+                                @if(auth()->user()->profile_photo)
+                                    <img src="{{ asset('storage/' . auth()->user()->profile_photo) }}" alt="{{ auth()->user()->first_name }}" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-gray-200 shadow-sm">
+                                @else
+                                    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-xs sm:text-sm">
+                                        {{ strtoupper(substr(auth()->user()->first_name, 0, 1)) }}{{ strtoupper(substr(auth()->user()->last_name, 0, 1)) }}
+                                    </div>
+                                @endif
+                            </a>
                             <form id="nurse-logout-form" method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="button" onclick="openNurseLogoutModal()" title="Logout" class="text-gray-400 hover:text-red-500 transition-colors cursor-pointer p-1">

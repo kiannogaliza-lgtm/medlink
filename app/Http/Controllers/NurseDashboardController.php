@@ -373,4 +373,76 @@ class NurseDashboardController extends Controller
         }
         return response()->json(['success' => true]);
     }
+
+    /**
+     * Show the Nurse Staff Profile page.
+     */
+    public function profile()
+    {
+        $user = auth()->user();
+
+        $staffStats = [
+            'verified_residents'   => User::where('role', 'resident')->where('status', 'active')->count(),
+            'consultations_logged' => \App\Models\Consultation::count(),
+            'medicine_processed'   => MedicineRequest::whereIn('status', ['Approved', 'Completed'])->count(),
+            'home_services_done'   => \App\Models\HomeServiceRequest::where('status', 'Completed')->count(),
+        ];
+
+        return view('dashboards.nurse-profile', compact('user', 'staffStats'));
+    }
+
+    /**
+     * Update Nurse Staff Profile information and photo.
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'first_name'    => ['required', 'string', 'max:255'],
+            'last_name'     => ['required', 'string', 'max:255'],
+            'phone_number'  => ['required', 'regex:/^09[0-9]{9}$/', \Illuminate\Validation\Rule::unique('users')->ignore($user->id)],
+            'gender'        => ['nullable', 'string', 'in:Male,Female,Other'],
+            'address'       => ['nullable', 'string', 'max:500'],
+            'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+        ], [
+            'phone_number.regex' => 'The phone number must be a valid 11-digit Philippine mobile number starting with 09.',
+        ]);
+
+        if ($request->hasFile('profile_photo')) {
+            if ($user->profile_photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_photo)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_photo);
+            }
+            $validated['profile_photo'] = $request->file('profile_photo')->store('profile_photos', 'public');
+        } else {
+            unset($validated['profile_photo']);
+        }
+
+        $user->update($validated);
+
+        return redirect()->route('nurse.profile')->with('success', 'Staff profile updated successfully.');
+    }
+
+    /**
+     * Update Nurse Staff account password.
+     */
+    public function updatePassword(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'current_password' => ['required', 'string'],
+            'new_password'     => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Your current password is incorrect.']);
+        }
+
+        $user->update([
+            'password' => \Illuminate\Support\Facades\Hash::make($request->new_password),
+        ]);
+
+        return redirect()->route('nurse.profile')->with('success', 'Password updated successfully.');
+    }
 }

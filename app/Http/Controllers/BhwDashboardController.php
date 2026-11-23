@@ -593,4 +593,70 @@ class BhwDashboardController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    /**
+     * Update BHW Staff Profile information and optional photo.
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'first_name'    => ['required', 'string', 'max:255'],
+            'last_name'     => ['required', 'string', 'max:255'],
+            'phone_number'  => ['required', 'regex:/^09[0-9]{9}$/', \Illuminate\Validation\Rule::unique('users')->ignore($user->id)],
+            'gender'        => ['nullable', 'string', 'in:Male,Female,Other'],
+            'address'       => ['nullable', 'string', 'max:500'],
+            'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+        ], [
+            'phone_number.regex' => 'The phone number must be a valid 11-digit Philippine mobile number starting with 09.',
+        ]);
+
+        if ($request->hasFile('profile_photo')) {
+            if ($user->profile_photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_photo)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_photo);
+            }
+            $validated['profile_photo'] = $request->file('profile_photo')->store('profile_photos', 'public');
+        } else {
+            unset($validated['profile_photo']);
+        }
+
+        $user->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'BHW staff profile updated successfully.',
+            'user'    => $user->fresh(),
+        ]);
+    }
+
+    /**
+     * Update BHW Staff account password.
+     */
+    public function updatePassword(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'current_password' => ['required', 'string'],
+            'new_password'     => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your current password is incorrect.',
+                'errors'  => ['current_password' => ['Your current password is incorrect.']],
+            ], 422);
+        }
+
+        $user->update([
+            'password' => \Illuminate\Support\Facades\Hash::make($request->new_password),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password updated successfully.',
+        ]);
+    }
 }

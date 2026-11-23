@@ -65,7 +65,7 @@
           </button>
           <div class="min-w-0">
             <h2 class="text-lg sm:text-2xl font-semibold text-[#1a5a89] tracking-tight truncate">{{ activeTabName }}</h2>
-            <p class="text-xs sm:text-sm text-gray-500 mt-0.5 hidden sm:block truncate">Welcome back, {{ user.first_name }} {{ user.last_name }}</p>
+            <p class="text-xs sm:text-sm text-gray-500 mt-0.5 hidden sm:block truncate">Welcome back, {{ localUser.first_name }} {{ localUser.last_name }}</p>
           </div>
         </div>
         
@@ -288,16 +288,18 @@
           </div>
           
           <div class="flex items-center gap-1.5 sm:gap-4 border-l border-gray-100 pl-2 sm:pl-6">
-             <div class="text-right hidden md:block">
-                <div class="text-xs sm:text-sm font-semibold text-gray-700">{{ user.first_name }} {{ user.last_name }}</div>
-                <div class="text-[10px] sm:text-[11px] text-green-500 font-medium">Online</div>
-             </div>
-             <div class="w-8 h-8 sm:w-10 sm:h-10 bg-[#0c2d48] text-white rounded-full flex items-center justify-center font-bold shadow-md text-xs sm:text-sm overflow-hidden border-2 border-white shrink-0">
-                <img v-if="user.profile_photo" :src="'/storage/' + user.profile_photo" alt="Profile" class="w-full h-full object-cover" />
-                <svg v-else class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-             </div>
+             <button type="button" @click="goToTab('profile')" class="flex items-center gap-1.5 sm:gap-3 hover:opacity-85 transition-opacity cursor-pointer text-left" title="Open BHW Staff Profile">
+               <div class="text-right hidden md:block">
+                  <div class="text-xs sm:text-sm font-semibold text-gray-700">{{ localUser.first_name }} {{ localUser.last_name }}</div>
+                  <div class="text-[10px] sm:text-[11px] text-green-500 font-medium">Online</div>
+               </div>
+               <div class="w-8 h-8 sm:w-10 sm:h-10 bg-[#0c2d48] text-white rounded-full flex items-center justify-center font-bold shadow-md text-xs sm:text-sm overflow-hidden border-2 border-white shrink-0">
+                  <img v-if="localUser.profile_photo" :src="'/storage/' + localUser.profile_photo" alt="Profile" class="w-full h-full object-cover" />
+                  <svg v-else class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+               </div>
+             </button>
              <form ref="logoutFormRef" method="POST" action="/logout" class="sm:ml-2 sm:border-l border-gray-100 sm:pl-6">
                <input type="hidden" name="_token" :value="csrfToken">
                <button type="button" @click="showLogoutModal = true" class="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 p-2 rounded-full border border-gray-100 cursor-pointer" title="Logout">
@@ -313,7 +315,7 @@
       <!-- Content Area -->
       <div class="flex-1 overflow-auto p-3 sm:p-6 lg:p-8 pb-20 sm:pb-8 relative z-0">
         <component :is="currentComponent" 
-                   :user="user" 
+                   :user="localUser" 
                    :dashboard-data="dashboardData"
                    :my-assigned-services="myAssignedServices"
                    :recent-activities="recentActivities"
@@ -335,7 +337,8 @@
                    :nurse-accounts="nurseAccounts"
                    :create-nurse-url="createNurseUrl"
                    @navigate="goToTab"
-                   @open-notification="openBhwNotification" />
+                   @open-notification="openBhwNotification"
+                   @profile-updated="handleProfileUpdated" />
       </div>
 
       <!-- Floating help button -->
@@ -444,6 +447,7 @@ import BhwAnnouncements from './BhwAnnouncements.vue';
 import MedicineDeliveryRequests from './MedicineDeliveryRequests.vue';
 import ReturnedMedicines from './ReturnedMedicines.vue';
 import NurseManagement from './NurseManagement.vue';
+import BhwProfile from './BhwProfile.vue';
 
 const props = defineProps({
   user: {
@@ -535,6 +539,13 @@ const props = defineProps({
     default: '/bhw/nurses'
   }
 });
+
+// ── Local reactive user state for instant profile updates ──
+const localUser = ref({ ...props.user });
+
+function handleProfileUpdated(updatedUser) {
+  localUser.value = { ...localUser.value, ...updatedUser };
+}
 
 // ── Notification dropdown state ──
 const showNotificationDropdown = ref(false);
@@ -822,6 +833,7 @@ const tabs = computed(() => {
   }
 
   list.push({ id: 'notifications', name: 'Notifications', badge: unreadCount.value, icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>', component: Notifications });
+  list.push({ id: 'profile', name: 'My Profile', icon: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>', component: BhwProfile });
 
   return list;
 });
@@ -860,6 +872,9 @@ const activeTabName = computed(() => {
   }
   if (currentTab.value === 'notifications') {
       return 'Notifications';
+  }
+  if (currentTab.value === 'profile') {
+      return 'BHW Staff Profile';
   }
   return tabs.value.find(t => t.id === currentTab.value)?.name || 'BHW Dashboard';
 });

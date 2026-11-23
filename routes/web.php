@@ -133,6 +133,11 @@ Route::middleware(['auth', 'single.device'])->group(function () {
         Route::get('/nurse/notifications', [NurseDashboardController::class, 'notifications'])->name('nurse.notifications');
         Route::post('/nurse/notifications/read', [NurseDashboardController::class, 'markNotificationsRead'])->name('nurse.notifications.read');
 
+        // Nurse - Staff Profile
+        Route::get('/nurse/profile', [NurseDashboardController::class, 'profile'])->name('nurse.profile');
+        Route::post('/nurse/profile', [NurseDashboardController::class, 'updateProfile'])->name('nurse.profile.update');
+        Route::put('/nurse/profile/password', [NurseDashboardController::class, 'updatePassword'])->name('nurse.profile.password');
+
         // Home Services destructive management (Nurse only)
         Route::delete('/nurse/home-services/{homeServiceRequest}', [HomeServiceController::class, 'destroy'])->name('home-services.destroy');
         Route::post('/nurse/home-services/clear', [HomeServiceController::class, 'clear'])->name('home-services.clear');
@@ -191,6 +196,8 @@ Route::middleware(['auth', 'single.device'])->group(function () {
         Route::patch('/bhw/home-services/{homeService}/complete', [\App\Http\Controllers\BhwDashboardController::class, 'completeHomeService'])->name('bhw.home-services.complete');
         Route::post('/bhw/medicine-requests/{medicineRequest}/consultation', [\App\Http\Controllers\ConsultationController::class, 'storeFromBhw'])->name('bhw.medicine-requests.consultation');
         Route::post('/bhw/notifications/read', [\App\Http\Controllers\BhwDashboardController::class, 'markNotificationsRead'])->name('bhw.notifications.read');
+        Route::post('/bhw/profile', [\App\Http\Controllers\BhwDashboardController::class, 'updateProfile'])->name('bhw.profile.update');
+        Route::put('/bhw/profile/password', [\App\Http\Controllers\BhwDashboardController::class, 'updatePassword'])->name('bhw.profile.password');
     });
 
 });
