@@ -345,6 +345,7 @@
           :home-service-store-url="homeServiceStoreUrl"
           :booked-home-services="bookedHomeServices"
           :home-service-types="homeServiceTypes"
+          :home-service-cooldown-until="homeServiceCooldownUntil"
           :my-schedules="mySchedules"
           :booked-schedules="bookedSchedules"
           :schedule-store-url="scheduleStoreUrl"
@@ -494,6 +495,10 @@ const props = defineProps({
   homeServiceTypes: {
     type: Array,
     default: () => []
+  },
+  homeServiceCooldownUntil: {
+    type: String,
+    default: ''
   },
   mySchedules: {
     type: Array,

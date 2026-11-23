@@ -37,12 +37,17 @@ class ConsultationController extends Controller
 
         $consultations = $query->paginate(15)->withQueryString();
 
-        // ── Summary statistics per communicable disease ───────────────────────
-        $dengueCount = Consultation::where('disease_case', 'Dengue')->count();
-        $hivCount    = Consultation::where('disease_case', 'HIV')->count();
-        $tbCount     = Consultation::where('disease_case', 'Tuberculosis')->count();
-        $measlesCount= Consultation::where('disease_case', 'Measles')->count();
-        $totalCases  = Consultation::count();
+        // ── Summary statistics per disease/case ──────────────────────────────
+        $caseCounts = Consultation::selectRaw('disease_case, COUNT(*) as total')
+            ->groupBy('disease_case')
+            ->pluck('total', 'disease_case')
+            ->toArray();
+
+        $dengueCount  = $caseCounts['Dengue'] ?? 0;
+        $hivCount     = $caseCounts['HIV'] ?? 0;
+        $tbCount      = $caseCounts['Tuberculosis'] ?? 0;
+        $measlesCount = $caseCounts['Measles'] ?? 0;
+        $totalCases   = array_sum($caseCounts);
 
         // Disease Threshold Limit (e.g. 5 cases triggers epidemic warning / automatic announcement)
         $thresholdLimit = 5;
@@ -56,6 +61,7 @@ class ConsultationController extends Controller
 
         return view('dashboards.nurse-consultations', compact(
             'consultations',
+            'caseCounts',
             'dengueCount',
             'hivCount',
             'tbCount',
@@ -88,7 +94,7 @@ class ConsultationController extends Controller
             'diagnosis'         => 'nullable|string',
             'treatment_notes'   => 'nullable|string',
             'consultation_date' => 'required|date',
-            'status'            => 'required|string|in:Active,Recovered,Referred',
+            'status'            => 'required|string|in:Active,Recovered,Referred,Walk-in,Home Delivery',
         ]);
 
         $attendingNurse = auth()->user() ? (auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Barangay Nurse';
@@ -262,6 +268,103 @@ class ConsultationController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             'Cache-Control'       => 'max-age=0',
         ]);
+    }
+
+    /**
+     * Store or update a consultation record submitted by a BHW for a medicine delivery request.
+     */
+    public function storeFromBhw(Request $request, \App\Models\MedicineRequest $medicineRequest)
+    {
+        if ($medicineRequest->delivery_method !== 'delivery') {
+            return response()->json([
+                'success' => false,
+                'message' => 'BHW can only record consultations for Home Delivery requests.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'disease_case'    => 'required|string|max:100',
+            'symptoms'        => 'required|string|max:2000',
+            'diagnosis'       => 'nullable|string|max:2000',
+            'treatment_notes' => 'nullable|string|max:2000',
+        ]);
+
+        $resident = User::find($medicineRequest->user_id);
+        $patientName = ($medicineRequest->patient_type === 'other' && !empty($medicineRequest->patient_name))
+            ? $medicineRequest->patient_name
+            : ($resident ? trim(($resident->first_name ?? '') . ' ' . ($resident->last_name ?? '')) : 'Resident');
+        $patientAge = ($medicineRequest->patient_type === 'other' && $medicineRequest->patient_age !== null)
+            ? (int) $medicineRequest->patient_age
+            : ($resident?->age ?? null);
+        $patientGender = ($medicineRequest->patient_type === 'other' && !empty($medicineRequest->patient_gender))
+            ? $medicineRequest->patient_gender
+            : ($resident?->gender ?? null);
+        $patientAddress = $resident?->address ?: 'Barangay Honrado';
+
+        $bhwName = auth()->check()
+            ? ('BHW ' . trim(auth()->user()->first_name . ' ' . auth()->user()->last_name))
+            : 'BHW Staff';
+
+        $reqCode = $medicineRequest->request_id ?: ('REQ-' . str_pad($medicineRequest->id, 3, '0', STR_PAD_LEFT));
+        $diagnosisText = !empty(trim($validated['diagnosis'] ?? ''))
+            ? trim($validated['diagnosis'])
+            : "BHW Home Delivery Consultation ({$medicineRequest->item_service} — {$reqCode})";
+
+        $treatmentText = !empty(trim($validated['treatment_notes'] ?? ''))
+            ? trim($validated['treatment_notes'])
+            : "Consulted during home delivery of {$medicineRequest->item_service} (x{$medicineRequest->quantity}).";
+
+        $consultation = Consultation::updateOrCreate(
+            ['medicine_request_id' => $medicineRequest->id],
+            [
+                'user_id'           => $medicineRequest->user_id,
+                'patient_name'      => $patientName,
+                'patient_age'       => $patientAge,
+                'patient_gender'    => $patientGender,
+                'address'           => $patientAddress,
+                'disease_case'      => $validated['disease_case'],
+                'symptoms'          => trim($validated['symptoms']),
+                'diagnosis'         => $diagnosisText,
+                'treatment_notes'   => $treatmentText,
+                'consultation_date' => now()->toDateString(),
+                'attending_nurse'   => $bhwName,
+                'status'            => 'Home Delivery',
+            ]
+        );
+
+        // Notify all active Nurses about the BHW consultation record
+        foreach (User::where('role', 'nurse')->where('status', 'active')->get() as $nurse) {
+            AppNotification::create([
+                'user_id' => $nurse->id,
+                'type'    => 'info',
+                'title'   => "New BHW Consultation: {$patientName}",
+                'message' => "{$bhwName} recorded a consultation ({$validated['disease_case']}) for {$patientName} ({$reqCode}). Symptoms: " . \Illuminate\Support\Str::limit(trim($validated['symptoms']), 100),
+            ]);
+        }
+
+        return response()->json([
+            'success'      => true,
+            'message'      => "Consultation recorded for {$patientName} and sent to Nurse Consultation Records.",
+            'consultation' => $consultation,
+        ]);
+    }
+
+    /**
+     * Clear consultation records (either all or filtered by disease case).
+     */
+    public function clear(Request $request)
+    {
+        $disease = $request->input('disease', 'all');
+
+        if ($disease !== 'all' && !empty($disease)) {
+            $deleted = Consultation::where('disease_case', $disease)->delete();
+            return redirect()->route('nurse.consultations', ['disease' => $disease])
+                ->with('success', "Cleared {$deleted} {$disease} consultation record(s).");
+        }
+
+        $deleted = Consultation::query()->delete();
+        return redirect()->route('nurse.consultations')
+            ->with('success', "Cleared all {$deleted} consultation record(s).");
     }
 
     /**

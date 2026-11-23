@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'single.device' => \App\Http\Middleware\EnsureSingleDeviceSession::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

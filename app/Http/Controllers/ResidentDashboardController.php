@@ -302,6 +302,16 @@ class ResidentDashboardController extends Controller
         // Active home service types for resident request dropdown
         $homeServiceTypes = HomeServiceType::where('is_active', true)->orderBy('name')->pluck('name')->values()->all();
 
+        // 24-hour cooldown check for resident home service requests
+        $lastHomeService = HomeServiceRequest::where('user_id', $user->id)
+            ->where('status', '!=', 'Rejected')
+            ->latest('created_at')
+            ->first();
+        $homeServiceCooldownUntil = null;
+        if ($lastHomeService && $lastHomeService->created_at && $lastHomeService->created_at->gt(now()->subHours(24))) {
+            $homeServiceCooldownUntil = $lastHomeService->created_at->copy()->addHours(24)->toIso8601String();
+        }
+
         return view('dashboards.resident', compact(
             'medicines',
             'myMedicineRequests',
@@ -316,6 +326,7 @@ class ResidentDashboardController extends Controller
             'homeServiceStoreUrl',
             'bookedHomeServices',
             'homeServiceTypes',
+            'homeServiceCooldownUntil',
             'mySchedules',
             'bookedSchedules',
             'scheduleStoreUrl',

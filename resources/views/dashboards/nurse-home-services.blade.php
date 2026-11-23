@@ -218,9 +218,6 @@
             <button type="button" onclick="switchTab('accepted')" id="tab-btn-accepted" class="hs-tab">
                 Accepted ({{ $acceptedCount }})
             </button>
-            <button type="button" onclick="switchTab('approved')" id="tab-btn-approved" class="hs-tab">
-                Approved ({{ $approvedCount }})
-            </button>
             <button type="button" onclick="switchTab('completed')" id="tab-btn-completed" class="hs-tab">
                 Completed ({{ $completedCount }})
             </button>
@@ -395,80 +392,6 @@
                     <span class="material-icons-outlined text-gray-300 text-5xl mb-2">airport_shuttle</span>
                     <p class="text-sm font-semibold text-gray-600">No Accepted Requests</p>
                     <p class="text-xs text-gray-400 mt-1">Accepted requests where the team is currently on the way will appear here.</p>
-                </div>
-            @endforelse
-        </div>
-
-        {{-- ── TAB 3: APPROVED REQUESTS ───────────────────────────── --}}
-        <div id="tab-pane-approved" class="hs-pane space-y-4 hidden">
-            @forelse($approvedRequests as $req)
-                <div class="hs-card">
-                    {{-- Header Row --}}
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <div class="flex items-center gap-2.5">
-                                <h3 class="text-base font-bold text-gray-900">{{ $req->patient_name }}</h3>
-                                <span class="badge-hs-approved">Approved</span>
-                            </div>
-                            <p class="text-xs text-gray-400 font-medium mt-0.5">Request ID: {{ $req->formatted_id }}</p>
-                        </div>
-
-                        {{-- Actions for Approved --}}
-                        <div class="flex items-center gap-2">
-                            <button type="button" onclick="viewDetails({{ json_encode($req) }})" class="btn-action-view">
-                                <span class="material-icons-outlined" style="font-size:15px;">visibility</span>
-                                <span>View</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- 3-Column Info Grid --}}
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                        {{-- Col 1: Service & Preferred Date --}}
-                        <div>
-                            <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wide">Service Type</div>
-                            <div class="text-sm font-semibold text-gray-800 mt-0.5">{{ $req->service_type }}</div>
-
-                            <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wide mt-3">Preferred Date</div>
-                            <div class="text-sm font-semibold text-gray-800 mt-0.5">{{ \Carbon\Carbon::parse($req->preferred_date)->format('Y-m-d') }}</div>
-                        </div>
-
-                        {{-- Col 2: Address & Preferred Time --}}
-                        <div>
-                            <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wide flex items-center gap-1">
-                                <span class="material-icons-outlined text-gray-400" style="font-size:14px;">location_on</span>
-                                <span>Address</span>
-                            </div>
-                            <div class="text-sm font-semibold text-gray-800 mt-0.5">{{ $req->address }}</div>
-
-                            <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wide mt-3">Preferred Time</div>
-                            <div class="text-sm font-semibold text-gray-800 mt-0.5">{{ $req->preferred_time }}</div>
-                        </div>
-
-                        {{-- Col 3: Contact & Assigned To --}}
-                        <div>
-                            <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wide flex items-center gap-1">
-                                <span class="material-icons-outlined text-gray-400" style="font-size:14px;">call</span>
-                                <span>Contact</span>
-                            </div>
-                            <div class="text-sm font-semibold text-gray-800 mt-0.5">{{ $req->contact_number }}</div>
-
-                            <div class="text-[11px] font-medium text-gray-400 uppercase tracking-wide mt-3">Assigned To</div>
-                            <div class="text-sm font-semibold text-blue-600 mt-0.5">{{ $req->assigned_name ?: 'Unassigned' }}</div>
-                        </div>
-                    </div>
-
-                    {{-- Reason / Symptoms Box --}}
-                    <div class="reason-box">
-                        <div class="text-[11px] font-medium text-gray-400">Reason / Symptoms</div>
-                        <div class="text-xs text-gray-700 font-medium mt-1">{{ $req->reason_symptoms ?: 'Regular BP monitoring required' }}</div>
-                    </div>
-                </div>
-            @empty
-                <div class="text-center py-14 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
-                    <span class="material-icons-outlined text-gray-300 text-5xl mb-2">check_circle_outline</span>
-                    <p class="text-sm font-semibold text-gray-600">No Approved Requests</p>
-                    <p class="text-xs text-gray-400 mt-1">Approved requests ready for visit or assignment will appear here.</p>
                 </div>
             @endforelse
         </div>
@@ -700,10 +623,6 @@
         <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50/50 rounded-b-16">
             <div id="modalDynamicActions" class="flex items-center gap-2"></div>
             <div class="flex items-center gap-2 ml-auto">
-                <button type="button" id="modalDeleteBtn" onclick="" class="btn-action-delete">
-                    <span class="material-icons-outlined" style="font-size:15px;">delete</span>
-                    <span>Delete</span>
-                </button>
                 <button type="button" onclick="closeModal('viewModal')" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded-lg transition-colors">
                     Close
                 </button>
@@ -785,17 +704,10 @@
                                 <div class="text-[11px] text-gray-400">Clear all accepted / assigned requests</div>
                             </div>
                         </label>
-                        <label class="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
-                            <input type="radio" name="status" value="Approved" class="text-red-600 focus:ring-red-500">
-                            <div>
-                                <div class="text-xs font-bold text-gray-800">Approved Requests Only ({{ $approvedCount }})</div>
-                                <div class="text-[11px] text-gray-400">Clear all approved schedule requests</div>
-                            </div>
-                        </label>
                         <label class="flex items-center gap-3 p-3 bg-red-50/40 border border-red-200 rounded-xl cursor-pointer hover:bg-red-50 transition-colors">
                             <input type="radio" name="status" value="all" class="text-red-600 focus:ring-red-500">
                             <div>
-                                <div class="text-xs font-bold text-red-700">Clear ALL Requests ({{ $pendingCount + $acceptedCount + $approvedCount + $completedCount + $rejectedCount }})</div>
+                                <div class="text-xs font-bold text-red-700">Clear ALL Requests ({{ $pendingCount + $acceptedCount + $completedCount + $rejectedCount }})</div>
                                 <div class="text-[11px] text-red-500">Wipe all home service request records completely</div>
                             </div>
                         </label>
@@ -1201,19 +1113,6 @@
             updateBhwBtnRow.classList.add('hidden');
             assignedToEl.textContent = assignedName || 'Unassigned';
             assignedContainer.classList.remove('hidden');
-        }
-
-        // Delete button hook in modal - only for Completed requests
-        const deleteBtn = document.getElementById('modalDeleteBtn');
-        if (req.status === 'Completed') {
-            deleteBtn.classList.remove('hidden');
-            deleteBtn.onclick = function() {
-                closeModal('viewModal');
-                openDeleteModal(req);
-            };
-        } else {
-            deleteBtn.classList.add('hidden');
-            deleteBtn.onclick = null;
         }
 
         // Dynamic footer actions

@@ -74,6 +74,9 @@ class AuthController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+        $sessionToken = \Illuminate\Support\Str::random(64);
+        $user->update(['active_session_token' => $sessionToken]);
+        $request->session()->put('active_session_token', $sessionToken);
 
         // Record Account History Log: First Logged In
         AccountLog::record($user, 'Logged In', 'User logged in upon online registration.');
@@ -120,7 +123,12 @@ class AuthController extends Controller
         if ($user->role === 'resident' && $user->status === 'pending') {
             Auth::login($user, $request->boolean('remember'));
             $request->session()->regenerate();
-            $user->update(['last_login_at' => now()]);
+            $sessionToken = \Illuminate\Support\Str::random(64);
+            $user->update([
+                'last_login_at'        => now(),
+                'active_session_token' => $sessionToken,
+            ]);
+            $request->session()->put('active_session_token', $sessionToken);
             AccountLog::record($user, 'Logged In', 'Resident logged in (Status: Pending Verification).');
             return redirect()->route('pending.approval');
         }
@@ -135,8 +143,13 @@ class AuthController extends Controller
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
-        // Track last login timestamp
-        $user->update(['last_login_at' => now()]);
+        // Single-device enforcement: issue a fresh session token (invalidating any other logged-in device)
+        $sessionToken = \Illuminate\Support\Str::random(64);
+        $user->update([
+            'last_login_at'        => now(),
+            'active_session_token' => $sessionToken,
+        ]);
+        $request->session()->put('active_session_token', $sessionToken);
         AccountLog::record($user, 'Logged In', 'Successful authentication.');
 
         return redirect()->route('dashboard');
@@ -322,6 +335,12 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $user = Auth::user();
+        $sessionToken = $request->session()->get('active_session_token');
+        if ($user && $sessionToken && $user->active_session_token === $sessionToken) {
+            $user->update(['active_session_token' => null]);
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();

@@ -182,11 +182,22 @@ class MedLinkAutoSync {
                 }
             });
 
+            if (res.status === 401) {
+                const errData = await res.json().catch(() => ({}));
+                if (errData && errData.reason === 'other_device') {
+                    this.stop();
+                    window.location.href = '/login?kicked=1';
+                    return;
+                }
+            }
+
             if (res.ok) {
                 const data = await res.json();
                 if (!data.authenticated) {
                     this.stop();
-                    if (data.reason === 'deactivated' || data.reason === 'deleted') {
+                    if (data.reason === 'other_device') {
+                        window.location.href = '/login?kicked=1';
+                    } else if (data.reason === 'deactivated' || data.reason === 'deleted') {
                         window.location.href = '/login';
                     }
                     return;

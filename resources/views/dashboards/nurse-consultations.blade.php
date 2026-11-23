@@ -175,36 +175,47 @@
             <div class="flex flex-wrap items-center gap-2">
                 <a href="{{ route('nurse.consultations') }}" class="disease-tab {{ $diseaseFilter === 'all' ? 'active' : '' }}">
                     <span>All Cases</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">{{ $totalCases }}</span>
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $diseaseFilter === 'all' ? 'bg-white/20' : 'bg-gray-200 text-gray-700' }}">{{ $totalCases }}</span>
                 </a>
-                <a href="{{ route('nurse.consultations', ['disease' => 'Dengue']) }}" class="disease-tab {{ $diseaseFilter === 'Dengue' ? 'active' : '' }}">
-                    <span>Dengue</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $diseaseFilter === 'Dengue' ? 'bg-white/20' : 'bg-red-100 text-red-700' }}">{{ $dengueCount }}</span>
-                </a>
-                <a href="{{ route('nurse.consultations', ['disease' => 'Tuberculosis']) }}" class="disease-tab {{ $diseaseFilter === 'Tuberculosis' ? 'active' : '' }}">
-                    <span>Tuberculosis</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $diseaseFilter === 'Tuberculosis' ? 'bg-white/20' : 'bg-amber-100 text-amber-700' }}">{{ $tbCount }}</span>
-                </a>
-                <a href="{{ route('nurse.consultations', ['disease' => 'HIV']) }}" class="disease-tab {{ $diseaseFilter === 'HIV' ? 'active' : '' }}">
-                    <span>HIV</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $diseaseFilter === 'HIV' ? 'bg-white/20' : 'bg-purple-100 text-purple-700' }}">{{ $hivCount }}</span>
-                </a>
-                <a href="{{ route('nurse.consultations', ['disease' => 'Measles']) }}" class="disease-tab {{ $diseaseFilter === 'Measles' ? 'active' : '' }}">
-                    <span>Measles</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $diseaseFilter === 'Measles' ? 'bg-white/20' : 'bg-orange-100 text-orange-700' }}">{{ $measlesCount }}</span>
-                </a>
+                @php
+                    $filterTabs = [
+                        ['value' => 'General Consultation', 'label' => 'General Consultation', 'badge' => 'bg-blue-100 text-blue-700'],
+                        ['value' => 'Fever / Flu',          'label' => 'Fever / Flu',          'badge' => 'bg-sky-100 text-sky-700'],
+                        ['value' => 'Cough / Cold',         'label' => 'Cough / Cold',         'badge' => 'bg-cyan-100 text-cyan-700'],
+                        ['value' => 'Hypertension',         'label' => 'Hypertension',         'badge' => 'bg-rose-100 text-rose-700'],
+                        ['value' => 'Dengue',               'label' => 'Dengue',               'badge' => 'bg-red-100 text-red-700'],
+                        ['value' => 'Tuberculosis',         'label' => 'Tuberculosis',         'badge' => 'bg-amber-100 text-amber-700'],
+                        ['value' => 'HIV',                  'label' => 'HIV',                  'badge' => 'bg-purple-100 text-purple-700'],
+                        ['value' => 'Measles',              'label' => 'Measles',              'badge' => 'bg-orange-100 text-orange-700'],
+                        ['value' => 'Other',                'label' => 'Other',                'badge' => 'bg-slate-200 text-slate-700'],
+                    ];
+                @endphp
+                @foreach($filterTabs as $tab)
+                    <a href="{{ route('nurse.consultations', ['disease' => $tab['value']]) }}" class="disease-tab {{ $diseaseFilter === $tab['value'] ? 'active' : '' }}">
+                        <span>{{ $tab['label'] }}</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $diseaseFilter === $tab['value'] ? 'bg-white/20' : $tab['badge'] }}">{{ $caseCounts[$tab['value']] ?? 0 }}</span>
+                    </a>
+                @endforeach
             </div>
 
-            <div class="flex items-center gap-2.5">
-                <a href="{{ route('nurse.consultations.export-excel', ['disease' => $diseaseFilter, 'search' => $search]) }}" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer" title="Export consultations to Excel">
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+                <a href="{{ route('nurse.consultations.export-excel', ['disease' => $diseaseFilter, 'search' => $search]) }}" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="Export consultations to Excel">
                     <span class="material-icons-outlined" style="font-size:16px;">table_view</span>
                     <span>Export Excel</span>
                 </a>
-                <button onclick="window.print()" class="px-3.5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer" title="Print official summary report for Health Office">
+                <button onclick="window.print()" class="px-3.5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="Print official summary report for Health Office">
                     <span class="material-icons-outlined" style="font-size:16px;">print</span>
                     <span>Print Summary</span>
                 </button>
-                <button onclick="openRecordModal()" class="px-4 py-2.5 bg-[#0c2d48] hover:bg-[#144976] text-white text-xs font-bold rounded-xl transition-all shadow flex items-center gap-1.5 cursor-pointer">
+                <form method="POST" action="{{ route('nurse.consultations.clear') }}" onsubmit="return confirm('{{ $diseaseFilter === 'all' ? 'Are you sure you want to clear ALL consultation records? This action cannot be undone.' : 'Are you sure you want to clear all ' . addslashes($diseaseFilter) . ' consultation records? This action cannot be undone.' }}');" class="inline">
+                    @csrf
+                    <input type="hidden" name="disease" value="{{ $diseaseFilter }}">
+                    <button type="submit" class="px-3.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap" title="Clear consultation records">
+                        <span class="material-icons-outlined" style="font-size:16px;">delete_sweep</span>
+                        <span>Clear List</span>
+                    </button>
+                </form>
+                <button onclick="openRecordModal()" class="px-4 py-2.5 bg-[#0c2d48] hover:bg-[#144976] text-white text-xs font-bold rounded-xl transition-all shadow flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
                     <span class="material-icons-outlined" style="font-size:16px;">add_circle</span>
                     <span>Record Consultation</span>
                 </button>
@@ -286,18 +297,48 @@
                                     {{ $item->treatment_notes ?? 'Standard clinic care.' }}
                                 </td>
                                 <td class="py-4 px-5 text-center whitespace-nowrap">
-                                    <span class="text-xs font-bold text-green-700">
+                                    @php
+                                        $statusColor = match($item->status) {
+                                            'Home Delivery' => 'text-indigo-600',
+                                            'Walk-in'       => 'text-blue-600',
+                                            'Active'        => 'text-amber-600',
+                                            'Referred'      => 'text-purple-600',
+                                            default         => 'text-green-700',
+                                        };
+                                    @endphp
+                                    <span class="text-xs font-bold {{ $statusColor }}">
                                         {{ $item->status }}
                                     </span>
                                 </td>
                                 <td class="py-4 px-5 text-right whitespace-nowrap no-print">
-                                    <form method="POST" action="{{ route('nurse.consultations.destroy', $item->id) }}" onsubmit="return confirm('Delete this consultation record?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors" title="Delete record">
-                                            <span class="material-icons-outlined" style="font-size:18px;">delete</span>
+                                    <div class="inline-flex items-center justify-end gap-1.5">
+                                        <button type="button"
+                                                onclick="openViewConsultationModal({{ json_encode([
+                                                    'patient_name'      => $item->patient_name,
+                                                    'patient_age'       => $item->patient_age,
+                                                    'patient_gender'    => $item->patient_gender,
+                                                    'address'           => $item->address,
+                                                    'disease_case'      => $item->disease_case,
+                                                    'symptoms'          => $item->symptoms,
+                                                    'diagnosis'         => $item->diagnosis,
+                                                    'treatment_notes'   => $item->treatment_notes,
+                                                    'consultation_date' => $item->consultation_date ? $item->consultation_date->format('M d, Y') : 'N/A',
+                                                    'attending_nurse'   => $item->attending_nurse ?: 'Health Center Staff',
+                                                    'status'            => $item->status,
+                                                ]) }})"
+                                                class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                                                title="View full consultation details & patient symptoms">
+                                            <span class="material-icons-outlined" style="font-size:15px;">visibility</span>
+                                            <span>View</span>
                                         </button>
-                                    </form>
+                                        <form method="POST" action="{{ route('nurse.consultations.destroy', $item->id) }}" onsubmit="return confirm('Delete this consultation record?');" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer" title="Delete record">
+                                                <span class="material-icons-outlined" style="font-size:18px;">delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -369,13 +410,15 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Disease / Surveillance Case *</label>
                     <select name="disease_case" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-bold text-blue-700 focus:ring-2 focus:ring-blue-500/30">
+                        <option value="General Consultation">General Consultation</option>
+                        <option value="Fever / Flu">Fever / Flu</option>
+                        <option value="Cough / Cold">Cough / Cold</option>
+                        <option value="Hypertension">Hypertension</option>
                         <option value="Dengue">Dengue Fever</option>
                         <option value="Tuberculosis">Tuberculosis (TB)</option>
                         <option value="HIV">HIV Surveillance</option>
                         <option value="Measles">Measles</option>
-                        <option value="Hypertension">Hypertension</option>
-                        <option value="COVID-19">COVID-19</option>
-                        <option value="General Consultation">General Consultation</option>
+                        <option value="Other">Other</option>
                     </select>
                 </div>
                 <div>
@@ -421,7 +464,99 @@
     </div>
 </div>
 
+{{-- View Consultation Details Modal --}}
+<div id="viewConsultationModal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-xs items-center justify-center p-4 no-print" onclick="closeViewConsultationModal(event)">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" onclick="event.stopPropagation()">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-blue-50/50">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <span class="material-icons-outlined text-xl">medical_information</span>
+                </div>
+                <div>
+                    <h3 id="viewConsPatientName" class="font-bold text-gray-900 text-base">Consultation Details</h3>
+                    <p id="viewConsMeta" class="text-xs text-gray-500">—</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeViewConsultationModal()" class="text-gray-400 hover:text-gray-600 cursor-pointer">
+                <span class="material-icons-outlined">close</span>
+            </button>
+        </div>
+
+        <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Disease / Case</span>
+                    <span id="viewConsDisease" class="text-sm font-bold text-blue-700 mt-0.5 block">—</span>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Status</span>
+                    <span id="viewConsStatus" class="text-sm font-bold text-emerald-700 mt-0.5 block">—</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Date &amp; Recorded By</span>
+                    <span id="viewConsDateBy" class="text-xs font-semibold text-gray-800 mt-0.5 block">—</span>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Address</span>
+                    <span id="viewConsAddress" class="text-xs font-semibold text-gray-800 mt-0.5 block">—</span>
+                </div>
+            </div>
+
+            <div class="p-4 bg-amber-50/70 rounded-xl border border-amber-200">
+                <span class="text-[11px] font-bold text-amber-900 uppercase tracking-wider block">Patient Symptoms</span>
+                <p id="viewConsSymptoms" class="text-sm text-gray-900 mt-1 whitespace-pre-line leading-relaxed">—</p>
+            </div>
+
+            <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-100">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Diagnosis / Consultation Assessment</span>
+                <p id="viewConsDiagnosis" class="text-xs text-gray-800 font-medium mt-1 whitespace-pre-line leading-relaxed">—</p>
+            </div>
+
+            <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-100">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Treatment / Notes</span>
+                <p id="viewConsTreatment" class="text-xs text-gray-700 mt-1 whitespace-pre-line leading-relaxed">—</p>
+            </div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+            <button type="button" onclick="closeViewConsultationModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-lg transition-colors cursor-pointer">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
+    function openViewConsultationModal(data) {
+        document.getElementById('viewConsPatientName').textContent = data.patient_name || 'Patient';
+        const ageText = data.patient_age !== null && data.patient_age !== undefined ? `${data.patient_age} yrs old` : 'Age N/A';
+        const genderText = data.patient_gender || 'N/A';
+        document.getElementById('viewConsMeta').textContent = `${ageText} • ${genderText}`;
+        document.getElementById('viewConsDisease').textContent = data.disease_case || 'General Consultation';
+        document.getElementById('viewConsStatus').textContent = data.status || 'Active';
+        document.getElementById('viewConsDateBy').textContent = `${data.consultation_date || 'N/A'} — By ${data.attending_nurse || 'Staff'}`;
+        document.getElementById('viewConsAddress').textContent = data.address || 'Barangay Honrado';
+        document.getElementById('viewConsSymptoms').textContent = data.symptoms || 'No symptoms recorded.';
+        document.getElementById('viewConsDiagnosis').textContent = data.diagnosis || 'None provided.';
+        document.getElementById('viewConsTreatment').textContent = data.treatment_notes || 'Standard clinic care.';
+
+        const modal = document.getElementById('viewConsultationModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeViewConsultationModal(e) {
+        if (e && e.target !== document.getElementById('viewConsultationModal')) return;
+        const modal = document.getElementById('viewConsultationModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    }
+
     function openRecordModal() {
         document.getElementById('recordConsultationModal').classList.remove('hidden');
         document.getElementById('recordConsultationModal').classList.add('flex');

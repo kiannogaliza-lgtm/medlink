@@ -43,6 +43,21 @@
         </div>
       </div>
 
+      <!-- 24-Hour Cooldown Notice -->
+      <div v-if="isEligible && isCooldownActive" class="mx-6 mt-6 text-black flex items-start gap-2.5">
+        <svg class="w-5 h-5 shrink-0 text-black mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div class="text-xs sm:text-sm leading-relaxed text-black">
+          <p class="font-bold text-black">24-Hour Home Service Cooldown Active</p>
+          <p class="mt-0.5 text-black">
+            You have already submitted a home service request within the last 24 hours. Please wait
+            <strong>{{ cooldownRemainingText }}</strong> before submitting another request
+            <span v-if="cooldownFormattedUntil"> (available again on <strong>{{ cooldownFormattedUntil }}</strong>)</span>.
+          </p>
+        </div>
+      </div>
+
       <!-- Flash message -->
       <div v-if="flash" :class="['mx-6 mt-6 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2', flash.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200']">
         <svg v-if="flash.type === 'success'" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -145,18 +160,20 @@
         </div>
 
         <!-- Info Note -->
-        <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800 leading-relaxed">
+        <div class="text-sm text-black leading-relaxed">
           <strong>Note:</strong> Our Barangay Health Worker will contact you within 24 hours to confirm your appointment. Please ensure someone is available at home during the preferred time.
         </div>
 
         <!-- Submit -->
-        <button type="submit" :disabled="submitting"
+        <button type="submit" :disabled="submitting || isCooldownActive"
                 class="w-full bg-[#1a5a89] hover:bg-[#154d78] text-white font-semibold py-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#1a5a89]/20 mt-2 disabled:opacity-60 disabled:cursor-not-allowed">
           <svg v-if="submitting" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
           </svg>
-          <span>{{ submitting ? 'Submitting Request…' : 'Submit Home Service Request' }}</span>
+          <span v-if="submitting">Submitting Request…</span>
+          <span v-else-if="isCooldownActive">Available again in {{ cooldownRemainingText }}</span>
+          <span v-else>Submit Home Service Request</span>
         </button>
 
       </form>
@@ -165,13 +182,64 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 
 const props = defineProps({
   user: { type: Object, required: true },
   homeServiceStoreUrl: { type: String, required: true },
   bookedHomeServices: { type: Array, default: () => [] },
-  homeServiceTypes: { type: Array, default: () => [] }
+  homeServiceTypes: { type: Array, default: () => [] },
+  homeServiceCooldownUntil: { type: String, default: '' }
+});
+
+// ── 24-Hour Cooldown live countdown ──
+const localCooldownUntil = ref(props.homeServiceCooldownUntil || '');
+const nowTick = ref(Date.now());
+let cooldownTimer = null;
+
+watch(() => props.homeServiceCooldownUntil, (val) => {
+  localCooldownUntil.value = val || '';
+});
+
+onMounted(() => {
+  cooldownTimer = setInterval(() => {
+    nowTick.value = Date.now();
+  }, 1000);
+});
+
+onBeforeUnmount(() => {
+  if (cooldownTimer) clearInterval(cooldownTimer);
+});
+
+const cooldownTargetMs = computed(() => {
+  if (!localCooldownUntil.value) return 0;
+  const parsed = Date.parse(localCooldownUntil.value);
+  return isNaN(parsed) ? 0 : parsed;
+});
+
+const cooldownRemainingMs = computed(() => Math.max(0, cooldownTargetMs.value - nowTick.value));
+const isCooldownActive = computed(() => cooldownRemainingMs.value > 0);
+
+const cooldownRemainingText = computed(() => {
+  const totalSec = Math.ceil(cooldownRemainingMs.value / 1000);
+  if (totalSec <= 0) return '';
+  const hrs = Math.floor(totalSec / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
+  const secs = totalSec % 60;
+  if (hrs > 0) return `${hrs}h ${String(mins).padStart(2, '0')}m ${String(secs).padStart(2, '0')}s`;
+  if (mins > 0) return `${mins}m ${String(secs).padStart(2, '0')}s`;
+  return `${secs}s`;
+});
+
+const cooldownFormattedUntil = computed(() => {
+  if (!cooldownTargetMs.value) return '';
+  return new Date(cooldownTargetMs.value).toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 });
 
 // Check if user is PWD or Senior Citizen
@@ -274,6 +342,12 @@ const contactError = computed(() => {
 const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 
 const submitRequest = async () => {
+  if (isCooldownActive.value) {
+    flash.value = { type: 'error', message: `Please wait ${cooldownRemainingText.value} before submitting another home service request.` };
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
   if (contactError.value) {
     flash.value = { type: 'error', message: contactError.value };
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -305,6 +379,7 @@ const submitRequest = async () => {
 
     if (res.ok || res.redirected) {
       flash.value = { type: 'success', message: 'Home service request submitted successfully! We will contact you soon.' };
+      localCooldownUntil.value = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       
       // Reset form
       form.value = {

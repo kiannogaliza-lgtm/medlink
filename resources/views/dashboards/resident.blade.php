@@ -33,6 +33,7 @@
             home-service-store-url="{{ $homeServiceStoreUrl }}"
             :booked-home-services="{{ json_encode($bookedHomeServices) }}"
             :home-service-types="{{ json_encode($homeServiceTypes ?? []) }}"
+            home-service-cooldown-until="{{ $homeServiceCooldownUntil ?? '' }}"
             :my-schedules="{{ json_encode($mySchedules) }}"
             :booked-schedules="{{ json_encode($bookedSchedules) }}"
             schedule-store-url="{{ $scheduleStoreUrl }}"

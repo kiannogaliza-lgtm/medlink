@@ -139,12 +139,12 @@
       </div>
 
       <!-- Notice Banner on Delivery Only Scope -->
-      <div class="bg-indigo-50/70 border-b border-indigo-100 px-4 sm:px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-indigo-900">
+      <div class="bg-white border-b border-gray-100 px-4 sm:px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-gray-700">
         <div class="flex items-start sm:items-center gap-2">
           <span class="material-icons-outlined text-indigo-600 shrink-0 mt-0.5 sm:mt-0" style="font-size: 18px;">local_shipping</span>
           <span><strong>BHW View:</strong> Only medicine requests with <strong>Home Delivery</strong> are shown here for dispatch and neighborhood delivery.</span>
         </div>
-        <span class="text-[11px] text-indigo-600 font-semibold bg-indigo-100/60 px-2.5 py-0.5 rounded-full self-start sm:self-auto shrink-0">
+        <span class="text-[11px] text-indigo-600 font-semibold self-start sm:self-auto shrink-0">
           Pickup requests are handled at Center by Nurse
         </span>
       </div>
@@ -206,7 +206,7 @@
                     {{ req.user?.address || 'Address not registered' }}
                   </span>
                 </div>
-                <div v-if="req.notes" class="text-[11px] text-gray-500 italic mt-1 bg-amber-50/70 p-1.5 rounded border border-amber-100/60" :title="req.notes">
+                <div v-if="req.notes" class="text-[11px] text-gray-500 italic mt-1" :title="req.notes">
                   "{{ req.notes }}"
                 </div>
               </td>
@@ -232,7 +232,7 @@
 
               <!-- Fulfillment Badge (Strictly Delivery) -->
               <td class="py-4 px-6 whitespace-nowrap">
-                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700">
                   <span class="material-icons-outlined" style="font-size: 13px;">local_shipping</span>
                   Home Delivery
                 </span>
@@ -246,34 +246,34 @@
 
               <!-- Status Badge -->
               <td class="py-4 px-6 whitespace-nowrap">
-                <span v-if="req.status === 'Pending'" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 inline-flex items-center gap-1">
+                <span v-if="req.status === 'Pending'" class="text-[11px] font-bold text-amber-600 inline-flex items-center gap-1.5">
                   <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                   Pending
                 </span>
-                <span v-else-if="req.status === 'Accepted'" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1">
+                <span v-else-if="req.status === 'Accepted'" class="text-[11px] font-bold text-blue-600 inline-flex items-center gap-1.5">
                   <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                   Accepted (For Consultation)
                 </span>
-                <span v-else-if="req.status === 'Approved'" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">
+                <span v-else-if="req.status === 'Approved'" class="text-[11px] font-bold text-emerald-600 inline-flex items-center gap-1.5">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   Approved (Delivery Ready)
                 </span>
-                <span v-else-if="req.status === 'Rejected'" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200 inline-flex items-center gap-1">
+                <span v-else-if="req.status === 'Rejected'" class="text-[11px] font-bold text-rose-600 inline-flex items-center gap-1.5">
                   <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                   Rejected
                 </span>
-                <span v-else class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-700">
+                <span v-else class="text-[11px] font-bold text-gray-700">
                   {{ req.status }}
                 </span>
               </td>
 
               <!-- Actions -->
               <td class="py-4 px-6 text-right whitespace-nowrap">
-                <!-- If Pending: Edit, Accept for consultation or Reject -->
+                <!-- If Pending: Edit or Accept for consultation (only Nurse can reject) -->
                 <div v-if="req.status === 'Pending'" class="flex items-center justify-end gap-2">
                   <button @click="openEditQtyModal(req)"
                           type="button"
-                          class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-lg transition-all border border-amber-200 flex items-center gap-1 cursor-pointer"
+                          class="px-2.5 py-1.5 text-amber-700 hover:text-amber-800 font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer"
                           title="Edit quantity">
                     <span class="material-icons-outlined" style="font-size: 14px;">edit</span>
                     <span>Edit</span>
@@ -286,21 +286,13 @@
                     <span class="material-icons-outlined" style="font-size: 14px;">assignment_turned_in</span>
                     <span>Accept</span>
                   </button>
-
-                  <button @click="handleAction(req, 'reject')"
-                          :disabled="actionLoadingId === req.id"
-                          class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition-all border border-rose-200 flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                          title="Reject request">
-                    <span class="material-icons-outlined" style="font-size: 14px;">close</span>
-                    <span>Reject</span>
-                  </button>
                 </div>
 
-                <!-- If Accepted: Edit, Approve for delivery or Reject -->
+                <!-- If Accepted: Edit or Approve for delivery (only Nurse can reject) -->
                 <div v-else-if="req.status === 'Accepted'" class="flex items-center justify-end gap-2">
                   <button @click="openEditQtyModal(req)"
                           type="button"
-                          class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-lg transition-all border border-amber-200 flex items-center gap-1 cursor-pointer"
+                          class="px-2.5 py-1.5 text-amber-700 hover:text-amber-800 font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer"
                           title="Edit quantity">
                     <span class="material-icons-outlined" style="font-size: 14px;">edit</span>
                     <span>Edit</span>
@@ -313,18 +305,17 @@
                     <span class="material-icons-outlined" style="font-size: 14px;">local_shipping</span>
                     <span>Approve Delivery</span>
                   </button>
-
-                  <button @click="handleAction(req, 'reject')"
-                          :disabled="actionLoadingId === req.id"
-                          class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition-all border border-rose-200 flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                          title="Reject request">
-                    <span class="material-icons-outlined" style="font-size: 14px;">close</span>
-                    <span>Reject</span>
-                  </button>
                 </div>
 
-                <!-- If Approved: Ready for Home Delivery Completion / Claiming -->
+                <!-- If Approved: Consult & Ready for Home Delivery Completion / Claiming -->
                 <div v-else-if="req.status === 'Approved'" class="flex items-center justify-end gap-2">
+                  <button @click="openConsultModal(req)"
+                          type="button"
+                          class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-all shadow-sm flex items-center gap-1 cursor-pointer"
+                          title="Record patient consultation and symptoms for Nurse">
+                    <span class="material-icons-outlined" style="font-size: 14px;">medical_services</span>
+                    <span>Consult</span>
+                  </button>
                   <button @click="openClaimModal(req)"
                           type="button"
                           class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all shadow-sm flex items-center gap-1 cursor-pointer"
@@ -338,12 +329,12 @@
                 <div v-else-if="req.status === 'Completed'" class="flex items-center justify-end gap-2">
                   <button @click="printReceipt(req)"
                           type="button"
-                          class="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg transition-all border border-gray-200 flex items-center gap-1 cursor-pointer"
+                          class="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer"
                           title="Print delivery transaction receipt">
                     <span class="material-icons-outlined" style="font-size: 14px;">print</span>
                     <span>Receipt</span>
                   </button>
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800">Claimed</span>
+                  <span class="text-[11px] font-bold text-emerald-700">Claimed</span>
                 </div>
 
                 <!-- Other state -->
@@ -415,6 +406,88 @@
             </button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- BHW CONSULTATION MODAL -->
+    <div v-if="consultingRequest" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-indigo-50/60">
+          <div class="flex items-center gap-2 text-[#0c2d48]">
+            <span class="material-icons-outlined text-indigo-600" style="font-size:20px;">medical_services</span>
+            <h3 class="font-bold text-sm">Record Patient Consultation</h3>
+          </div>
+          <button type="button" @click="closeConsultModal" class="text-gray-400 hover:text-gray-600 cursor-pointer">
+            <span class="material-icons-outlined" style="font-size:18px;">close</span>
+          </button>
+        </div>
+
+        <form @submit.prevent="submitConsultForm" class="p-5 space-y-4">
+          <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs text-gray-700 space-y-1">
+            <div class="flex justify-between">
+              <span class="text-gray-400">Patient:</span>
+              <span class="font-bold text-gray-800">
+                {{ consultingRequest.patient_type === 'other' && consultingRequest.patient_name ? consultingRequest.patient_name : `${consultingRequest.user?.first_name || ''} ${consultingRequest.user?.last_name || ''}`.trim() }}
+              </span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">Medicine:</span>
+              <span class="font-semibold text-gray-800">{{ consultingRequest.item_service }} (x{{ consultingRequest.quantity }})</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Consultation / Disease Case <span class="text-red-500">*</span></label>
+            <select v-model="consultForm.disease_case" required
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500">
+              <option value="General Consultation">General Consultation</option>
+              <option value="Fever / Flu">Fever / Flu</option>
+              <option value="Cough / Cold">Cough / Cold</option>
+              <option value="Hypertension">Hypertension</option>
+              <option value="Dengue">Dengue</option>
+              <option value="Tuberculosis">Tuberculosis</option>
+              <option value="HIV">HIV</option>
+              <option value="Measles">Measles</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Patient Symptoms <span class="text-red-500">*</span></label>
+            <textarea v-model="consultForm.symptoms" rows="3" required
+                      placeholder="Enter patient symptoms observed/reported during consultation (e.g. fever for 2 days, cough, body aches, BP 130/80)..."
+                      class="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 resize-none"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Consultation Assessment / Findings</label>
+            <textarea v-model="consultForm.diagnosis" rows="2"
+                      placeholder="What did you consult / assess with the patient?"
+                      class="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 resize-none"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Treatment / Advice Notes (Optional)</label>
+            <textarea v-model="consultForm.treatment_notes" rows="2"
+                      placeholder="e.g. Advised proper hydration, rest, and follow dosage instructions..."
+                      class="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 resize-none"></textarea>
+          </div>
+
+          <div v-if="consultError" class="text-xs text-rose-600 font-semibold">
+            {{ consultError }}
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+            <button type="button" @click="closeConsultModal" class="px-3.5 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
+              Cancel
+            </button>
+            <button type="submit" :disabled="isSubmittingConsult"
+                    class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm transition-all cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5">
+              <span class="material-icons-outlined" style="font-size:15px;">save</span>
+              <span>{{ isSubmittingConsult ? 'Saving...' : 'Save Consultation' }}</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -907,6 +980,70 @@ function printReceipt(req) {
     </html>
   `);
   printWindow.document.close();
+}
+
+// Consultation Modal state
+const consultingRequest = ref(null);
+const isSubmittingConsult = ref(false);
+const consultError = ref('');
+const consultForm = ref({
+  disease_case: 'General Consultation',
+  symptoms: '',
+  diagnosis: '',
+  treatment_notes: '',
+});
+
+function openConsultModal(req) {
+  consultingRequest.value = req;
+  consultError.value = '';
+  consultForm.value = {
+    disease_case: 'General Consultation',
+    symptoms: req.notes || '',
+    diagnosis: '',
+    treatment_notes: '',
+  };
+}
+
+function closeConsultModal() {
+  consultingRequest.value = null;
+  consultError.value = '';
+}
+
+async function submitConsultForm() {
+  if (!consultingRequest.value) return;
+  if (!consultForm.value.symptoms.trim()) {
+    consultError.value = 'Please enter the patient symptoms.';
+    return;
+  }
+
+  isSubmittingConsult.value = true;
+  consultError.value = '';
+
+  try {
+    const res = await fetch(`/bhw/medicine-requests/${consultingRequest.value.id}/consultation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken.value,
+      },
+      body: JSON.stringify(consultForm.value),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success) {
+      feedbackType.value = 'success';
+      feedbackMessage.value = data.message || 'Consultation recorded and sent to Nurse Consultation Records.';
+      closeConsultModal();
+    } else {
+      consultError.value = data.message || 'Failed to save consultation.';
+    }
+  } catch (err) {
+    console.error(err);
+    consultError.value = 'Network error while saving consultation.';
+  } finally {
+    isSubmittingConsult.value = false;
+  }
 }
 
 // Edit Quantity Modal state

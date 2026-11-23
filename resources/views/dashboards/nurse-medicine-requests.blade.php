@@ -286,6 +286,8 @@
                                         <span class="badge-accepted text-xs font-semibold">Consultation</span>
                                     @elseif($request->status === 'Approved')
                                         <span class="badge-approved text-xs font-semibold">Approved</span>
+                                    @elseif($request->status === 'Completed')
+                                        <span class="text-emerald-700 text-xs font-bold">Completed</span>
                                     @elseif($request->status === 'Rejected')
                                         <span class="badge-rejected text-xs font-semibold">Rejected</span>
                                     @else
@@ -333,6 +335,25 @@
                                                 </button>
                                             </form>
                                         </div>
+                                    @elseif($request->status === 'Approved')
+                                        {{-- Step 3: Complete / Mark Medicine as Claimed by Resident --}}
+                                        @php
+                                            $residentFullName = $request->user ? trim($request->user->first_name . ' ' . $request->user->last_name) : 'Resident';
+                                            $defaultClaimant = ($request->patient_type === 'other' && !empty($request->patient_name)) ? $request->patient_name : $residentFullName;
+                                            $defaultRelation = ($request->patient_type === 'other' && !empty($request->patient_relationship)) ? $request->patient_relationship : 'Self (Resident)';
+                                        @endphp
+                                        <button type="button"
+                                                onclick="openNurseCompleteModal({{ $request->id }}, '{{ addslashes($request->request_id) }}', '{{ addslashes($request->item_service) }}', {{ $request->quantity ?? 1 }}, '{{ addslashes($defaultClaimant) }}', '{{ addslashes($defaultRelation) }}')"
+                                                class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md transition-all shadow-sm hover:shadow-md inline-flex items-center gap-1 cursor-pointer"
+                                                title="Mark medicine as completed / claimed by resident">
+                                            <span class="material-icons-outlined" style="font-size:14px;">task_alt</span>
+                                            <span>Complete</span>
+                                        </button>
+                                    @elseif($request->status === 'Completed')
+                                        <span class="text-xs text-emerald-700 font-semibold inline-flex items-center gap-1">
+                                            <span class="material-icons-outlined" style="font-size:14px;">verified</span>
+                                            Claimed
+                                        </span>
                                     @else
                                         <span class="text-xs text-gray-400 italic">Processed</span>
                                     @endif
@@ -414,8 +435,84 @@
     </div>
 </div>
 
+{{-- Complete / Claim Medicine Modal --}}
+<div id="nurseCompleteModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-xs flex items-center justify-center p-4" onclick="closeNurseCompleteModal(event)">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden" onclick="event.stopPropagation()">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-blue-50/50">
+            <div class="flex items-center gap-2 text-[#0c2d48]">
+                <span class="material-icons-outlined text-blue-600" style="font-size:20px;">task_alt</span>
+                <h3 class="font-bold text-sm">Complete Medicine Claim / Pickup</h3>
+            </div>
+            <button type="button" onclick="closeNurseCompleteModal()" class="text-gray-400 hover:text-gray-600 cursor-pointer">
+                <span class="material-icons-outlined" style="font-size:18px;">close</span>
+            </button>
+        </div>
+
+        <form id="nurseCompleteForm" method="POST" action="" class="p-5 space-y-4">
+            @csrf
+            <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs text-gray-700 space-y-1">
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Request ID:</span>
+                    <span id="completeModalReqId" class="font-bold text-blue-600">—</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Medicine:</span>
+                    <span id="completeModalMedInfo" class="font-bold text-gray-800">—</span>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Dispensed / Released By <span class="text-red-500">*</span></label>
+                <input type="text" name="delivered_by" id="completeDeliveredBy" required
+                       value="Nurse {{ trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) }}"
+                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Received / Claimed By <span class="text-red-500">*</span></label>
+                    <input type="text" name="claimed_by" id="completeClaimedBy" required placeholder="Full name of claimant"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Relationship <span class="text-red-500">*</span></label>
+                    <input type="text" name="claimed_relationship" id="completeClaimedRelation" required placeholder="e.g. Self (Resident)"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                <button type="button" onclick="closeNurseCompleteModal()" class="px-3.5 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm transition-all cursor-pointer inline-flex items-center gap-1.5">
+                    <span class="material-icons-outlined" style="font-size:15px;">check_circle</span>
+                    <span>Mark as Completed</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     let currentInitialQty = 1;
+
+    function openNurseCompleteModal(requestId, reqCode, medicineName, qty, claimant, relation) {
+        const modal = document.getElementById('nurseCompleteModal');
+        const form = document.getElementById('nurseCompleteForm');
+        form.action = `/nurse/requests/${requestId}/complete`;
+        document.getElementById('completeModalReqId').textContent = reqCode;
+        document.getElementById('completeModalMedInfo').textContent = `${medicineName} (x${qty})`;
+        document.getElementById('completeClaimedBy').value = claimant || '';
+        document.getElementById('completeClaimedRelation').value = relation || 'Self (Resident)';
+        modal.classList.remove('hidden');
+    }
+
+    function closeNurseCompleteModal(e) {
+        if (e && e.target !== document.getElementById('nurseCompleteModal')) return;
+        const modal = document.getElementById('nurseCompleteModal');
+        if (modal) modal.classList.add('hidden');
+    }
 
     function openNurseEditQtyModal(requestId, medicineName, currentQty, maxStock, limit) {
         const modal = document.getElementById('nurseEditQtyModal');
@@ -477,6 +574,7 @@
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeNurseEditQtyModal();
+            closeNurseCompleteModal();
         }
     });
 </script>

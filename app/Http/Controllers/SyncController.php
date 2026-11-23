@@ -81,13 +81,25 @@ class SyncController extends Controller
         $unreadPersonalNotifs = AppNotification::where('user_id', $user->id)->where('is_read', false)->count();
         $signatures[] = "NO:{$notifCount}:{$unreadPersonalNotifs}:{$notifMax}:{$nurseReadAt}";
 
-        // 8. User Profile changes / status updates / permissions
+        // 8. User Profile changes / status updates / permissions / single-device session check
         $userSelf = User::find($user->id);
         if (!$userSelf || $userSelf->status === 'inactive') {
             \Illuminate\Support\Facades\Auth::logout();
             return response()->json([
                 'authenticated' => false,
                 'reason'        => !$userSelf ? 'deleted' : 'deactivated',
+            ]);
+        }
+
+        $sessionToken = $request->session()->get('active_session_token');
+        if (!empty($userSelf->active_session_token) && $userSelf->active_session_token !== $sessionToken) {
+            \Illuminate\Support\Facades\Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return response()->json([
+                'authenticated' => false,
+                'reason'        => 'other_device',
+                'message'       => 'There is another device that opened this account. You have been automatically logged out.',
             ]);
         }
         $signatures[] = "USR_SELF:{$userSelf?->updated_at}:{$userSelf?->status}:{$userSelf?->patient_classification}:{$userSelf?->can_manage_nurses}";

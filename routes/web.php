@@ -44,7 +44,7 @@ Route::get('/pending-approval', function () {
     return view('auth.pending');
 })->name('pending.approval')->middleware('auth');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'single.device'])->group(function () {
     
     // Dashboard route checks the user's role and serves the correct view
     Route::get('/dashboard', function () {
@@ -119,6 +119,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/nurse/consultations', [\App\Http\Controllers\ConsultationController::class, 'index'])->name('nurse.consultations');
         Route::get('/nurse/consultations/export-excel', [\App\Http\Controllers\ConsultationController::class, 'exportExcel'])->name('nurse.consultations.export-excel');
         Route::post('/nurse/consultations', [\App\Http\Controllers\ConsultationController::class, 'store'])->name('nurse.consultations.store');
+        Route::post('/nurse/consultations/clear', [\App\Http\Controllers\ConsultationController::class, 'clear'])->name('nurse.consultations.clear');
         Route::delete('/nurse/consultations/{consultation}', [\App\Http\Controllers\ConsultationController::class, 'destroy'])->name('nurse.consultations.destroy');
 
         // Children & Infant Vaccinations (1st, 2nd, succeeding doses)
@@ -188,6 +189,7 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/bhw/home-services/{homeService}/approve', [\App\Http\Controllers\BhwDashboardController::class, 'approveHomeService'])->name('bhw.home-services.approve');
         Route::patch('/bhw/home-services/{homeService}/confirm', [\App\Http\Controllers\BhwDashboardController::class, 'confirmHomeService'])->name('bhw.home-services.confirm');
         Route::patch('/bhw/home-services/{homeService}/complete', [\App\Http\Controllers\BhwDashboardController::class, 'completeHomeService'])->name('bhw.home-services.complete');
+        Route::post('/bhw/medicine-requests/{medicineRequest}/consultation', [\App\Http\Controllers\ConsultationController::class, 'storeFromBhw'])->name('bhw.medicine-requests.consultation');
         Route::post('/bhw/notifications/read', [\App\Http\Controllers\BhwDashboardController::class, 'markNotificationsRead'])->name('bhw.notifications.read');
     });
 

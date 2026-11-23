@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Schedule;
+use App\Models\Consultation;
 use App\Models\AppNotification;
 use Carbon\Carbon;
 
@@ -117,6 +118,26 @@ class WalkinController extends Controller
             'scheduled_time' => Carbon::now()->format('H:i:s'),
             'notes'          => $validated['symptoms'] ?? null,
             'status'         => 'Pending',
+        ]);
+
+        // Automatically record the walk-in patient in Nurse Consultations with status 'Walk-in'
+        $bhwDisplayName = auth()->check()
+            ? ('BHW ' . trim(auth()->user()->first_name . ' ' . auth()->user()->last_name))
+            : 'BHW Staff';
+
+        Consultation::create([
+            'user_id'           => $user->id,
+            'patient_name'      => trim($validated['first_name'] . ' ' . $validated['last_name']),
+            'patient_age'       => $age ?? $user->age,
+            'patient_gender'    => $validated['gender'] ?? $user->gender,
+            'address'           => $validated['address'] ?? ($user->address ?? 'Barangay Honrado'),
+            'disease_case'      => $validated['purpose'] ?: 'General Consultation',
+            'symptoms'          => $validated['symptoms'] ?? null,
+            'diagnosis'         => 'Walk-in Visit: ' . $validated['purpose'],
+            'treatment_notes'   => 'Walk-in patient registered by ' . $bhwDisplayName . '.',
+            'consultation_date' => Carbon::today(),
+            'attending_nurse'   => $bhwDisplayName,
+            'status'            => 'Walk-in',
         ]);
 
         // Notify the BHW who registered this patient

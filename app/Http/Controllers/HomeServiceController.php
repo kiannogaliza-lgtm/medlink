@@ -141,6 +141,26 @@ class HomeServiceController extends Controller
             return redirect()->back()->with('error', $msg);
         }
 
+        // 24-hour cooldown: a resident can only submit one home service request every 24 hours
+        $lastRequest = HomeServiceRequest::where('user_id', $user->id)
+            ->where('status', '!=', 'Rejected')
+            ->latest('created_at')
+            ->first();
+
+        if ($lastRequest && $lastRequest->created_at && $lastRequest->created_at->gt(now()->subHours(24))) {
+            $nextAvailableAt = $lastRequest->created_at->copy()->addHours(24);
+            $hoursLeft = max(1, (int) ceil(now()->diffInMinutes($nextAvailableAt) / 60));
+            $msg = "You can only request a home service once every 24 hours. Please wait about {$hoursLeft} hour(s) — available again on " . $nextAvailableAt->format('M d, Y h:i A') . '.';
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $msg,
+                    'cooldown_until' => $nextAvailableAt->toIso8601String(),
+                ], 429);
+            }
+            return redirect()->back()->with('error', $msg);
+        }
+
         $hsRequest = HomeServiceRequest::create([
             'user_id' => $user->id,
             'patient_name' => $user->first_name . ' ' . $user->last_name,

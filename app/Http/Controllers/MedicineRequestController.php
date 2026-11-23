@@ -291,7 +291,7 @@ class MedicineRequestController extends Controller
                 'treatment_notes'   => "Requested {$medicineRequest->quantity} unit(s) of {$medicineRequest->item_service}. Pending health center clinical assessment before dispensing.",
                 'consultation_date' => now()->toDateString(),
                 'attending_nurse'   => $attendingNurse,
-                'status'            => 'Active',
+                'status'            => $medicineRequest->delivery_method === 'delivery' ? 'Home Delivery' : 'Active',
             ]
         );
 
@@ -362,10 +362,10 @@ class MedicineRequestController extends Controller
         // Mark the request as Approved
         $medicineRequest->update(['status' => 'Approved']);
 
-        // Update consultation status to Completed/Recovered if linked
+        // Update consultation status if linked
         if ($consultation = Consultation::where('medicine_request_id', $medicineRequest->id)->first()) {
             $consultation->update([
-                'status' => 'Recovered',
+                'status' => $medicineRequest->delivery_method === 'delivery' ? 'Home Delivery' : 'Recovered',
                 'treatment_notes' => trim(($consultation->treatment_notes ?? '') . " | Approved & Dispensed ({$qty} unit(s))."),
             ]);
         }
@@ -375,7 +375,9 @@ class MedicineRequestController extends Controller
             'user_id' => $medicineRequest->user_id,
             'type' => 'success',
             'title' => 'Medicine Request Approved',
-            'message' => "Your request for {$medicineRequest->item_service} (x{$qty}) has been approved after consultation! Ready for " . ($medicineRequest->delivery_method === 'pickup' ? 'pickup.' : 'delivery.'),
+            'message' => $medicineRequest->delivery_method === 'pickup'
+                ? "Your request for {$medicineRequest->item_service} (x{$qty}) has been approved! Ready for pickup."
+                : "Your request for {$medicineRequest->item_service} (x{$qty}) has been approved! Ready for consultation — BHW is coming to deliver.",
         ]);
 
         $residentName = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: 'Resident';
@@ -412,9 +414,9 @@ class MedicineRequestController extends Controller
      */
     public function reject(Request $request, MedicineRequest $medicineRequest)
     {
-        // If current user is BHW, they can only manage delivery requests
-        if (auth()->user()->role === 'bhw' && $medicineRequest->delivery_method !== 'delivery') {
-            $msg = 'BHW can only manage delivery requests.';
+        // Only Nurse can reject medicine requests (including delivery requests)
+        if (auth()->user()->role !== 'nurse') {
+            $msg = 'Only nurses can reject medicine requests.';
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => $msg], 403);
             }

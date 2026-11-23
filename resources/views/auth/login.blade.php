@@ -459,7 +459,40 @@
                 eyeClose.classList.add('hidden');
             }
         }
+
+        function closeOtherDeviceAlert() {
+            const modal = document.getElementById('otherDeviceAlertModal');
+            if (modal) modal.remove();
+            if (window.location.search.includes('kicked=1')) {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('kicked');
+                window.history.replaceState({}, '', url.pathname + url.search);
+            }
+        }
     </script>
+
+    {{-- Popup Alert: Another Device Opened This Account --}}
+    @if(session('session_kicked') || request()->query('kicked') === '1')
+    <div id="otherDeviceAlertModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm p-6 text-center space-y-4">
+            <div class="w-12 h-12 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-slate-900">Account Opened on Another Device</h3>
+                <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">
+                    {{ session('session_kicked') ?: 'There is another device that opened this account. You have been automatically logged out.' }}
+                </p>
+            </div>
+            <button type="button" onclick="closeOtherDeviceAlert()"
+                    class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer">
+                Close
+            </button>
+        </div>
+    </div>
+    @endif
 
 </body>
 </html>

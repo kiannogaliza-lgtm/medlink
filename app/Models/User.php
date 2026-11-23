@@ -13,12 +13,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'first_name', 'last_name', 'phone_number', 'email', 'password', 'role', 
-    'status', 'is_maintenance', 'can_manage_nurses', 'last_login_at', 'notifications_read_at', 'profile_photo', 'id_photo',
+    'status', 'is_maintenance', 'can_manage_nurses', 'last_login_at', 'notifications_read_at', 'active_session_token', 'profile_photo', 'id_photo',
     'dob', 'age', 'age_category', 'patient_classification', 'gender', 'blood_type', 'address', 'allergies', 
     'chronic_conditions', 'last_checkup', 'emergency_contact_name', 
     'emergency_contact_relation', 'emergency_contact_phone'
 ])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'active_session_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
