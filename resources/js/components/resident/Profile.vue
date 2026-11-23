@@ -139,17 +139,6 @@
           <div class="flex items-start gap-4">
             <div class="w-10 h-10 bg-blue-50 text-[#3ac1eb] rounded-full flex items-center justify-center shrink-0">
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div>
-              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Email Address</p>
-              <p class="text-sm font-medium text-gray-800">{{ user.email || 'Not provided' }}</p>
-            </div>
-          </div>
-          <div class="flex items-start gap-4">
-            <div class="w-10 h-10 bg-blue-50 text-[#3ac1eb] rounded-full flex items-center justify-center shrink-0">
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
             </div>
@@ -384,24 +373,24 @@
           <div>
             <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Age</label>
             <input 
-              v-model.number="form.age" 
+              :value="form.age !== null && form.age !== undefined ? form.age : ''" 
               type="number" 
-              min="0" 
-              max="130"
-              placeholder="e.g. 24"
-              class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5a89]/30 focus:border-[#1a5a89] transition-all"
+              disabled
+              readonly
+              placeholder="Not specified"
+              class="w-full px-3.5 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-500 cursor-not-allowed select-none"
             >
-            <span v-if="errors.age" class="text-xs text-red-500 mt-1 block">{{ errors.age[0] }}</span>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Date of Birth</label>
             <input 
-              v-model="form.dob" 
+              :value="form.dob" 
               type="date" 
-              class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5a89]/30 focus:border-[#1a5a89] transition-all"
+              disabled
+              readonly
+              class="w-full px-3.5 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-500 cursor-not-allowed select-none"
             >
-            <span v-if="errors.dob" class="text-xs text-red-500 mt-1 block">{{ errors.dob[0] }}</span>
           </div>
 
           <div>
@@ -445,18 +434,7 @@
           <h3 class="font-bold text-[#1a5a89]">Contact Information</h3>
           <p class="text-xs text-gray-500">How health workers and nurses can reach you</p>
         </div>
-        <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Email Address</label>
-            <input 
-              v-model="form.email" 
-              type="email" 
-              placeholder="e.g. resident@example.com"
-              class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5a89]/30 focus:border-[#1a5a89] transition-all"
-            >
-            <span v-if="errors.email" class="text-xs text-red-500 mt-1 block">{{ errors.email[0] }}</span>
-          </div>
-
+        <div class="p-6 grid grid-cols-1 gap-5">
           <div>
             <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Phone Number *</label>
             <input 
@@ -473,7 +451,7 @@
             <span v-if="phoneError" class="text-xs text-red-500 mt-1 block">{{ phoneError }}</span>
           </div>
 
-          <div class="sm:col-span-2">
+          <div>
             <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Full Address</label>
             <textarea 
               v-model="form.address" 
@@ -781,6 +759,21 @@ const submitProfile = async () => {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const targetUrl = props.profileUpdateUrl || '/resident/profile';
 
+    const payload = {
+      first_name: form.value.first_name,
+      last_name: form.value.last_name,
+      phone_number: form.value.phone_number,
+      gender: form.value.gender,
+      blood_type: form.value.blood_type,
+      address: form.value.address,
+      allergies: form.value.allergies,
+      chronic_conditions: form.value.chronic_conditions,
+      last_checkup: form.value.last_checkup,
+      emergency_contact_name: form.value.emergency_contact_name,
+      emergency_contact_relation: form.value.emergency_contact_relation,
+      emergency_contact_phone: form.value.emergency_contact_phone,
+    };
+
     const response = await fetch(targetUrl, {
       method: 'PUT',
       headers: {
@@ -789,7 +782,7 @@ const submitProfile = async () => {
         'X-CSRF-TOKEN': csrfToken,
         'X-Requested-With': 'XMLHttpRequest'
       },
-      body: JSON.stringify(form.value)
+      body: JSON.stringify(payload)
     });
 
     const data = await response.json();

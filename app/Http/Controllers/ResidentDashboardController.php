@@ -359,9 +359,6 @@ class ResidentDashboardController extends Controller
             'first_name'                 => ['required', 'string', 'max:255'],
             'last_name'                  => ['required', 'string', 'max:255'],
             'phone_number'               => ['required', 'regex:/^09[0-9]{9}$/', \Illuminate\Validation\Rule::unique('users')->ignore($user->id)],
-            'email'                      => ['nullable', 'email', 'max:255', \Illuminate\Validation\Rule::unique('users')->ignore($user->id)],
-            'age'                        => ['nullable', 'integer', 'min:0', 'max:130'],
-            'dob'                        => ['nullable', 'date'],
             'gender'                     => ['nullable', 'string', 'max:50'],
             'blood_type'                 => ['nullable', 'string', 'max:10'],
             'address'                    => ['nullable', 'string', 'max:500'],
@@ -375,11 +372,6 @@ class ResidentDashboardController extends Controller
             'phone_number.regex' => 'The phone number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',
             'emergency_contact_phone.regex' => 'The emergency contact phone number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',
         ]);
-
-        if (isset($validated['age']) && $validated['age'] !== null) {
-            $validated['age'] = (int) $validated['age'];
-            $validated['age_category'] = \App\Models\User::resolveAgeCategory($validated['age']);
-        }
 
         $user->update($validated);
 
