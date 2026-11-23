@@ -270,7 +270,7 @@
                 </div>
 
                 <button type="submit" class="px-3 py-2 bg-gray-800 text-white rounded-lg text-xs font-semibold hover:bg-black transition-colors cursor-pointer">
-                    Filter
+                    Search
                 </button>
             </form>
         </div>
