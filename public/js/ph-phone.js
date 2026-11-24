@@ -54,7 +54,9 @@
     }
 
     function ensureHintElement(input) {
-        const anchor = input.closest('.relative') || input;
+        const anchor = (input.parentElement && input.parentElement.classList.contains('relative'))
+            ? input.parentElement
+            : input;
         let hint = anchor.nextElementSibling;
         if (hint && hint.hasAttribute('data-ph-phone-hint')) {
             return hint;
