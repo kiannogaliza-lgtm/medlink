@@ -309,7 +309,7 @@
                             {{-- Resident Requester --}}
                             <td class="py-3 px-3 whitespace-nowrap">
                                 <div class="font-bold text-gray-900">{{ $req->user ? ($req->user->first_name . ' ' . $req->user->last_name) : 'Guest' }}</div>
-                                <div class="text-[10px] text-gray-500">{{ $req->user->phone_number ?? '' }}</div>
+                                <div class="text-[10px] text-gray-500">{{ \App\Support\PhoneNumber::isPlaceholder($req->user?->phone_number) ? 'No phone' : $req->user->phone_number }}</div>
                                 @if($req->user?->address)
                                     <div class="text-[10px] text-gray-400 max-w-[180px] truncate" title="{{ $req->user->address }}">{{ $req->user->address }}</div>
                                 @endif

@@ -53,6 +53,9 @@
               <span class="text-xs text-gray-400">
                 Author: <strong class="text-gray-700">{{ ann.author_name || 'BHW / Nurse' }}</strong>
               </span>
+              <span v-if="ann.sms_sent_at" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                SMS sent to {{ ann.sms_recipient_count ?? 0 }} residents - {{ formatDate(ann.sms_sent_at) }}
+              </span>
             </div>
 
             <h4 class="text-lg font-bold text-gray-900 mb-1.5">{{ ann.title }}</h4>
@@ -147,6 +150,33 @@
             ></textarea>
           </div>
 
+          <div
+            v-if="!isEditing"
+            :title="!smsConfigured ? 'SMS is not configured' : ''"
+            :class="['p-3.5 rounded-xl border border-gray-200 bg-gray-50/80', !smsConfigured ? 'opacity-60' : '']"
+          >
+            <label :class="['flex items-start justify-between gap-3', smsConfigured ? 'cursor-pointer' : 'cursor-not-allowed']">
+              <div>
+                <span class="block text-xs font-bold text-gray-800">Also send via SMS to all registered residents</span>
+                <span class="block text-[11px] text-gray-500 mt-0.5 leading-relaxed">
+                  Sends a text message to every active resident with a valid mobile number. Uses the health center phone's SMS load.
+                </span>
+                <span v-if="!smsConfigured" class="block text-[11px] text-amber-700 font-semibold mt-1">
+                  SMS is not configured
+                </span>
+              </div>
+              <span class="relative inline-flex items-center shrink-0 mt-0.5">
+                <input
+                  v-model="form.send_sms"
+                  type="checkbox"
+                  :disabled="!smsConfigured"
+                  class="sr-only peer"
+                >
+                <span class="w-10 h-6 bg-gray-300 rounded-full peer peer-checked:bg-[#1a5a89] peer-focus:ring-2 peer-focus:ring-[#1a5a89]/30 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:bg-white after:rounded-full after:shadow after:transition-transform peer-checked:after:translate-x-4"></span>
+              </span>
+            </label>
+          </div>
+
           <div class="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
             <button 
               type="button" 
@@ -184,6 +214,10 @@ const props = defineProps({
   announcementsStoreUrl: {
     type: String,
     default: '/announcements'
+  },
+  smsConfigured: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -198,7 +232,8 @@ const form = ref({
   title: '',
   date: '',
   status: 'active',
-  content: ''
+  content: '',
+  send_sms: false
 });
 
 const formatDate = (d) => {
@@ -214,7 +249,8 @@ const openCreateModal = () => {
     title: '',
     date: new Date().toISOString().split('T')[0],
     status: 'active',
-    content: ''
+    content: '',
+    send_sms: false
   };
   showModal.value = true;
 };
@@ -226,7 +262,8 @@ const openEditModal = (ann) => {
     title: ann.title || '',
     date: ann.date ? ann.date.split('T')[0] : (ann.created_at ? ann.created_at.split('T')[0] : ''),
     status: ann.status || 'active',
-    content: ann.content || ''
+    content: ann.content || '',
+    send_sms: false
   };
   showModal.value = true;
 };
@@ -238,6 +275,21 @@ const saveAnnouncement = async () => {
     const url = isEditing.value ? `/announcements/${currentId.value}` : (props.announcementsStoreUrl || '/announcements');
     const method = isEditing.value ? 'PUT' : 'POST';
 
+    const payload = isEditing.value
+      ? {
+          title: form.value.title,
+          date: form.value.date,
+          status: form.value.status,
+          content: form.value.content,
+        }
+      : {
+          title: form.value.title,
+          date: form.value.date,
+          status: form.value.status,
+          content: form.value.content,
+          send_sms: Boolean(form.value.send_sms),
+        };
+
     const res = await fetch(url, {
       method,
       headers: {
@@ -246,7 +298,7 @@ const saveAnnouncement = async () => {
         'X-CSRF-TOKEN': csrfToken,
         'X-Requested-With': 'XMLHttpRequest'
       },
-      body: JSON.stringify(form.value)
+      body: JSON.stringify(payload)
     });
 
     const data = await res.json();
@@ -257,15 +309,17 @@ const saveAnnouncement = async () => {
       if (isEditing.value) {
         const idx = items.value.findIndex(a => a.id === currentId.value);
         if (idx !== -1) {
-          items.value[idx] = { ...items.value[idx], ...form.value };
+          items.value[idx] = { ...items.value[idx], ...payload };
         }
       } else {
-        items.value.unshift({
-          id: Date.now(),
-          ...form.value,
-          author_name: `${props.user.first_name || 'BHW'} ${props.user.last_name || ''}`,
-          author_role: 'bhw'
-        });
+        items.value.unshift(
+          data.announcement || {
+            id: Date.now(),
+            ...payload,
+            author_name: `${props.user.first_name || 'BHW'} ${props.user.last_name || ''}`,
+            author_role: 'bhw'
+          }
+        );
       }
     } else {
       alert(data.message || 'Failed to save announcement');

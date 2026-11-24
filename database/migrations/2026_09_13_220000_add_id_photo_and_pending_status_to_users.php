@@ -20,8 +20,14 @@ return new class extends Migration
             $table->string('id_photo')->nullable()->after('profile_photo');
         });
 
-        // Alter status enum to add 'pending' (MySQL approach)
-        DB::statement("ALTER TABLE users MODIFY COLUMN status ENUM('pending','active','inactive') NOT NULL DEFAULT 'active'");
+        // Alter status enum to add 'pending' (MySQL approach; SQLite relaxes enum check for testing)
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN status ENUM('pending','active','inactive') NOT NULL DEFAULT 'active'");
+        } else {
+            Schema::table('users', function (Blueprint $table) {
+                $table->string('status', 20)->default('active')->change();
+            });
+        }
     }
 
     /**
@@ -35,6 +41,8 @@ return new class extends Migration
 
         // Revert enum — set pending users back to active first to avoid data loss
         DB::statement("UPDATE users SET status = 'active' WHERE status = 'pending'");
-        DB::statement("ALTER TABLE users MODIFY COLUMN status ENUM('active','inactive') NOT NULL DEFAULT 'active'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN status ENUM('active','inactive') NOT NULL DEFAULT 'active'");
+        }
     }
 };

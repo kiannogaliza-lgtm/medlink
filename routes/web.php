@@ -22,11 +22,34 @@ Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])
+    ->middleware('throttle:10,1');
+Route::get('/login/verify', [AuthController::class, 'showLoginOtp'])->name('login.otp');
+Route::post('/login/verify', [AuthController::class, 'verifyLoginOtp'])
+    ->middleware('throttle:10,1')
+    ->name('login.otp.submit');
+Route::post('/login/verify/resend', [AuthController::class, 'resendLoginOtp'])
+    ->middleware('throttle:5,1')
+    ->name('login.otp.resend');
+Route::post('/login/verify/cancel', [AuthController::class, 'cancelLoginOtp'])
+    ->name('login.otp.cancel');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::post('/forgot-account/reset-password', [AuthController::class, 'resetPassword'])
+Route::post('/forgot-account/reset-password', [AuthController::class, 'requestPasswordReset'])
     ->middleware('throttle:5,1')
     ->name('forgot.reset-password');
+Route::get('/forgot-account/verify', [AuthController::class, 'showPasswordOtp'])
+    ->name('password.otp');
+Route::post('/forgot-account/verify', [AuthController::class, 'verifyPasswordOtp'])
+    ->middleware('throttle:10,1')
+    ->name('password.otp.submit');
+Route::post('/forgot-account/verify/resend', [AuthController::class, 'resendPasswordOtp'])
+    ->middleware('throttle:5,1')
+    ->name('password.otp.resend');
+Route::get('/forgot-account/new-password', [AuthController::class, 'showNewPassword'])
+    ->name('password.new');
+Route::post('/forgot-account/new-password', [AuthController::class, 'updatePassword'])
+    ->middleware('throttle:5,1')
+    ->name('password.new.submit');
 Route::post('/forgot-account/find', [AuthController::class, 'findAccount'])
     ->middleware('throttle:5,1')
     ->name('forgot.find');
@@ -35,7 +58,15 @@ Route::get('/register', function () {
     return view('auth.register');
 })->name('register');
 
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register', [AuthController::class, 'register'])
+    ->middleware('throttle:5,10');
+Route::get('/register/verify', [AuthController::class, 'showRegisterOtp'])->name('register.verify');
+Route::post('/register/verify', [AuthController::class, 'verifyRegisterOtp'])
+    ->middleware('throttle:10,1')
+    ->name('register.verify.submit');
+Route::post('/register/verify/resend', [AuthController::class, 'resendRegisterOtp'])
+    ->middleware('throttle:5,1')
+    ->name('register.verify.resend');
 
 // Pending approval page — accessible while logged in but not yet approved
 Route::get('/pending-approval', function () {
@@ -77,6 +108,7 @@ Route::middleware(['auth', 'single.device'])->group(function () {
         Route::get('/nurse/delivery-reports', [\App\Http\Controllers\DeliveryReportController::class, 'index'])->name('nurse.delivery-reports');
         Route::get('/nurse/delivery-reports/export-excel', [\App\Http\Controllers\DeliveryReportController::class, 'exportExcel'])->name('nurse.delivery-reports.export-excel');
         Route::get('/nurse/patient-verification', [PatientVerificationController::class, 'index'])->name('nurse.patient-verification');
+        Route::get('/nurse/patient-verification/{user}/id-photo', [PatientVerificationController::class, 'idPhoto'])->name('patient.id-photo');
         Route::patch('/nurse/patient-verification/{user}/verify', [PatientVerificationController::class, 'verify'])->name('patient.verify');
         Route::patch('/nurse/patient-verification/{user}/reject', [PatientVerificationController::class, 'reject'])->name('patient.reject');
         Route::delete('/nurse/patient-verification/{user}', [PatientVerificationController::class, 'destroy'])->name('patient.destroy');
@@ -177,6 +209,16 @@ Route::middleware(['auth', 'single.device'])->group(function () {
         Route::post('/resident/notifications/read', [\App\Http\Controllers\ResidentDashboardController::class, 'markNotificationsRead'])->name('resident.notifications.read');
         Route::put('/resident/profile', [\App\Http\Controllers\ResidentDashboardController::class, 'updateProfile'])->name('resident.profile.update');
     });
+
+    // ── Self-service Phone Number Change OTP (all roles) ─────────────────────
+    Route::post('/account/phone/verify', [\App\Http\Controllers\PhoneChangeController::class, 'verify'])
+        ->middleware('throttle:10,1')
+        ->name('account.phone.verify');
+    Route::post('/account/phone/resend', [\App\Http\Controllers\PhoneChangeController::class, 'resend'])
+        ->middleware('throttle:5,1')
+        ->name('account.phone.resend');
+    Route::post('/account/phone/cancel', [\App\Http\Controllers\PhoneChangeController::class, 'cancel'])
+        ->name('account.phone.cancel');
 
     // ── Self-service Account Deactivation & Deletion (all roles) ─────────────
     Route::post('/account/deactivate', [AuthController::class, 'deactivateAccount'])->name('account.deactivate');

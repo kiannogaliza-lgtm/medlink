@@ -78,6 +78,16 @@
                 <p class="text-slate-500 text-xs sm:text-sm mt-1.5 font-medium">Join MEDLINK to access Barangay Honrado health services online</p>
             </div>
 
+            {{-- Status Notification --}}
+            @if(session('status'))
+                <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-3">
+                    <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="text-sm text-emerald-800 font-medium">{{ session('status') }}</p>
+                </div>
+            @endif
+
             {{-- Error Notification --}}
             @if($errors->any())
                 <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
@@ -138,23 +148,15 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
                         </span>
-                        <input type="tel" name="phone_number" id="phone_number" required placeholder="09123456789"
+                        <input type="tel" name="phone_number" id="phone_number" required
+                               placeholder="09XXXXXXXXX or +639XXXXXXXXX"
                                value="{{ old('phone_number') }}"
-                               minlength="11"
-                               maxlength="11"
-                               pattern="09[0-9]{9}"
-                               inputmode="numeric"
-                               oninput="validatePhoneDigits(this)"
-                               title="Please enter an 11-digit Philippine phone number starting with 09 (e.g. 09123456789)"
+                               inputmode="tel"
+                               autocomplete="tel"
+                               data-ph-phone
                                class="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm placeholder-slate-400 font-medium
                                       focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
                     </div>
-                    <p id="phone-error-msg" class="text-xs text-rose-500 mt-1.5 hidden flex items-center gap-1 font-medium">
-                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                        </svg>
-                        <span id="phone-error-text">Phone number must be an 11-digit Philippine number starting with 09 (e.g. 09XXXXXXXXX).</span>
-                    </p>
                 </div>
 
                 {{-- Senior-Friendly Birthday Selector (Month / Day / Year + Auto Age) --}}
@@ -399,36 +401,6 @@
             }
         }
 
-        function validatePhoneDigits(input) {
-            let val = input.value.replace(/[^0-9]/g, '');
-            // Only allow starting with 0, then 9
-            if (val.length >= 1 && val[0] !== '0') {
-                val = '';
-            } else if (val.length >= 2 && val.substring(0, 2) !== '09') {
-                val = '0';
-            }
-            input.value = val.slice(0, 11);
-
-            const errorMsg = document.getElementById('phone-error-msg');
-            const errorText = document.getElementById('phone-error-text');
-
-            if (input.value.length === 0) {
-                if (errorMsg) errorMsg.classList.add('hidden');
-                input.setCustomValidity('');
-            } else if (!input.value.startsWith('09')) {
-                if (errorMsg) errorMsg.classList.remove('hidden');
-                if (errorText) errorText.textContent = 'Phone number must start with 09.';
-                input.setCustomValidity('Phone number must start with 09');
-            } else if (input.value.length < 11) {
-                if (errorMsg) errorMsg.classList.remove('hidden');
-                if (errorText) errorText.textContent = 'Phone number must be exactly 11 digits (e.g. 09XXXXXXXXX). Currently ' + input.value.length + '/11.';
-                input.setCustomValidity('Phone number must be exactly 11 digits starting with 09');
-            } else {
-                if (errorMsg) errorMsg.classList.add('hidden');
-                input.setCustomValidity('');
-            }
-        }
-
         function getAgeCategory(ageVal) {
             if (ageVal === '' || isNaN(ageVal)) return null;
             const age = parseInt(ageVal, 10);
@@ -592,5 +564,6 @@
         });
     </script>
 
+    <script src="{{ asset('js/ph-phone.js') }}"></script>
 </body>
 </html>

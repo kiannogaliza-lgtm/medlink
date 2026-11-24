@@ -32,15 +32,16 @@ class DeliveryReportController extends Controller
 
         // Search
         if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
+            $phoneSearch = \App\Support\PhoneNumber::normalize($search) ?? $search;
+            $query->where(function ($q) use ($search, $phoneSearch) {
                 $q->where('item_service', 'like', "%{$search}%")
                   ->orWhere('receipt_number', 'like', "%{$search}%")
                   ->orWhere('claimed_by', 'like', "%{$search}%")
                   ->orWhere('delivered_by', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($uq) use ($search) {
+                  ->orWhereHas('user', function ($uq) use ($search, $phoneSearch) {
                       $uq->where('first_name', 'like', "%{$search}%")
                          ->orWhere('last_name', 'like', "%{$search}%")
-                         ->orWhere('phone_number', 'like', "%{$search}%")
+                         ->orWhere('phone_number', 'like', "%{$phoneSearch}%")
                          ->orWhere('address', 'like', "%{$search}%");
                   });
             });
@@ -122,15 +123,16 @@ class DeliveryReportController extends Controller
         $query = MedicineRequest::with(['user', 'medicine'])->latest('created_at');
 
         if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
+            $phoneSearch = \App\Support\PhoneNumber::normalize($search) ?? $search;
+            $query->where(function ($q) use ($search, $phoneSearch) {
                 $q->where('item_service', 'like', "%{$search}%")
                   ->orWhere('receipt_number', 'like', "%{$search}%")
                   ->orWhere('claimed_by', 'like', "%{$search}%")
                   ->orWhere('delivered_by', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($uq) use ($search) {
+                  ->orWhereHas('user', function ($uq) use ($search, $phoneSearch) {
                       $uq->where('first_name', 'like', "%{$search}%")
                          ->orWhere('last_name', 'like', "%{$search}%")
-                         ->orWhere('phone_number', 'like', "%{$search}%")
+                         ->orWhere('phone_number', 'like', "%{$phoneSearch}%")
                          ->orWhere('address', 'like', "%{$search}%");
                   });
             });

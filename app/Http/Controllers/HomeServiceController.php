@@ -6,6 +6,8 @@ use App\Models\HomeServiceRequest;
 use App\Models\HomeServiceType;
 use App\Models\User;
 use App\Models\AppNotification;
+use App\Rules\PhilippineMobile;
+use App\Support\PhoneNumber;
 use Illuminate\Http\Request;
 
 class HomeServiceController extends Controller
@@ -21,11 +23,12 @@ class HomeServiceController extends Controller
         $query = HomeServiceRequest::with(['user', 'assignedBhw'])->latest();
 
         if ($search) {
-            $query->where(function ($q) use ($search) {
+            $phoneSearch = PhoneNumber::normalize($search) ?? $search;
+            $query->where(function ($q) use ($search, $phoneSearch) {
                 $q->where('patient_name', 'like', "%{$search}%")
                   ->orWhere('service_type', 'like', "%{$search}%")
                   ->orWhere('address', 'like', "%{$search}%")
-                  ->orWhere('contact_number', 'like', "%{$search}%")
+                  ->orWhere('contact_number', 'like', "%{$phoneSearch}%")
                   ->orWhere('id', 'like', "%" . preg_replace('/[^0-9]/', '', $search) . "%");
             });
         }
@@ -74,18 +77,18 @@ class HomeServiceController extends Controller
      */
     public function store(Request $request)
     {
+        PhoneNumber::mergeNormalized($request, ['contact_number']);
+
         $validated = $request->validate([
             'patient_name' => 'required|string|max:255',
             'service_type' => 'required|string|max:255',
             'address' => 'required|string|max:255',
-            'contact_number' => ['required', 'regex:/^09[0-9]{9}$/'],
+            'contact_number' => ['required', new PhilippineMobile],
             'preferred_date' => 'required|date',
             'preferred_time' => 'required|string|max:100',
             'reason_symptoms' => 'nullable|string',
             'assigned_to' => 'nullable|exists:users,id',
             'assigned_bhw_name' => 'nullable|string|max:255',
-        ], [
-            'contact_number.regex' => 'The contact number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',
         ]);
 
         if (!empty($validated['assigned_to'])) {
@@ -115,15 +118,15 @@ class HomeServiceController extends Controller
      */
     public function storeResident(Request $request)
     {
+        PhoneNumber::mergeNormalized($request, ['contact_number']);
+
         $validated = $request->validate([
             'service_type' => 'required|string|max:255',
             'address' => 'required|string|max:255',
-            'contact_number' => ['required', 'regex:/^09[0-9]{9}$/'],
+            'contact_number' => ['required', new PhilippineMobile],
             'preferred_date' => 'required|date',
             'preferred_time' => 'required|string|max:100',
             'reason_symptoms' => 'nullable|string',
-        ], [
-            'contact_number.regex' => 'The contact number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',
         ]);
 
         $user = auth()->user();

@@ -493,7 +493,9 @@
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-700 mb-1">Contact Number <span class="text-red-500">*</span></label>
-              <input type="tel" v-model="newForm.contact_number" required maxlength="11" inputmode="numeric" @input="handleNewContactInput($event)" placeholder="09123456789" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+              <input type="tel" v-model="newForm.contact_number" required :maxlength="maxLengthFor(newForm.contact_number)" inputmode="tel" autocomplete="tel" @input="handleNewContactInput($event)" @blur="newContactTouched = true" placeholder="09XXXXXXXXX or +639XXXXXXXXX" :class="['w-full px-3.5 py-2.5 bg-gray-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500', newContactInvalidOnBlur ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-gray-200']">
+              <p v-if="newContactInvalidOnBlur" class="text-xs text-rose-500 mt-1 font-medium">Use 09XXXXXXXXX or +639XXXXXXXXX</p>
+              <p v-else-if="newContactHint.text" :class="['text-xs mt-1 font-medium', newContactHint.error ? 'text-rose-500' : 'text-slate-500']">{{ newContactHint.text }}</p>
             </div>
           </div>
 
@@ -534,7 +536,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { hintFor, isValid, maxLengthFor, sanitizeInput } from '../../utils/phPhone';
 
 const props = defineProps({
   pendingHomeServices: {
@@ -974,14 +977,14 @@ const submitClear = async () => {
   }
 };
 
+const newContactTouched = ref(false);
+const newContactHint = computed(() => hintFor(newForm.value.contact_number));
+const newContactInvalidOnBlur = computed(() => {
+  return newContactTouched.value && newForm.value.contact_number && !isValid(newForm.value.contact_number);
+});
+
 const handleNewContactInput = (event) => {
-  let val = (event.target.value || '').replace(/\D/g, '');
-  if (val.length >= 1 && val[0] !== '0') {
-    val = '';
-  } else if (val.length >= 2 && val.substring(0, 2) !== '09') {
-    val = '0';
-  }
-  newForm.value.contact_number = val.slice(0, 11);
+  newForm.value.contact_number = sanitizeInput(event.target.value);
 };
 
 const submitNewRequest = async () => {
@@ -990,8 +993,8 @@ const submitNewRequest = async () => {
     return;
   }
 
-  if (!newForm.value.contact_number.startsWith('09') || newForm.value.contact_number.length !== 11) {
-    alert('Contact number must be an 11-digit Philippine phone number starting with 09 (e.g. 09123456789).');
+  if (!isValid(newForm.value.contact_number)) {
+    alert('Contact number must be a Philippine mobile number: 09XXXXXXXXX or +639XXXXXXXXX.');
     return;
   }
 

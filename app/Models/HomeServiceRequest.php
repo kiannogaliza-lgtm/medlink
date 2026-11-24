@@ -21,10 +21,12 @@ class HomeServiceRequest extends Model
         'assigned_bhw_name',
         'nurse_notes',
         'rejection_reason',
+        'on_the_way_sms_at',
     ];
 
     protected $casts = [
         'preferred_date' => 'date',
+        'on_the_way_sms_at' => 'datetime',
     ];
 
     protected $appends = [

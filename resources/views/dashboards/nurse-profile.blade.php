@@ -150,8 +150,9 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Mobile Number *</label>
-                        <input type="tel" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" required maxlength="11" minlength="11"
-                               placeholder="09XXXXXXXXX"
+                        <input type="tel" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" required
+                               inputmode="tel" autocomplete="tel" data-ph-phone
+                               placeholder="09XXXXXXXXX or +639XXXXXXXXX"
                                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
                     </div>
                     <div>
@@ -239,6 +240,9 @@
     </div>
 </div>
 
+@include('dashboards.partials.phone-otp-modal')
+
+<script src="{{ asset('js/ph-phone.js') }}"></script>
 <script>
     function previewNursePhoto(input) {
         if (!input.files || !input.files[0]) return;

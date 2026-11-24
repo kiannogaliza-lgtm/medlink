@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\AccountLog;
 use App\Models\AppNotification;
+use App\Rules\PhilippineMobile;
+use App\Support\PhoneNumber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -17,7 +19,7 @@ class UserManagementController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::query();
+        $query = User::registered();
 
         // Role filter
         if ($request->filled('role') && $request->role !== 'all') {
@@ -27,10 +29,11 @@ class UserManagementController extends Controller
         // Search
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function ($q) use ($search) {
+            $phoneSearch = PhoneNumber::normalize($search) ?? $search;
+            $query->where(function ($q) use ($search, $phoneSearch) {
                 $q->where('first_name', 'like', "%{$search}%")
                   ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('phone_number', 'like', "%{$search}%");
+                  ->orWhere('phone_number', 'like', "%{$phoneSearch}%");
             });
         }
 
@@ -39,7 +42,7 @@ class UserManagementController extends Controller
         // Summary counts
         $totalNurses = User::where('role', 'nurse')->count();
         $totalBhw = User::where('role', 'bhw')->count();
-        $totalResidents = User::where('role', 'resident')->count();
+        $totalResidents = User::registered()->where('role', 'resident')->count();
         $activeUsers = User::where('status', 'active')->count();
 
         return view('dashboards.nurse-users', compact(
@@ -56,16 +59,20 @@ class UserManagementController extends Controller
      */
     public function store(Request $request)
     {
+        PhoneNumber::mergeNormalized($request, ['phone_number']);
+
         $validated = $request->validate([
             'first_name'    => ['required', 'string', 'max:255'],
             'last_name'     => ['required', 'string', 'max:255'],
-            'phone_number'  => ['required', 'regex:/^09[0-9]{9}$/', 'unique:users,phone_number'],
+            'phone_number'  => [
+                'required',
+                new PhilippineMobile,
+                Rule::unique('users', 'phone_number')->where(fn ($q) => $q->where('registration_unverified', false)),
+            ],
             'age'           => ['nullable', 'integer', 'min:0', 'max:130'],
             'role'          => ['required', 'in:resident,bhw,nurse'],
             'password'      => ['required', 'string', 'min:8', 'confirmed'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
-        ], [
-            'phone_number.regex' => 'The phone number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',
         ]);
 
         $photoPath = null;
@@ -74,6 +81,8 @@ class UserManagementController extends Controller
         }
 
         $age = isset($validated['age']) && $validated['age'] !== null ? (int) $validated['age'] : null;
+
+        User::purgeUnverifiedRegistration($validated['phone_number']);
 
         $newUser = User::create([
             'first_name'        => $validated['first_name'],
@@ -104,17 +113,23 @@ class UserManagementController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        PhoneNumber::mergeNormalized($request, ['phone_number']);
+
         $validated = $request->validate([
             'first_name'    => ['required', 'string', 'max:255'],
             'last_name'     => ['required', 'string', 'max:255'],
-            'phone_number'  => ['required', 'regex:/^09[0-9]{9}$/', Rule::unique('users')->ignore($user->id)],
+            'phone_number'  => [
+                'required',
+                new PhilippineMobile,
+                Rule::unique('users', 'phone_number')
+                    ->ignore($user->id)
+                    ->where(fn ($q) => $q->where('registration_unverified', false)),
+            ],
             'age'           => ['nullable', 'integer', 'min:0', 'max:130'],
             'role'          => ['required', 'in:resident,bhw,nurse'],
             'status'        => ['required', 'in:active,inactive'],
             'is_maintenance'=> ['nullable', 'boolean'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
-        ], [
-            'phone_number.regex' => 'The phone number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',
         ]);
 
         $validated['is_maintenance'] = $request->boolean('is_maintenance');
@@ -134,6 +149,14 @@ class UserManagementController extends Controller
         }
 
         $previousStatus = $user->status;
+        $previousPhone = $user->phone_number;
+        $phoneChanged = $validated['phone_number'] !== $previousPhone;
+
+        if ($phoneChanged) {
+            $validated['phone_verified_at'] = null;
+            $validated['pending_phone_number'] = null;
+        }
+
         $user->update($validated);
 
         // Notify BHW if Nurse Account access permission changed
@@ -149,6 +172,17 @@ class UserManagementController extends Controller
         }
 
         $actorName = auth()->check() ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Barangay Nurse';
+        if ($phoneChanged) {
+            $oldMasked = PhoneNumber::mask($previousPhone);
+            $newMasked = PhoneNumber::mask($user->phone_number);
+            AccountLog::record(
+                $user,
+                'Phone Number Changed',
+                "Phone number changed from {$oldMasked} to {$newMasked} by Nurse {$actorName} (phone verification reset).",
+                $actorName,
+                'nurse'
+            );
+        }
         if ($previousStatus !== 'inactive' && $user->status === 'inactive') {
             AccountLog::record(
                 $user,

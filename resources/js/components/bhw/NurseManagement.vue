@@ -94,7 +94,7 @@
                 </div>
               </td>
               <td class="py-3 px-4 whitespace-nowrap font-medium text-gray-700">
-                {{ nurse.phone_number }}
+                {{ displayPhone(nurse.phone_number) }}
               </td>
               <td class="py-3 px-4 whitespace-nowrap">
                 <span v-if="nurse.age" class="font-semibold text-gray-800">{{ nurse.age }} yrs</span>
@@ -172,10 +172,13 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-bold text-gray-700 mb-1">Phone Number <span class="text-red-500">*</span></label>
-              <input v-model="form.phone_number" type="tel" required maxlength="11" placeholder="09XXXXXXXXX"
+              <input v-model="form.phone_number" type="tel" required :maxlength="maxLengthFor(form.phone_number)" inputmode="tel" autocomplete="tel" placeholder="09XXXXXXXXX or +639XXXXXXXXX"
                      @input="formatPhoneInput"
-                     class="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/40 focus:border-[#3ac1eb]">
-              <p class="text-[10px] text-gray-400 mt-0.5">11-digit starting with 09</p>
+                     @blur="phoneTouched = true"
+                     :class="['w-full border rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/40 focus:border-[#3ac1eb]', phoneInvalidOnBlur ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-gray-200']">
+              <p v-if="phoneInvalidOnBlur" class="text-[10px] text-rose-500 mt-0.5 font-medium">Use 09XXXXXXXXX or +639XXXXXXXXX</p>
+              <p v-else-if="phoneHint.text" :class="['text-[10px] mt-0.5 font-medium', phoneHint.error ? 'text-rose-500' : 'text-slate-500']">{{ phoneHint.text }}</p>
+              <p v-else class="text-[10px] text-gray-400 mt-0.5">09XXXXXXXXX or +639XXXXXXXXX</p>
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-700 mb-1">Age</label>
@@ -214,6 +217,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { displayPhone, hintFor, isValid, maxLengthFor, sanitizeInput } from '../../utils/phPhone';
 
 const props = defineProps({
   nurseAccounts: {
@@ -274,11 +278,14 @@ function closeModal() {
   formError.value = '';
 }
 
+const phoneTouched = ref(false);
+const phoneHint = computed(() => hintFor(form.value.phone_number));
+const phoneInvalidOnBlur = computed(() => {
+  return phoneTouched.value && form.value.phone_number && !isValid(form.value.phone_number);
+});
+
 function formatPhoneInput(e) {
-  let val = e.target.value.replace(/[^0-9]/g, '');
-  if (val.length >= 1 && val[0] !== '0') val = '';
-  else if (val.length >= 2 && val.substring(0, 2) !== '09') val = '0';
-  form.value.phone_number = val.slice(0, 11);
+  form.value.phone_number = sanitizeInput(e.target.value);
 }
 
 async function submitCreateNurse() {
@@ -287,8 +294,8 @@ async function submitCreateNurse() {
     formError.value = 'Passwords do not match.';
     return;
   }
-  if (!form.value.phone_number.startsWith('09') || form.value.phone_number.length !== 11) {
-    formError.value = 'Phone number must be an 11-digit Philippine number starting with 09.';
+  if (!isValid(form.value.phone_number)) {
+    formError.value = 'Phone number must be a Philippine mobile number: 09XXXXXXXXX or +639XXXXXXXXX.';
     return;
   }
 

@@ -215,7 +215,7 @@
                                 <div class="font-bold text-gray-900 text-sm">{{ $log->user_name }}</div>
                                 <div class="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5">
                                     <span class="material-icons-outlined" style="font-size:12px;">phone</span>
-                                    {{ $log->phone_number ?: 'No phone' }}
+                                    {{ \App\Support\PhoneNumber::isPlaceholder($log->phone_number) ? 'No phone' : $log->phone_number }}
                                 </div>
                             </td>
 

@@ -144,7 +144,7 @@
             </div>
             <div>
               <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Phone Number</p>
-              <p class="text-sm font-medium text-gray-800">{{ user.phone_number }}</p>
+              <p class="text-sm font-medium text-gray-800">{{ displayPhone(user.phone_number) }}</p>
             </div>
           </div>
           <div class="flex items-start gap-4">
@@ -209,7 +209,7 @@
           </div>
           <div class="sm:col-span-2">
             <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Phone Number</p>
-            <p class="text-sm font-medium text-gray-800">{{ user.emergency_contact_phone || 'Not provided' }}</p>
+            <p class="text-sm font-medium text-gray-800">{{ displayPhone(user.emergency_contact_phone, 'Not provided') }}</p>
           </div>
         </div>
       </div>
@@ -441,14 +441,16 @@
               v-model="form.phone_number" 
               type="tel" 
               required
-              minlength="11"
-              maxlength="11"
-              inputmode="numeric"
+              :maxlength="maxLengthFor(form.phone_number)"
+              inputmode="tel"
+              autocomplete="tel"
               @input="handlePhoneInput($event)"
-              placeholder="e.g. 09123456789"
-              class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5a89]/30 focus:border-[#1a5a89] transition-all"
+              @blur="phoneTouched = true"
+              placeholder="09XXXXXXXXX or +639XXXXXXXXX"
+              :class="['w-full px-3.5 py-2.5 bg-gray-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5a89]/30 focus:border-[#1a5a89] transition-all', phoneInvalidOnBlur ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-gray-200']"
             >
             <span v-if="phoneError" class="text-xs text-red-500 mt-1 block">{{ phoneError }}</span>
+            <span v-else-if="phoneHint.text" :class="['text-xs mt-1 block font-medium', phoneHint.error ? 'text-rose-500' : 'text-slate-500']">{{ phoneHint.text }}</span>
           </div>
 
           <div>
@@ -539,13 +541,16 @@
             <input 
               v-model="form.emergency_contact_phone" 
               type="tel" 
-              maxlength="11"
-              inputmode="numeric"
+              :maxlength="maxLengthFor(form.emergency_contact_phone)"
+              inputmode="tel"
+              autocomplete="tel"
               @input="handleEmergencyPhoneInput($event)"
-              placeholder="e.g. 09987654321"
-              class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5a89]/30 focus:border-[#1a5a89] transition-all"
+              @blur="emergencyPhoneTouched = true"
+              placeholder="09XXXXXXXXX or +639XXXXXXXXX"
+              :class="['w-full px-3.5 py-2.5 bg-gray-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5a89]/30 focus:border-[#1a5a89] transition-all', emergencyPhoneInvalidOnBlur ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-gray-200']"
             >
             <span v-if="emergencyPhoneError" class="text-xs text-red-500 mt-1 block">{{ emergencyPhoneError }}</span>
+            <span v-else-if="emergencyPhoneHint.text" :class="['text-xs mt-1 block font-medium', emergencyPhoneHint.error ? 'text-rose-500' : 'text-slate-500']">{{ emergencyPhoneHint.text }}</span>
           </div>
         </div>
       </div>
@@ -576,11 +581,21 @@
 
     </form>
 
+    <PhoneOtpModal
+      :show="showPhoneOtpModal"
+      :masked="phoneOtpMasked"
+      :initial-resend-seconds="phoneOtpResendIn"
+      @verified="onPhoneOtpVerified"
+      @cancelled="onPhoneOtpCancelled"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
+import { displayPhone, hintFor, isValid, maxLengthFor, sanitizeInput } from '../../utils/phPhone';
+import PhoneOtpModal from '../shared/PhoneOtpModal.vue';
 
 const props = defineProps({
   user: {
@@ -600,6 +615,9 @@ const isSubmitting = ref(false);
 const successMessage = ref('');
 const errorMessage = ref('');
 const errors = ref({});
+const showPhoneOtpModal = ref(false);
+const phoneOtpMasked = ref('');
+const phoneOtpResendIn = ref(60);
 
 const form = ref({
   first_name: '',
@@ -699,47 +717,40 @@ const previewCategoryBadgeClass = computed(() => {
   }
 });
 
-const formatPhPhone = (val) => {
-  let cleaned = (val || '').replace(/\D/g, '');
-  if (cleaned.length >= 1 && cleaned[0] !== '0') {
-    return '';
-  }
-  if (cleaned.length >= 2 && cleaned.substring(0, 2) !== '09') {
-    return '0';
-  }
-  return cleaned.slice(0, 11);
-};
+const phoneTouched = ref(false);
+const emergencyPhoneTouched = ref(false);
 
 const handlePhoneInput = (event) => {
-  form.value.phone_number = formatPhPhone(event.target.value);
+  form.value.phone_number = sanitizeInput(event.target.value);
 };
 
 const handleEmergencyPhoneInput = (event) => {
-  form.value.emergency_contact_phone = formatPhPhone(event.target.value);
+  form.value.emergency_contact_phone = sanitizeInput(event.target.value);
 };
+
+const phoneHint = computed(() => hintFor(form.value.phone_number));
+const emergencyPhoneHint = computed(() => hintFor(form.value.emergency_contact_phone));
+
+const phoneInvalidOnBlur = computed(() => {
+  return phoneTouched.value && form.value.phone_number && !isValid(form.value.phone_number);
+});
+
+const emergencyPhoneInvalidOnBlur = computed(() => {
+  return emergencyPhoneTouched.value && form.value.emergency_contact_phone && !isValid(form.value.emergency_contact_phone);
+});
 
 const phoneError = computed(() => {
   if (errors.value?.phone_number?.[0]) return errors.value.phone_number[0];
-  if (form.value.phone_number && form.value.phone_number.length > 0) {
-    if (!form.value.phone_number.startsWith('09')) {
-      return 'Phone number must start with 09.';
-    }
-    if (form.value.phone_number.length < 11) {
-      return 'Phone number must be exactly 11 digits (currently ' + form.value.phone_number.length + '/11).';
-    }
+  if (phoneInvalidOnBlur.value) {
+    return 'Use 09XXXXXXXXX or +639XXXXXXXXX.';
   }
   return '';
 });
 
 const emergencyPhoneError = computed(() => {
   if (errors.value?.emergency_contact_phone?.[0]) return errors.value.emergency_contact_phone[0];
-  if (form.value.emergency_contact_phone && form.value.emergency_contact_phone.length > 0) {
-    if (!form.value.emergency_contact_phone.startsWith('09')) {
-      return 'Emergency contact phone must start with 09.';
-    }
-    if (form.value.emergency_contact_phone.length < 11) {
-      return 'Emergency contact phone must be exactly 11 digits (currently ' + form.value.emergency_contact_phone.length + '/11).';
-    }
+  if (emergencyPhoneInvalidOnBlur.value) {
+    return 'Use 09XXXXXXXXX or +639XXXXXXXXX.';
   }
   return '';
 });
@@ -799,10 +810,16 @@ const submitProfile = async () => {
 
     if (data.success) {
       successMessage.value = data.message || 'Profile updated successfully!';
-      isEditing.value = false;
       if (data.user) {
         emit('profile-updated', data.user);
       }
+      if (data.otp_required) {
+        phoneOtpMasked.value = data.masked || '';
+        phoneOtpResendIn.value = data.resend_available_in || 60;
+        showPhoneOtpModal.value = true;
+        return;
+      }
+      isEditing.value = false;
       // Scroll smoothly to top of view
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -811,6 +828,26 @@ const submitProfile = async () => {
     errorMessage.value = 'Failed to update profile. Please try again.';
   } finally {
     isSubmitting.value = false;
+  }
+};
+
+const onPhoneOtpVerified = ({ user, message }) => {
+  showPhoneOtpModal.value = false;
+  isEditing.value = false;
+  successMessage.value = message || 'Phone number verified and updated successfully!';
+  if (user) {
+    form.value.phone_number = user.phone_number || '';
+    emit('profile-updated', user);
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const onPhoneOtpCancelled = ({ user, message }) => {
+  showPhoneOtpModal.value = false;
+  successMessage.value = message || 'Pending phone number change cancelled.';
+  if (user) {
+    form.value.phone_number = user.phone_number || '';
+    emit('profile-updated', user);
   }
 };
 

@@ -39,7 +39,7 @@ class SyncController extends Controller
         // Operational notification counters for Nurse & BHW badges
         $nurseReadAt = $user->notifications_read_at;
         $nursePendingMed = MedicineRequest::where('status', 'Pending')->when($nurseReadAt, fn($q) => $q->where('updated_at', '>', $nurseReadAt))->count();
-        $nursePendingPat = User::where('role', 'resident')->where('status', 'pending')->when($nurseReadAt, fn($q) => $q->where('created_at', '>', $nurseReadAt))->count();
+        $nursePendingPat = User::where('role', 'resident')->where('status', 'pending')->where('registration_unverified', false)->when($nurseReadAt, fn($q) => $q->where('created_at', '>', $nurseReadAt))->count();
         $nursePendingSch = Schedule::where('status', 'Pending')->when($nurseReadAt, fn($q) => $q->where('updated_at', '>', $nurseReadAt))->count();
         $nursePendingHome = HomeServiceRequest::where('status', 'Pending')->when($nurseReadAt, fn($q) => $q->where('updated_at', '>', $nurseReadAt))->count();
         $nurseTotalNotifs = $nursePendingMed + $nursePendingPat + $nursePendingSch + $nursePendingHome;
@@ -139,8 +139,8 @@ class SyncController extends Controller
             $signatures[] = "BHW_MR:{$bhwMedMax}";
 
             // Global registered walk-ins / residents
-            $bhwUsersCount = User::where('role', 'resident')->count();
-            $bhwUsersMax = User::where('role', 'resident')->max('updated_at');
+            $bhwUsersCount = User::registered()->where('role', 'resident')->count();
+            $bhwUsersMax = User::registered()->where('role', 'resident')->max('updated_at');
             $signatures[] = "BHW_RES:{$bhwUsersCount}:{$bhwUsersMax}";
         } elseif ($role === 'resident') {
             // Personal medicine requests & home services (include per-status counts so same-second updates always change hash)

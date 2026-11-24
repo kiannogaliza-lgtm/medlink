@@ -351,14 +351,23 @@ class ResidentDashboardController extends Controller
     /**
      * Update the resident profile.
      */
-    public function updateProfile(Request $request)
+    public function updateProfile(Request $request, \App\Services\OtpService $otpService)
     {
         $user = auth()->user();
+
+        $typedFormat = \App\Support\PhoneNumber::detectFormat($request->input('phone_number'));
+        \App\Support\PhoneNumber::mergeNormalized($request, ['phone_number', 'emergency_contact_phone']);
 
         $validated = $request->validate([
             'first_name'                 => ['required', 'string', 'max:255'],
             'last_name'                  => ['required', 'string', 'max:255'],
-            'phone_number'               => ['required', 'regex:/^09[0-9]{9}$/', \Illuminate\Validation\Rule::unique('users')->ignore($user->id)],
+            'phone_number'               => [
+                'required',
+                new \App\Rules\PhilippineMobile,
+                \Illuminate\Validation\Rule::unique('users', 'phone_number')
+                    ->ignore($user->id)
+                    ->where(fn ($q) => $q->where('registration_unverified', false)),
+            ],
             'gender'                     => ['nullable', 'string', 'max:50'],
             'blood_type'                 => ['nullable', 'string', 'max:10'],
             'address'                    => ['nullable', 'string', 'max:500'],
@@ -367,18 +376,63 @@ class ResidentDashboardController extends Controller
             'last_checkup'               => ['nullable', 'date'],
             'emergency_contact_name'     => ['nullable', 'string', 'max:255'],
             'emergency_contact_relation' => ['nullable', 'string', 'max:255'],
-            'emergency_contact_phone'    => ['nullable', 'regex:/^09[0-9]{9}$/'],
-        ], [
-            'phone_number.regex' => 'The phone number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',
-            'emergency_contact_phone.regex' => 'The emergency contact phone number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',
+            'emergency_contact_phone'    => ['nullable', new \App\Rules\PhilippineMobile],
         ]);
 
+        $newPhone = $validated['phone_number'];
+        $phoneChanged = $newPhone !== $user->phone_number;
+
+        if (!$phoneChanged) {
+            $user->update($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile updated successfully!',
+                'user'    => $user->fresh(),
+            ]);
+        }
+
+        // Save all other profile fields immediately; keep old phone_number until OTP verified
+        unset($validated['phone_number']);
         $user->update($validated);
 
+        $lockoutSeconds = $otpService->lockoutRemaining($newPhone, 'phone_change');
+        if ($lockoutSeconds !== null) {
+            $msg = $otpService->errorMessage(['error' => 'locked', 'retry_after' => $lockoutSeconds]);
+            return response()->json([
+                'success' => false,
+                'message' => $msg,
+                'errors'  => ['phone_number' => [$msg]],
+                'user'    => $user->fresh(),
+            ], 422);
+        }
+
+        $user->update(['pending_phone_number' => $newPhone]);
+        $otpResult = $otpService->issue($newPhone, 'phone_change', $user);
+
+        if (!$otpResult['ok'] && ($otpResult['error'] ?? null) !== 'cooldown') {
+            $msg = $otpService->errorMessage($otpResult);
+            return response()->json([
+                'success' => false,
+                'message' => $msg,
+                'errors'  => ['phone_number' => [$msg]],
+                'user'    => $user->fresh(),
+            ], 422);
+        }
+
+        $request->session()->put('phone_change_format', $typedFormat);
+        $masked = \App\Support\PhoneNumber::mask($newPhone, $typedFormat);
+        $resendIn = ($otpResult['error'] ?? null) === 'cooldown'
+            ? (int) ($otpResult['retry_after'] ?? 60)
+            : (int) config('otp.resend_cooldown_seconds', 60);
+
         return response()->json([
-            'success' => true,
-            'message' => 'Profile updated successfully!',
-            'user'    => $user->fresh(),
+            'success'             => true,
+            'otp_required'        => true,
+            'masked'              => $masked,
+            'resend_available_in' => $resendIn,
+            'message'             => "Profile saved. Enter the code sent to {$masked} to confirm your new number.",
+            'user'                => $user->fresh(),
         ]);
     }
 }

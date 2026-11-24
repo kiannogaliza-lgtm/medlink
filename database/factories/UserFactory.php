@@ -12,35 +12,78 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'phone_number' => '09' . fake()->numerify('#########'),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'first_name'              => fake()->firstName(),
+            'last_name'               => fake()->lastName(),
+            'phone_number'            => '09' . fake()->unique()->numerify('#########'),
+            'phone_verified_at'       => now(),
+            'registration_unverified' => false,
+            'email'                   => fake()->unique()->safeEmail(),
+            'email_verified_at'       => now(),
+            'password'                => static::$password ??= Hash::make('password123'),
+            'role'                    => 'resident',
+            'status'                  => 'active',
+            'remember_token'          => Str::random(10),
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
+    public function nurse(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
+        return $this->state(fn () => [
+            'role'   => 'nurse',
+            'status' => 'active',
+        ]);
+    }
+
+    public function bhw(): static
+    {
+        return $this->state(fn () => [
+            'role'   => 'bhw',
+            'status' => 'active',
+        ]);
+    }
+
+    public function resident(): static
+    {
+        return $this->state(fn () => [
+            'role'   => 'resident',
+            'status' => 'active',
+        ]);
+    }
+
+    public function pending(): static
+    {
+        return $this->state(fn () => [
+            'status' => 'pending',
+        ]);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn () => [
+            'status' => 'inactive',
+        ]);
+    }
+
+    public function unverifiedRegistration(): static
+    {
+        return $this->state(fn () => [
+            'status'                  => 'pending',
+            'registration_unverified' => true,
+            'phone_verified_at'       => null,
+        ]);
+    }
+
+    public function walkin(): static
+    {
+        return $this->state(fn () => [
+            'phone_number' => 'WALKIN-' . fake()->unique()->numerify('##########-####'),
+            'role'         => 'resident',
+            'status'       => 'active',
         ]);
     }
 }

@@ -12,7 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE home_service_requests MODIFY COLUMN status ENUM('Pending', 'Accepted', 'Approved', 'Confirmed', 'Completed', 'Rejected') DEFAULT 'Pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE home_service_requests MODIFY COLUMN status ENUM('Pending', 'Accepted', 'Approved', 'Confirmed', 'Completed', 'Rejected') DEFAULT 'Pending'");
+        } else {
+            Schema::table('home_service_requests', function (Blueprint $table) {
+                $table->string('status', 30)->default('Pending')->change();
+            });
+        }
     }
 
     /**
@@ -21,6 +27,8 @@ return new class extends Migration
     public function down(): void
     {
         DB::statement("UPDATE home_service_requests SET status = 'Approved' WHERE status = 'Accepted'");
-        DB::statement("ALTER TABLE home_service_requests MODIFY COLUMN status ENUM('Pending', 'Approved', 'Confirmed', 'Completed', 'Rejected') DEFAULT 'Pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE home_service_requests MODIFY COLUMN status ENUM('Pending', 'Approved', 'Confirmed', 'Completed', 'Rejected') DEFAULT 'Pending'");
+        }
     }
 };

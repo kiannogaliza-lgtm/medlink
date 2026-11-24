@@ -8,6 +8,7 @@ use App\Models\HomeServiceRequest;
 use App\Models\Schedule;
 use App\Models\Announcement;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Http\Request;
 
 class GlobalSearchController extends Controller
@@ -79,15 +80,17 @@ class GlobalSearchController extends Controller
             ];
         }
 
+        $phoneQ = PhoneNumber::normalize($q) ?? $q;
+
         // 2. Medicine Requests
         $requests = MedicineRequest::with('user')
-            ->where(function ($sub) use ($q) {
+            ->where(function ($sub) use ($q, $phoneQ) {
                 $sub->where('item_service', 'like', "%{$q}%")
                     ->orWhere('notes', 'like', "%{$q}%")
-                    ->orWhereHas('user', function ($uq) use ($q) {
+                    ->orWhereHas('user', function ($uq) use ($q, $phoneQ) {
                         $uq->where('first_name', 'like', "%{$q}%")
                            ->orWhere('last_name', 'like', "%{$q}%")
-                           ->orWhere('phone_number', 'like', "%{$q}%");
+                           ->orWhere('phone_number', 'like', "%{$phoneQ}%");
                     });
             })
             ->limit(5)
@@ -109,7 +112,7 @@ class GlobalSearchController extends Controller
         $homeServices = HomeServiceRequest::where('patient_name', 'like', "%{$q}%")
             ->orWhere('service_type', 'like', "%{$q}%")
             ->orWhere('address', 'like', "%{$q}%")
-            ->orWhere('contact_number', 'like', "%{$q}%")
+            ->orWhere('contact_number', 'like', "%{$phoneQ}%")
             ->limit(5)
             ->get();
 
@@ -126,10 +129,10 @@ class GlobalSearchController extends Controller
         }
 
         // 4. Patients & Users
-        $users = User::where(function ($sub) use ($q) {
+        $users = User::registered()->where(function ($sub) use ($q, $phoneQ) {
             $sub->where('first_name', 'like', "%{$q}%")
                 ->orWhere('last_name', 'like', "%{$q}%")
-                ->orWhere('phone_number', 'like', "%{$q}%");
+                ->orWhere('phone_number', 'like', "%{$phoneQ}%");
         })
         ->limit(5)
         ->get();
@@ -139,11 +142,13 @@ class GlobalSearchController extends Controller
                 ? route('nurse.patient-verification', ['search' => $u->first_name])
                 : route('nurse.users', ['search' => $u->first_name]);
 
+            $displayPhone = PhoneNumber::isPlaceholder($u->phone_number) ? 'No phone' : $u->phone_number;
+
             $results[] = [
                 'category' => 'Users & Patients',
                 'icon' => 'person',
                 'title' => "{$u->first_name} {$u->last_name} (" . ucfirst($u->role) . ")",
-                'subtitle' => "Phone: " . ($u->phone_number ?? 'N/A') . " • Status: {$u->status}",
+                'subtitle' => "Phone: {$displayPhone} • Status: {$u->status}",
                 'url' => $targetUrl,
                 'tab' => 'users',
             ];
@@ -213,13 +218,15 @@ class GlobalSearchController extends Controller
             ];
         }
 
+        $phoneQ = PhoneNumber::normalize($q) ?? $q;
+
         // 2. Home Services (assigned to this BHW)
         $homeServices = HomeServiceRequest::where('assigned_to', $user->id)
-            ->where(function ($sub) use ($q) {
+            ->where(function ($sub) use ($q, $phoneQ) {
                 $sub->where('patient_name', 'like', "%{$q}%")
                     ->orWhere('service_type', 'like', "%{$q}%")
                     ->orWhere('address', 'like', "%{$q}%")
-                    ->orWhere('contact_number', 'like', "%{$q}%");
+                    ->orWhere('contact_number', 'like', "%{$phoneQ}%");
             })
             ->limit(6)
             ->get();
@@ -240,13 +247,13 @@ class GlobalSearchController extends Controller
         // 3. Medicine Delivery Requests (strictly delivery only for BHW)
         $medicineRequests = MedicineRequest::with('user')
             ->where('delivery_method', 'delivery')
-            ->where(function ($sub) use ($q) {
+            ->where(function ($sub) use ($q, $phoneQ) {
                 $sub->where('item_service', 'like', "%{$q}%")
                     ->orWhere('notes', 'like', "%{$q}%")
-                    ->orWhereHas('user', function ($uq) use ($q) {
+                    ->orWhereHas('user', function ($uq) use ($q, $phoneQ) {
                         $uq->where('first_name', 'like', "%{$q}%")
                            ->orWhere('last_name', 'like', "%{$q}%")
-                           ->orWhere('phone_number', 'like', "%{$q}%");
+                           ->orWhere('phone_number', 'like', "%{$phoneQ}%");
                     });
             })
             ->limit(5)

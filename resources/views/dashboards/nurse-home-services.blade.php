@@ -870,7 +870,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Contact Number <span class="text-red-500">*</span></label>
-                        <input type="tel" name="contact_number" required maxlength="11" pattern="09[0-9]{9}" inputmode="numeric" oninput="validatePhPhone(this)" placeholder="09123456789" title="Please enter an 11-digit Philippine number starting with 09 (e.g. 09123456789)" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <input type="tel" name="contact_number" required inputmode="tel" autocomplete="tel" data-ph-phone placeholder="09XXXXXXXXX or +639XXXXXXXXX" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                 </div>
 
@@ -1247,21 +1247,6 @@
         openModal('rejectModal');
     }
 
-    function validatePhPhone(input) {
-        let val = input.value.replace(/[^0-9]/g, '');
-        if (val.length >= 1 && val[0] !== '0') {
-            val = '';
-        } else if (val.length >= 2 && val.substring(0, 2) !== '09') {
-            val = '0';
-        }
-        input.value = val.slice(0, 11);
-        if (input.value.length > 0 && (!input.value.startsWith('09') || input.value.length < 11)) {
-            input.setCustomValidity('Must be an 11-digit Philippine phone number starting with 09 (e.g. 09123456789)');
-        } else {
-            input.setCustomValidity('');
-        }
-    }
-
     // Service Types Maintenance
     async function openServiceTypesModal() {
         openModal('serviceTypesModal');
@@ -1426,4 +1411,5 @@
         }
     });
 </script>
+<script src="{{ asset('js/ph-phone.js') }}"></script>
 @endsection

@@ -237,8 +237,8 @@
                                             For: Self ({{ $request->user ? ($request->user->age ? $request->user->age.' yrs' : '') : '' }})
                                         </div>
                                     @endif
-                                    @if($request->user && $request->user->phone_number)
-                                        <div class="text-xs text-gray-400 whitespace-nowrap">{{ $request->user->phone_number }}</div>
+                                    @if($request->user)
+                                        <div class="text-xs text-gray-400 whitespace-nowrap">{{ \App\Support\PhoneNumber::isPlaceholder($request->user->phone_number) ? 'No phone' : $request->user->phone_number }}</div>
                                     @endif
                                 </td>
                                 <td class="py-3.5 px-3 whitespace-nowrap">

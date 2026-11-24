@@ -138,18 +138,20 @@
         <!-- Contact Number -->
         <div>
           <label class="block text-sm font-semibold text-gray-700 mb-2">Contact Number</label>
-          <input v-model="form.contact_number" type="tel" required placeholder="09XXXXXXXXX"
-                 minlength="11"
-                 maxlength="11"
-                 inputmode="numeric"
+          <input v-model="form.contact_number" type="tel" required placeholder="09XXXXXXXXX or +639XXXXXXXXX"
+                 :maxlength="maxLengthFor(form.contact_number)"
+                 inputmode="tel"
+                 autocomplete="tel"
                  @input="handleContactInput($event)"
-                 class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] transition-all">
+                 @blur="contactTouched = true"
+                 :class="['w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] transition-all', contactInvalidOnBlur ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-gray-200']">
           <p v-if="contactError" class="text-xs text-red-500 mt-1.5 flex items-center gap-1">
             <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
             </svg>
             <span>{{ contactError }}</span>
           </p>
+          <p v-else-if="contactHint.text" :class="['text-xs mt-1.5 font-medium', contactHint.error ? 'text-rose-500' : 'text-slate-500']">{{ contactHint.text }}</p>
         </div>
 
         <!-- Reason -->
@@ -183,6 +185,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { hintFor, isPlaceholder, isValid, maxLengthFor, sanitizeInput } from '../../utils/phPhone';
 
 const props = defineProps({
   user: { type: Object, required: true },
@@ -280,7 +283,7 @@ const form = ref({
   preferred_time: '',
   purok: '',
   landmark: '',
-  contact_number: props.user.phone || '',
+  contact_number: isPlaceholder(props.user.phone) ? '' : props.user.phone,
   reason_symptoms: ''
 });
 
@@ -317,24 +320,21 @@ watch(() => form.value.preferred_date, () => {
 const submitting = ref(false);
 const flash = ref(null);
 
+const contactTouched = ref(false);
+
 const handleContactInput = (event) => {
-  let val = (event.target.value || '').replace(/\D/g, '');
-  if (val.length >= 1 && val[0] !== '0') {
-    val = '';
-  } else if (val.length >= 2 && val.substring(0, 2) !== '09') {
-    val = '0';
-  }
-  form.value.contact_number = val.slice(0, 11);
+  form.value.contact_number = sanitizeInput(event.target.value);
 };
 
+const contactHint = computed(() => hintFor(form.value.contact_number));
+
+const contactInvalidOnBlur = computed(() => {
+  return contactTouched.value && form.value.contact_number && !isValid(form.value.contact_number);
+});
+
 const contactError = computed(() => {
-  if (form.value.contact_number && form.value.contact_number.length > 0) {
-    if (!form.value.contact_number.startsWith('09')) {
-      return 'Contact number must start with 09.';
-    }
-    if (form.value.contact_number.length < 11) {
-      return 'Contact number must be exactly 11 digits (currently ' + form.value.contact_number.length + '/11).';
-    }
+  if (contactInvalidOnBlur.value) {
+    return 'Use 09XXXXXXXXX or +639XXXXXXXXX.';
   }
   return '';
 });
@@ -388,7 +388,7 @@ const submitRequest = async () => {
         preferred_time: '',
         purok: '',
         landmark: '',
-        contact_number: props.user.phone || '',
+        contact_number: isPlaceholder(props.user.phone) ? '' : props.user.phone,
         reason_symptoms: ''
       };
       

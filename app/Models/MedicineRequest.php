@@ -28,12 +28,14 @@ class MedicineRequest extends Model
         'proof_photo',
         'delivery_signature',
         'receipt_number',
+        'approved_sms_at',
     ];
 
     protected $casts = [
         'patient_age' => 'integer',
         'quantity' => 'integer',
         'claimed_at' => 'datetime',
+        'approved_sms_at' => 'datetime',
     ];
 
     /**

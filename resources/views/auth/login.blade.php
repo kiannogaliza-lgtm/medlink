@@ -143,22 +143,15 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
                         </span>
-                        <input type="tel" name="phone_number" id="phone_number" required placeholder="09123456789"
-                               minlength="11"
-                               maxlength="11"
-                               pattern="09[0-9]{9}"
-                               inputmode="numeric"
-                               oninput="validatePhoneDigits(this)"
-                               title="Please enter an 11-digit Philippine phone number starting with 09 (e.g. 09123456789)"
+                        <input type="tel" name="phone_number" id="phone_number" required
+                               value="{{ old('phone_number') }}"
+                               placeholder="09XXXXXXXXX or +639XXXXXXXXX"
+                               inputmode="tel"
+                               autocomplete="tel"
+                               data-ph-phone
                                class="block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm placeholder-slate-400 font-medium
                                       focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
                     </div>
-                    <p id="phone-error-msg" class="text-xs text-rose-500 mt-1.5 hidden flex items-center gap-1 font-medium">
-                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                        </svg>
-                        <span id="phone-error-text">Phone number must be an 11-digit Philippine number starting with 09 (e.g. 09XXXXXXXXX).</span>
-                    </p>
                 </div>
 
                 {{-- Password --}}
@@ -295,24 +288,14 @@
                     </div>
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Registered Phone Number</label>
-                        <input type="tel" name="recover_phone_number" required value="{{ old('recover_phone_number') }}" placeholder="09123456789"
-                               minlength="11" maxlength="11" pattern="09[0-9]{9}" inputmode="numeric"
-                               oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,11)"
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">New Password</label>
-                        <input type="password" name="new_password" required minlength="8" placeholder="At least 8 characters"
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Confirm New Password</label>
-                        <input type="password" name="new_password_confirmation" required minlength="8" placeholder="Re-enter new password"
+                        <input type="tel" name="recover_phone_number" required value="{{ old('recover_phone_number') }}"
+                               placeholder="09XXXXXXXXX or +639XXXXXXXXX"
+                               inputmode="tel" autocomplete="tel" data-ph-phone
                                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
                     </div>
                     <button type="submit"
                             class="w-full py-3 px-4 rounded-xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-md cursor-pointer mt-1">
-                        Reset Password
+                        Send Verification Code
                     </button>
                 </form>
             </div>
@@ -414,36 +397,6 @@
             openForgotModal('find');
         @endif
 
-        function validatePhoneDigits(input) {
-            let val = input.value.replace(/[^0-9]/g, '');
-            // Only allow starting with 0, then 9
-            if (val.length >= 1 && val[0] !== '0') {
-                val = '';
-            } else if (val.length >= 2 && val.substring(0, 2) !== '09') {
-                val = '0';
-            }
-            input.value = val.slice(0, 11);
-
-            const errorMsg = document.getElementById('phone-error-msg');
-            const errorText = document.getElementById('phone-error-text');
-
-            if (input.value.length === 0) {
-                if (errorMsg) errorMsg.classList.add('hidden');
-                input.setCustomValidity('');
-            } else if (!input.value.startsWith('09')) {
-                if (errorMsg) errorMsg.classList.remove('hidden');
-                if (errorText) errorText.textContent = 'Phone number must start with 09.';
-                input.setCustomValidity('Phone number must start with 09');
-            } else if (input.value.length < 11) {
-                if (errorMsg) errorMsg.classList.remove('hidden');
-                if (errorText) errorText.textContent = 'Phone number must be exactly 11 digits (e.g. 09XXXXXXXXX). Currently ' + input.value.length + '/11.';
-                input.setCustomValidity('Phone number must be exactly 11 digits starting with 09');
-            } else {
-                if (errorMsg) errorMsg.classList.add('hidden');
-                input.setCustomValidity('');
-            }
-        }
-
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById('password');
             const eyeOpen = document.getElementById('eye-open-icon');
@@ -494,5 +447,6 @@
     </div>
     @endif
 
+    <script src="{{ asset('js/ph-phone.js') }}"></script>
 </body>
 </html>

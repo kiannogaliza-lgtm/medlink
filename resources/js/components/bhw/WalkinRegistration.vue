@@ -118,11 +118,13 @@
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
-              <input v-model="form.phone_number" type="tel" placeholder="09XXXXXXXXX"
-                     maxlength="11"
-                     inputmode="numeric"
+              <input v-model="form.phone_number" type="tel" placeholder="09XXXXXXXXX or +639XXXXXXXXX"
+                     :maxlength="maxLengthFor(form.phone_number)"
+                     inputmode="tel"
+                     autocomplete="tel"
                      @input="handlePhoneInput($event)"
-                     class="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] transition-all bg-gray-50 focus:bg-white">
+                     @blur="phoneTouched = true"
+                     :class="['w-full pl-11 pr-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3ac1eb]/50 focus:border-[#3ac1eb] transition-all bg-gray-50 focus:bg-white', phoneInvalidOnBlur ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-gray-200']">
             </div>
             <p v-if="phoneError" class="text-xs text-red-500 mt-1.5 flex items-center gap-1">
               <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -130,6 +132,7 @@
               </svg>
               <span>{{ phoneError }}</span>
             </p>
+            <p v-else-if="phoneHint.text" :class="['text-xs mt-1.5 font-medium', phoneHint.error ? 'text-rose-500' : 'text-slate-500']">{{ phoneHint.text }}</p>
           </div>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Purok</label>
@@ -256,6 +259,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
+import { hintFor, isValid, maxLengthFor, sanitizeInput } from '../../utils/phPhone';
 
 const props = defineProps({
   user: {
@@ -364,30 +368,22 @@ const clearForm = () => {
   successMessage.value = '';
 };
 
-const formatPhPhone = (val) => {
-  let cleaned = (val || '').replace(/\D/g, '');
-  if (cleaned.length >= 1 && cleaned[0] !== '0') {
-    return '';
-  }
-  if (cleaned.length >= 2 && cleaned.substring(0, 2) !== '09') {
-    return '0';
-  }
-  return cleaned.slice(0, 11);
-};
+const phoneTouched = ref(false);
 
 const handlePhoneInput = (event) => {
-  form.phone_number = formatPhPhone(event.target.value);
+  form.phone_number = sanitizeInput(event.target.value);
 };
+
+const phoneHint = computed(() => hintFor(form.phone_number));
+
+const phoneInvalidOnBlur = computed(() => {
+  return phoneTouched.value && form.phone_number && !isValid(form.phone_number);
+});
 
 const phoneError = computed(() => {
   if (errors.value?.phone_number?.[0]) return errors.value.phone_number[0];
-  if (form.phone_number && form.phone_number.length > 0) {
-    if (!form.phone_number.startsWith('09')) {
-      return 'Phone number must start with 09.';
-    }
-    if (form.phone_number.length < 11) {
-      return 'Phone number must be exactly 11 digits (currently ' + form.phone_number.length + '/11).';
-    }
+  if (phoneInvalidOnBlur.value) {
+    return 'Use 09XXXXXXXXX or +639XXXXXXXXX.';
   }
   return '';
 });
@@ -395,11 +391,9 @@ const phoneError = computed(() => {
 const submitForm = async () => {
   if (submitting.value) return;
 
-  if (form.phone_number && form.phone_number.length > 0) {
-    if (!form.phone_number.startsWith('09') || form.phone_number.length < 11) {
-      errors.value = { phone_number: ['Phone number must be an 11-digit Philippine number starting with 09.'] };
-      return;
-    }
+  if (form.phone_number && form.phone_number.length > 0 && !isValid(form.phone_number)) {
+    errors.value = { phone_number: ['The phone number must be a Philippine mobile number: 09XXXXXXXXX or +639XXXXXXXXX.'] };
+    return;
   }
 
   submitting.value = true;

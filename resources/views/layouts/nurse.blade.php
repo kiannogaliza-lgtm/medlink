@@ -201,7 +201,7 @@
         $nurseReadAt = $nurseUser ? $nurseUser->notifications_read_at : null;
 
         $pendingMedQuery = \App\Models\MedicineRequest::where('status', 'Pending');
-        $pendingPatQuery = \App\Models\User::where('role', 'resident')->where('status', 'pending');
+        $pendingPatQuery = \App\Models\User::where('role', 'resident')->where('status', 'pending')->where('registration_unverified', false);
         $pendingSchQuery = \App\Models\Schedule::where('status', 'Pending');
         $pendingHomeQuery = \App\Models\HomeServiceRequest::where('status', 'Pending');
 

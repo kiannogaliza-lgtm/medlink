@@ -268,7 +268,7 @@ class BhwDashboardController extends Controller
             ->where('assignment_status', 'unassigned');
         $pendingMedicineRequestsQuery = \App\Models\MedicineRequest::where('delivery_method', 'delivery')
             ->where('status', 'Pending');
-        $pendingPatientVerificationsQuery = \App\Models\User::where('role', 'resident')->where('status', 'pending');
+        $pendingPatientVerificationsQuery = \App\Models\User::where('role', 'resident')->where('status', 'pending')->where('registration_unverified', false);
 
         if ($readAt) {
             $pendingHomeServicesQuery->where('updated_at', '>', $readAt);
@@ -356,6 +356,40 @@ class BhwDashboardController extends Controller
         ));
     }
     
+    private function dispatchHomeServiceOnTheWaySms(HomeServiceRequest $homeService, string $workerName): void
+    {
+        if ($homeService->on_the_way_sms_at !== null) {
+            return;
+        }
+
+        $claimed = HomeServiceRequest::where('id', $homeService->id)
+            ->whereNull('on_the_way_sms_at')
+            ->update(['on_the_way_sms_at' => now()]);
+
+        if ($claimed !== 1) {
+            return;
+        }
+
+        $residentUser = $homeService->user_id ? \App\Models\User::find($homeService->user_id) : null;
+        $phone = $residentUser
+            ? (string) ($residentUser->phone_number ?? '')
+            : (string) ($homeService->contact_number ?? '');
+
+        $smsMessage = \App\Support\SmsTemplates::homeServiceOnTheWay(
+            $homeService->formatted_id,
+            $workerName,
+            (string) $homeService->service_type
+        );
+
+        app(\App\Services\SmsService::class)->sendAfterResponse(
+            $phone,
+            $smsMessage,
+            'home_service_on_the_way',
+            $residentUser,
+            $homeService
+        );
+    }
+
     /**
      * Mark a pending home service request as accepted by BHW (AJAX)
      * Notifies resident that home service is coming/preparing.
@@ -386,6 +420,8 @@ class BhwDashboardController extends Controller
                 'message' => "{$homeService->assigned_bhw_name} accepted {$homeService->service_type} for {$homeService->patient_name}.",
             ]);
         }
+
+        $this->dispatchHomeServiceOnTheWaySms($homeService, $homeService->assigned_bhw_name);
 
         return response()->json([
             'success' => true,
@@ -426,6 +462,8 @@ class BhwDashboardController extends Controller
             ]);
         }
 
+        $this->dispatchHomeServiceOnTheWaySms($homeService, $workerName);
+
         return response()->json([
             'success' => true, 
             'message' => 'Service assignment confirmed successfully.'
@@ -462,6 +500,8 @@ class BhwDashboardController extends Controller
                 'message' => "{$workerName} approved and claimed {$homeService->service_type} for {$homeService->patient_name}.",
             ]);
         }
+
+        $this->dispatchHomeServiceOnTheWaySms($homeService, $workerName);
 
         return response()->json([
             'success' => true, 
@@ -532,17 +572,23 @@ class BhwDashboardController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized: You do not have permission to create Nurse accounts.'], 403);
         }
 
+        \App\Support\PhoneNumber::mergeNormalized($request, ['phone_number']);
+
         $validated = $request->validate([
             'first_name'   => ['required', 'string', 'max:255'],
             'last_name'    => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'regex:/^09[0-9]{9}$/', 'unique:users,phone_number'],
+            'phone_number' => [
+                'required',
+                new \App\Rules\PhilippineMobile,
+                \Illuminate\Validation\Rule::unique('users', 'phone_number')->where(fn ($q) => $q->where('registration_unverified', false)),
+            ],
             'age'          => ['nullable', 'integer', 'min:18', 'max:130'],
             'password'     => ['required', 'string', 'min:8', 'confirmed'],
-        ], [
-            'phone_number.regex' => 'The phone number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',
         ]);
 
         $age = isset($validated['age']) && $validated['age'] !== null ? (int) $validated['age'] : null;
+
+        \App\Models\User::purgeUnverifiedRegistration($validated['phone_number']);
 
         $nurse = \App\Models\User::create([
             'first_name'   => $validated['first_name'],
@@ -597,19 +643,26 @@ class BhwDashboardController extends Controller
     /**
      * Update BHW Staff Profile information and optional photo.
      */
-    public function updateProfile(Request $request)
+    public function updateProfile(Request $request, \App\Services\OtpService $otpService)
     {
         $user = auth()->user();
+
+        $typedFormat = \App\Support\PhoneNumber::detectFormat($request->input('phone_number'));
+        \App\Support\PhoneNumber::mergeNormalized($request, ['phone_number']);
 
         $validated = $request->validate([
             'first_name'    => ['required', 'string', 'max:255'],
             'last_name'     => ['required', 'string', 'max:255'],
-            'phone_number'  => ['required', 'regex:/^09[0-9]{9}$/', \Illuminate\Validation\Rule::unique('users')->ignore($user->id)],
+            'phone_number'  => [
+                'required',
+                new \App\Rules\PhilippineMobile,
+                \Illuminate\Validation\Rule::unique('users', 'phone_number')
+                    ->ignore($user->id)
+                    ->where(fn ($q) => $q->where('registration_unverified', false)),
+            ],
             'gender'        => ['nullable', 'string', 'in:Male,Female,Other'],
             'address'       => ['nullable', 'string', 'max:500'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
-        ], [
-            'phone_number.regex' => 'The phone number must be a valid 11-digit Philippine mobile number starting with 09.',
         ]);
 
         if ($request->hasFile('profile_photo')) {
@@ -621,12 +674,60 @@ class BhwDashboardController extends Controller
             unset($validated['profile_photo']);
         }
 
+        $newPhone = $validated['phone_number'];
+        $phoneChanged = $newPhone !== $user->phone_number;
+
+        if (!$phoneChanged) {
+            $user->update($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'BHW staff profile updated successfully.',
+                'user'    => $user->fresh(),
+            ]);
+        }
+
+        // Save all other profile fields immediately; keep old phone_number until OTP verified
+        unset($validated['phone_number']);
         $user->update($validated);
 
+        $lockoutSeconds = $otpService->lockoutRemaining($newPhone, 'phone_change');
+        if ($lockoutSeconds !== null) {
+            $msg = $otpService->errorMessage(['error' => 'locked', 'retry_after' => $lockoutSeconds]);
+            return response()->json([
+                'success' => false,
+                'message' => $msg,
+                'errors'  => ['phone_number' => [$msg]],
+                'user'    => $user->fresh(),
+            ], 422);
+        }
+
+        $user->update(['pending_phone_number' => $newPhone]);
+        $otpResult = $otpService->issue($newPhone, 'phone_change', $user);
+
+        if (!$otpResult['ok'] && ($otpResult['error'] ?? null) !== 'cooldown') {
+            $msg = $otpService->errorMessage($otpResult);
+            return response()->json([
+                'success' => false,
+                'message' => $msg,
+                'errors'  => ['phone_number' => [$msg]],
+                'user'    => $user->fresh(),
+            ], 422);
+        }
+
+        $request->session()->put('phone_change_format', $typedFormat);
+        $masked = \App\Support\PhoneNumber::mask($newPhone, $typedFormat);
+        $resendIn = ($otpResult['error'] ?? null) === 'cooldown'
+            ? (int) ($otpResult['retry_after'] ?? 60)
+            : (int) config('otp.resend_cooldown_seconds', 60);
+
         return response()->json([
-            'success' => true,
-            'message' => 'BHW staff profile updated successfully.',
-            'user'    => $user->fresh(),
+            'success'             => true,
+            'otp_required'        => true,
+            'masked'              => $masked,
+            'resend_available_in' => $resendIn,
+            'message'             => "Profile saved. Enter the code sent to {$masked} to confirm your new number.",
+            'user'                => $user->fresh(),
         ]);
     }
 

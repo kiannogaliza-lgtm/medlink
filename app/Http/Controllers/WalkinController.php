@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use App\Models\User;
 use App\Models\Schedule;
 use App\Models\Consultation;
 use App\Models\AppNotification;
+use App\Rules\PhilippineMobile;
+use App\Support\PhoneNumber;
 use Carbon\Carbon;
 
 class WalkinController extends Controller
@@ -21,6 +24,8 @@ class WalkinController extends Controller
      */
     public function store(Request $request)
     {
+        PhoneNumber::mergeNormalized($request, ['phone_number']);
+
         $validated = $request->validate([
             'first_name'    => 'required|string|max:255',
             'last_name'     => 'required|string|max:255',
@@ -29,12 +34,14 @@ class WalkinController extends Controller
             'agecategory'            => 'nullable|string|max:100',
             'patient_classification' => 'nullable|string|in:Regular Patient,PWD,Senior Citizen',
             'gender'                 => 'nullable|string|in:Male,Female',
-            'phone_number'           => ['nullable', 'regex:/^09[0-9]{9}$/'],
+            'phone_number'           => [
+                'nullable',
+                new PhilippineMobile,
+                Rule::unique('users', 'phone_number')->where(fn ($q) => $q->where('registration_unverified', false)),
+            ],
             'address'                => 'nullable|string|max:500',
             'purpose'                => 'required|string|max:255',
             'symptoms'               => 'nullable|string|max:1000',
-        ], [
-            'phone_number.regex' => 'The phone number must be a valid 11-digit Philippine mobile number starting with 09 (e.g. 09123456789).',
         ]);
 
         // Calculate age from dob if age not explicitly provided
@@ -56,7 +63,8 @@ class WalkinController extends Controller
         // Check if a resident user with same phone already exists (never overwrite Nurse/BHW accounts)
         $existingUser = null;
         if (!empty($validated['phone_number'])) {
-            $existingUser = User::where('role', 'resident')
+            $existingUser = User::registered()
+                ->where('role', 'resident')
                 ->where('phone_number', $validated['phone_number'])
                 ->first();
         }
@@ -81,6 +89,9 @@ class WalkinController extends Controller
         } else {
             // Create a new resident account — auto-approved, walk-in type
             // Generate a unique phone number if not provided
+            if (!empty($validated['phone_number'])) {
+                User::purgeUnverifiedRegistration($validated['phone_number']);
+            }
             $phoneNumber = $validated['phone_number'] ?: 'WALKIN-' . time() . '-' . rand(1000, 9999);
 
             $user = User::create([

@@ -332,6 +332,7 @@
                    :bhw-confirm-schedule-url="bhwConfirmScheduleUrl"
                    :announcements="announcements"
                    :announcements-store-url="announcementsStoreUrl"
+                   :sms-configured="smsConfigured"
                    :medicine-requests="medicineRequests"
                    :medicine-returns="medicineReturns"
                    :nurse-accounts="nurseAccounts"
@@ -521,6 +522,10 @@ const props = defineProps({
   announcementsStoreUrl: {
     type: String,
     default: '/announcements'
+  },
+  smsConfigured: {
+    type: Boolean,
+    default: false
   },
   medicineRequests: {
     type: Array,

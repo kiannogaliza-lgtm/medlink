@@ -201,7 +201,7 @@
                                 <td class="py-4 px-5">
                                     @if($v->parent)
                                         <div class="font-semibold text-blue-700 text-xs">{{ $v->parent->first_name }} {{ $v->parent->last_name }}</div>
-                                        <div class="text-[11px] text-gray-400">{{ $v->parent->phone_number ?? 'Resident' }}</div>
+                                        <div class="text-[11px] text-gray-400">{{ \App\Support\PhoneNumber::isPlaceholder($v->parent->phone_number) ? 'No phone' : $v->parent->phone_number }}</div>
                                     @else
                                         <span class="text-xs text-gray-400 italic">Walk-in</span>
                                     @endif
@@ -294,7 +294,7 @@
                             }
                         @endphp
                         <option value="{{ $p->id }}" data-name="{{ $p->first_name }} {{ $p->last_name }}" data-dob="{{ $dobFormatted }}" data-gender="{{ $p->gender }}" data-age="{{ $p->age }}">
-                            {{ $p->first_name }} {{ $p->last_name }} ({{ $p->phone_number ?? 'No contact' }})
+                            {{ $p->first_name }} {{ $p->last_name }} ({{ \App\Support\PhoneNumber::isPlaceholder($p->phone_number) ? 'No phone' : $p->phone_number }})
                         </option>
                     @endforeach
                 </select>

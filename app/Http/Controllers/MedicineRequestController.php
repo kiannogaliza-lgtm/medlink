@@ -403,6 +403,40 @@ class MedicineRequestController extends Controller
         }
 
         $msg = "Request approved for {$qty} x {$medicineRequest->item_service}.";
+
+        // Send SMS notification after response (idempotent via approved_sms_at)
+        if ($medicineRequest->approved_sms_at === null) {
+            $claimed = MedicineRequest::where('id', $medicineRequest->id)
+                ->whereNull('approved_sms_at')
+                ->update(['approved_sms_at' => now()]);
+
+            if ($claimed === 1) {
+                $isPickup = $medicineRequest->delivery_method === 'pickup';
+                $bhwName = auth()->user()->role === 'bhw'
+                    ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name)
+                    : null;
+
+                $smsMessage = $isPickup
+                    ? \App\Support\SmsTemplates::pickupReady(
+                        $medicineRequest->request_id,
+                        (string) $medicineRequest->item_service,
+                        (int) $qty
+                    )
+                    : \App\Support\SmsTemplates::deliveryOnTheWay(
+                        $medicineRequest->request_id,
+                        $bhwName
+                    );
+
+                app(\App\Services\SmsService::class)->sendAfterResponse(
+                    (string) ($user->phone_number ?? ''),
+                    $smsMessage,
+                    $isPickup ? 'medicine_pickup' : 'medicine_delivery',
+                    $user,
+                    $medicineRequest
+                );
+            }
+        }
+
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => $msg, 'data' => $medicineRequest->fresh(['user', 'medicine'])]);
         }

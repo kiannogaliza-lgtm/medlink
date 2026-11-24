@@ -194,7 +194,7 @@
                 </div>
                 <div class="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
                   <span class="material-icons-outlined" style="font-size: 13px;">phone</span>
-                  {{ req.user?.phone_number || req.user?.contact_number || 'No contact provided' }}
+                  {{ displayPhone(req.user?.phone_number || req.user?.contact_number) }}
                 </div>
               </td>
 
@@ -645,6 +645,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { displayPhone } from '../../utils/phPhone';
 
 const props = defineProps({
   medicineRequests: {

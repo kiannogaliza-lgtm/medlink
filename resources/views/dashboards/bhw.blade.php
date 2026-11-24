@@ -40,6 +40,7 @@
             bhwConfirmScheduleUrl: {!! json_encode(url('/bhw/scheduling')) !!},
             announcements: {!! json_encode($announcements) !!},
             announcementsStoreUrl: {!! json_encode(route('announcements.store')) !!},
+            smsConfigured: {!! json_encode(app(\App\Services\SmsService::class)->isConfigured()) !!},
             medicineRequests: {!! json_encode($medicineDeliveryRequests ?? []) !!},
             medicineReturns: {!! json_encode($medicineReturns ?? []) !!},
             nurseAccounts: {!! json_encode($nurseAccounts ?? []) !!},

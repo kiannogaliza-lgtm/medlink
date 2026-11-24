@@ -43,7 +43,7 @@ class NurseDashboardController extends Controller
         $totalRequests = $medicineRequestCount + $homeServiceCount;
 
         // Patients verified today
-        $verifiedTodayCount = \App\Models\User::where('role', 'resident')
+        $verifiedTodayCount = \App\Models\User::registered()->where('role', 'resident')
             ->where('status', 'active')
             ->whereDate('updated_at', \Carbon\Carbon::today())
             ->count();
@@ -203,6 +203,7 @@ class NurseDashboardController extends Controller
         // 2. Pending Patient Verifications
         $pendingPatients = User::where('role', 'resident')
             ->where('status', 'pending')
+            ->where('registration_unverified', false)
             ->orderBy('created_at', 'desc')
             ->take(20)
             ->get();
@@ -382,7 +383,7 @@ class NurseDashboardController extends Controller
         $user = auth()->user();
 
         $staffStats = [
-            'verified_residents'   => User::where('role', 'resident')->where('status', 'active')->count(),
+            'verified_residents'   => User::registered()->where('role', 'resident')->where('status', 'active')->count(),
             'consultations_logged' => \App\Models\Consultation::count(),
             'medicine_processed'   => MedicineRequest::whereIn('status', ['Approved', 'Completed'])->count(),
             'home_services_done'   => \App\Models\HomeServiceRequest::where('status', 'Completed')->count(),
@@ -394,19 +395,26 @@ class NurseDashboardController extends Controller
     /**
      * Update Nurse Staff Profile information and photo.
      */
-    public function updateProfile(Request $request)
+    public function updateProfile(Request $request, \App\Services\OtpService $otpService)
     {
         $user = auth()->user();
+
+        $typedFormat = \App\Support\PhoneNumber::detectFormat($request->input('phone_number'));
+        \App\Support\PhoneNumber::mergeNormalized($request, ['phone_number']);
 
         $validated = $request->validate([
             'first_name'    => ['required', 'string', 'max:255'],
             'last_name'     => ['required', 'string', 'max:255'],
-            'phone_number'  => ['required', 'regex:/^09[0-9]{9}$/', \Illuminate\Validation\Rule::unique('users')->ignore($user->id)],
+            'phone_number'  => [
+                'required',
+                new \App\Rules\PhilippineMobile,
+                \Illuminate\Validation\Rule::unique('users', 'phone_number')
+                    ->ignore($user->id)
+                    ->where(fn ($q) => $q->where('registration_unverified', false)),
+            ],
             'gender'        => ['nullable', 'string', 'in:Male,Female,Other'],
             'address'       => ['nullable', 'string', 'max:500'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
-        ], [
-            'phone_number.regex' => 'The phone number must be a valid 11-digit Philippine mobile number starting with 09.',
         ]);
 
         if ($request->hasFile('profile_photo')) {
@@ -418,9 +426,44 @@ class NurseDashboardController extends Controller
             unset($validated['profile_photo']);
         }
 
+        $newPhone = $validated['phone_number'];
+        $phoneChanged = $newPhone !== $user->phone_number;
+
+        if (!$phoneChanged) {
+            $user->update($validated);
+
+            return redirect()->route('nurse.profile')->with('success', 'Staff profile updated successfully.');
+        }
+
+        // Save all other profile fields immediately; keep old phone_number until OTP verified
+        unset($validated['phone_number']);
         $user->update($validated);
 
-        return redirect()->route('nurse.profile')->with('success', 'Staff profile updated successfully.');
+        $lockoutSeconds = $otpService->lockoutRemaining($newPhone, 'phone_change');
+        if ($lockoutSeconds !== null) {
+            return redirect()->route('nurse.profile')
+                ->withErrors(['phone_number' => $otpService->errorMessage(['error' => 'locked', 'retry_after' => $lockoutSeconds])]);
+        }
+
+        $user->update(['pending_phone_number' => $newPhone]);
+        $otpResult = $otpService->issue($newPhone, 'phone_change', $user);
+
+        if (!$otpResult['ok'] && ($otpResult['error'] ?? null) !== 'cooldown') {
+            return redirect()->route('nurse.profile')
+                ->withErrors(['phone_number' => $otpService->errorMessage($otpResult)]);
+        }
+
+        $request->session()->put('phone_change_format', $typedFormat);
+        $masked = \App\Support\PhoneNumber::mask($newPhone, $typedFormat);
+        $resendIn = ($otpResult['error'] ?? null) === 'cooldown'
+            ? (int) ($otpResult['retry_after'] ?? 60)
+            : (int) config('otp.resend_cooldown_seconds', 60);
+
+        return redirect()->route('nurse.profile')
+            ->with('success', "Profile saved. Enter the code sent to {$masked} to confirm your new number.")
+            ->with('phone_change_otp_required', true)
+            ->with('phone_change_masked', $masked)
+            ->with('phone_change_resend_in', $resendIn);
     }
 
     /**

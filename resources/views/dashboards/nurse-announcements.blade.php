@@ -90,6 +90,12 @@
                         <span class="text-xs text-gray-400">
                             Posted by <strong class="text-gray-700 font-semibold">{{ $ann->author_name ?? 'Health Staff' }}</strong> ({{ strtoupper($ann->author_role ?? 'Staff') }})
                         </span>
+                        @if($ann->sms_sent_at)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span class="material-icons-outlined" style="font-size:13px;">sms</span>
+                                SMS sent to {{ $ann->sms_recipient_count ?? 0 }} residents - {{ $ann->sms_sent_at->format('M d, Y') }}
+                            </span>
+                        @endif
                     </div>
 
                     <h3 class="text-lg font-bold text-gray-900 mb-2">{{ $ann->title }}</h3>
@@ -192,6 +198,32 @@
                             class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all resize-none"
                         ></textarea>
                     </div>
+
+                    {{-- Optional SMS Broadcast Toggle (Create only) --}}
+                    <div id="smsToggleWrap"
+                         class="p-3.5 rounded-xl border border-gray-200 bg-gray-50/80 {{ !$smsConfigured ? 'opacity-60' : '' }}"
+                         @if(!$smsConfigured) title="SMS is not configured" @endif>
+                        <label class="flex items-start justify-between gap-3 {{ $smsConfigured ? 'cursor-pointer' : 'cursor-not-allowed' }}">
+                            <div>
+                                <span class="block text-xs font-bold text-gray-800">Also send via SMS to all registered residents</span>
+                                <span class="block text-[11px] text-gray-500 mt-0.5 leading-relaxed">
+                                    Sends a text message to every active resident with a valid mobile number. Uses the health center phone's SMS load.
+                                </span>
+                                @if(!$smsConfigured)
+                                    <span class="block text-[11px] text-amber-700 font-semibold mt-1">SMS is not configured</span>
+                                @endif
+                            </div>
+                            <span class="relative inline-flex items-center shrink-0 mt-0.5">
+                                <input type="checkbox"
+                                       id="annSendSms"
+                                       name="send_sms"
+                                       value="1"
+                                       {{ !$smsConfigured ? 'disabled' : '' }}
+                                       class="sr-only peer">
+                                <span class="w-10 h-6 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500/30 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:bg-white after:rounded-full after:shadow after:transition-transform peer-checked:after:translate-x-4"></span>
+                            </span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
@@ -226,6 +258,8 @@
     const annDate = document.getElementById('annDate');
     const annStatus = document.getElementById('annStatus');
     const annContent = document.getElementById('annContent');
+    const smsToggleWrap = document.getElementById('smsToggleWrap');
+    const annSendSms = document.getElementById('annSendSms');
 
     function openCreateModal() {
         modalTitle.innerHTML = '<span class="material-icons-outlined text-blue-600">campaign</span><span>Post New Announcement</span>';
@@ -236,6 +270,8 @@
         annDate.value = new Date().toISOString().split('T')[0];
         annStatus.value = 'active';
         annContent.value = '';
+        if (annSendSms) annSendSms.checked = false;
+        if (smsToggleWrap) smsToggleWrap.classList.remove('hidden');
         modal.classList.add('active');
     }
 
@@ -245,6 +281,8 @@
         form.action = `/announcements/${ann.id}`;
         methodField.innerHTML = '<input type="hidden" name="_method" value="PUT">';
         annTitle.value = ann.title || '';
+        if (annSendSms) annSendSms.checked = false;
+        if (smsToggleWrap) smsToggleWrap.classList.add('hidden');
         if (ann.date) {
             annDate.value = ann.date.split('T')[0];
         } else {

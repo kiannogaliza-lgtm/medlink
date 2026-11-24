@@ -28,9 +28,10 @@ class AccountHistoryController extends Controller
         // Search by user name or phone number
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function ($q) use ($search) {
+            $phoneSearch = \App\Support\PhoneNumber::normalize($search) ?? $search;
+            $query->where(function ($q) use ($search, $phoneSearch) {
                 $q->where('user_name', 'like', "%{$search}%")
-                  ->orWhere('phone_number', 'like', "%{$search}%")
+                  ->orWhere('phone_number', 'like', "%{$phoneSearch}%")
                   ->orWhere('actor_name', 'like', "%{$search}%")
                   ->orWhere('details', 'like', "%{$search}%");
             });

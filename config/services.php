@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'httpsms' => [
+        'api_key'  => env('HTTPSMS_API_KEY'),
+        'from'     => env('HTTPSMS_FROM_NUMBER'),
+        // Not sent: httpSMS chooses the SIM by the "from" number.
+        'sim'      => env('HTTPSMS_SIM_SLOT', 'SIM1'),
+        'base_url' => env('HTTPSMS_BASE_URL', 'https://api.httpsms.com'),
+        'timeout'  => 10,
+    ],
+
 ];

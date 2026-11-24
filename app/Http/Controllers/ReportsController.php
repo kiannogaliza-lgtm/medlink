@@ -20,7 +20,7 @@ class ReportsController extends Controller
     public function index()
     {
         // ── Stat cards ──────────────────────────────────────────────
-        $totalPatients     = User::where('role', 'resident')->count();
+        $totalPatients     = User::registered()->where('role', 'resident')->count();
         $totalRequests     = MedicineRequest::count();
         $homeServiceCount  = HomeServiceRequest::count();
         $immunizationCount = ChildVaccination::count() + \App\Models\Schedule::where('type', 'Immunization')->count();
@@ -31,11 +31,11 @@ class ReportsController extends Controller
         $thisYear  = $now->year;
         $lastMonth = $now->copy()->subMonth();
 
-        $patientsThisMonth = User::where('role', 'resident')
+        $patientsThisMonth = User::registered()->where('role', 'resident')
             ->whereMonth('created_at', $thisMonth)
             ->whereYear('created_at', $thisYear)
             ->count();
-        $patientsLastMonth = User::where('role', 'resident')
+        $patientsLastMonth = User::registered()->where('role', 'resident')
             ->whereMonth('created_at', $lastMonth->month)
             ->whereYear('created_at', $lastMonth->year)
             ->count();
@@ -80,7 +80,7 @@ class ReportsController extends Controller
             $month = $now->copy()->subMonths($i);
             $monthLabels[] = $month->format('M');
 
-            $patientTrend[] = User::where('role', 'resident')
+            $patientTrend[] = User::registered()->where('role', 'resident')
                 ->whereMonth('created_at', $month->month)
                 ->whereYear('created_at', $month->year)
                 ->count();
@@ -342,7 +342,7 @@ class ReportsController extends Controller
 
     private function exportResidentsExcel()
     {
-        $residents = User::where('role', 'resident')->orderBy('last_name', 'asc')->get();
+        $residents = User::registered()->where('role', 'resident')->orderBy('last_name', 'asc')->get();
 
         $rowsHtml = '';
         foreach ($residents as $r) {
@@ -521,7 +521,7 @@ class ReportsController extends Controller
         }
 
         // 3. Residents
-        $residents = User::where('role', 'resident')->orderBy('last_name', 'asc')->get();
+        $residents = User::registered()->where('role', 'resident')->orderBy('last_name', 'asc')->get();
         $resHtml = '';
         foreach ($residents as $r) {
             $resHtml .= '<tr>

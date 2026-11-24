@@ -10,15 +10,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
-    'first_name', 'last_name', 'phone_number', 'email', 'password', 'role', 
+    'first_name', 'last_name', 'phone_number', 'phone_verified_at', 'registration_unverified', 'pending_phone_number', 'email', 'password', 'role', 
     'status', 'is_maintenance', 'can_manage_nurses', 'last_login_at', 'notifications_read_at', 'active_session_token', 'profile_photo', 'id_photo',
     'dob', 'age', 'age_category', 'patient_classification', 'gender', 'blood_type', 'address', 'allergies', 
     'chronic_conditions', 'last_checkup', 'emergency_contact_name', 
     'emergency_contact_relation', 'emergency_contact_phone'
 ])]
-#[Hidden(['password', 'remember_token', 'active_session_token'])]
+#[Hidden(['password', 'remember_token', 'active_session_token', 'id_photo'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -68,6 +69,38 @@ class User extends Authenticatable
         });
     }
 
+    public function scopeRegistered($q)
+    {
+        return $q->where('registration_unverified', false);
+    }
+
+    public static function deleteIdPhoto(?string $path): void
+    {
+        if (!$path) {
+            return;
+        }
+
+        foreach (['local', 'public'] as $disk) {
+            if (Storage::disk($disk)->exists($path)) {
+                Storage::disk($disk)->delete($path);
+            }
+        }
+    }
+
+    public static function purgeUnverifiedRegistration(string $phone09): int
+    {
+        $staleUsers = static::where('phone_number', $phone09)
+            ->where('registration_unverified', true)
+            ->get();
+
+        foreach ($staleUsers as $staleUser) {
+            static::deleteIdPhoto($staleUser->id_photo);
+            $staleUser->delete();
+        }
+
+        return $staleUsers->count();
+    }
+
     /**
      * Get the medicine requests made by this user.
      */
@@ -92,6 +125,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
+            'registration_unverified' => 'boolean',
             'last_login_at' => 'datetime',
             'notifications_read_at' => 'datetime',
             'password' => 'hashed',

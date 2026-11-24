@@ -12,7 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE medicine_requests MODIFY COLUMN status ENUM('Pending', 'Accepted', 'Approved', 'Rejected', 'Completed') DEFAULT 'Pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE medicine_requests MODIFY COLUMN status ENUM('Pending', 'Accepted', 'Approved', 'Rejected', 'Completed') DEFAULT 'Pending'");
+        } else {
+            Schema::table('medicine_requests', function (Blueprint $table) {
+                $table->string('status', 30)->default('Pending')->change();
+            });
+        }
     }
 
     /**
@@ -21,6 +27,8 @@ return new class extends Migration
     public function down(): void
     {
         DB::statement("UPDATE medicine_requests SET status = 'Approved' WHERE status = 'Completed'");
-        DB::statement("ALTER TABLE medicine_requests MODIFY COLUMN status ENUM('Pending', 'Accepted', 'Approved', 'Rejected') DEFAULT 'Pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE medicine_requests MODIFY COLUMN status ENUM('Pending', 'Accepted', 'Approved', 'Rejected') DEFAULT 'Pending'");
+        }
     }
 };

@@ -343,7 +343,7 @@
                                 <div class="patient-meta-grid">
                                     <div class="meta-item">
                                         <label>Phone</label>
-                                        <span>{{ $resident->phone_number }}</span>
+                                        <span>{{ \App\Support\PhoneNumber::isPlaceholder($resident->phone_number) ? 'No phone' : $resident->phone_number }}</span>
                                     </div>
                                     <div class="meta-item">
                                         <label>Age / Category</label>
@@ -409,9 +409,9 @@
                                             '{{ $resident->first_name }} {{ $resident->last_name }}',
                                             '{{ $patientId }}',
                                             '{{ $resident->email ?: '' }}',
-                                            '{{ $resident->phone_number }}',
+                                            '{{ \App\Support\PhoneNumber::isPlaceholder($resident->phone_number) ? 'No phone' : $resident->phone_number }}',
                                             '{{ $resident->created_at->format('Y-m-d') }}',
-                                            '{{ $resident->id_photo ? asset('storage/'.$resident->id_photo) : '' }}',
+                                            '{{ $resident->id_photo ? route('patient.id-photo', $resident) : '' }}',
                                             {{ $resident->id }},
                                             'pending',
                                             '{{ $initials }}',
@@ -459,7 +459,7 @@
                                 <div class="patient-meta-grid">
                                     <div class="meta-item">
                                         <label>Phone</label>
-                                        <span>{{ $resident->phone_number }}</span>
+                                        <span>{{ \App\Support\PhoneNumber::isPlaceholder($resident->phone_number) ? 'No phone' : $resident->phone_number }}</span>
                                     </div>
                                     <div class="meta-item">
                                         <label>Age / Category</label>
@@ -513,9 +513,9 @@
                                             '{{ $resident->first_name }} {{ $resident->last_name }}',
                                             '{{ $patientId }}',
                                             '{{ $resident->email ?: '' }}',
-                                            '{{ $resident->phone_number }}',
+                                            '{{ \App\Support\PhoneNumber::isPlaceholder($resident->phone_number) ? 'No phone' : $resident->phone_number }}',
                                             '{{ $resident->created_at->format('Y-m-d') }}',
-                                            '{{ $resident->id_photo ? asset('storage/'.$resident->id_photo) : '' }}',
+                                            '{{ $resident->id_photo ? route('patient.id-photo', $resident) : '' }}',
                                             {{ $resident->id }},
                                             'verified',
                                             '{{ $initials }}',
@@ -589,7 +589,8 @@
 
                 {{-- ID Photo --}}
                 <div>
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Government ID Photo</p>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Government ID Photo</p>
+                    <p class="text-xs text-gray-500 mb-2">Approve only if the photo clearly shows a valid government-issued ID with the resident's name and face.</p>
                     <div class="id-photo-box" id="modal-id-box">
                         <img id="modal-id-photo" src="" alt="Government ID" onclick="openLightbox(this.src)" title="Click to enlarge">
                         <div id="modal-no-id" class="text-center py-10 text-gray-400 hidden">
@@ -606,7 +607,7 @@
                 <button onclick="closeDetailModalBtn()" class="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">Close</button>
                 <form id="modal-reject-form" method="POST">
                     @csrf @method('PATCH')
-                    <button type="submit" class="btn-reject" onclick="return confirm('Reject this patient?')">
+                    <button type="submit" class="btn-reject" onclick="return confirm('Reject and permanently remove this registration? The resident will be notified by SMS and can register again.')">
                         <span class="material-icons-outlined" style="font-size:14px;">cancel</span>
                         Reject
                     </button>

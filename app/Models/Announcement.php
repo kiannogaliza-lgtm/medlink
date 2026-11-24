@@ -16,10 +16,14 @@ class Announcement extends Model
         'content',
         'date',
         'status',
+        'sms_sent_at',
+        'sms_recipient_count',
     ];
 
     protected $casts = [
         'date' => 'date',
+        'sms_sent_at' => 'datetime',
+        'sms_recipient_count' => 'integer',
     ];
 
     public function user(): BelongsTo

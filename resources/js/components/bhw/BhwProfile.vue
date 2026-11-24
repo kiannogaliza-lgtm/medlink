@@ -57,7 +57,7 @@
                 </span>
                 <span class="inline-flex items-center gap-1">
                   <span class="material-icons-outlined" style="font-size:14px;">call</span>
-                  {{ user.phone_number }}
+                  {{ displayPhone(user.phone_number) }}
                 </span>
                 <span class="inline-flex items-center gap-1">
                   <span class="material-icons-outlined" style="font-size:14px;">location_on</span>
@@ -147,10 +147,12 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Mobile Number *</label>
-              <input v-model="form.phone_number" type="tel" required minlength="11" maxlength="11" inputmode="numeric"
-                     @input="handlePhoneInput" placeholder="09XXXXXXXXX"
-                     class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600">
+              <input v-model="form.phone_number" type="tel" required :maxlength="maxLengthFor(form.phone_number)" inputmode="tel" autocomplete="tel"
+                     @input="handlePhoneInput" @blur="phoneTouched = true" placeholder="09XXXXXXXXX or +639XXXXXXXXX"
+                     :class="['w-full px-3.5 py-2.5 bg-gray-50 border rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600', phoneInvalidOnBlur ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-gray-200']">
               <span v-if="errors.phone_number" class="text-xs text-red-600 mt-1 block">{{ errors.phone_number[0] }}</span>
+              <span v-else-if="phoneInvalidOnBlur" class="text-xs text-rose-500 mt-1 block font-medium">Use 09XXXXXXXXX or +639XXXXXXXXX</span>
+              <span v-else-if="phoneHint.text" :class="['text-xs mt-1 block font-medium', phoneHint.error ? 'text-rose-500' : 'text-slate-500']">{{ phoneHint.text }}</span>
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Gender</label>
@@ -237,11 +239,21 @@
         </div>
       </div>
     </div>
+
+    <PhoneOtpModal
+      :show="showPhoneOtpModal"
+      :masked="phoneOtpMasked"
+      :initial-resend-seconds="phoneOtpResendIn"
+      @verified="onPhoneOtpVerified"
+      @cancelled="onPhoneOtpCancelled"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { displayPhone, hintFor, isValid, maxLengthFor, sanitizeInput } from '../../utils/phPhone';
+import PhoneOtpModal from '../shared/PhoneOtpModal.vue';
 
 const props = defineProps({
   user: {
@@ -269,6 +281,9 @@ const errors = ref({});
 const passwordErrors = ref({});
 const selectedPhotoFile = ref(null);
 const photoPreviewUrl = ref('');
+const showPhoneOtpModal = ref(false);
+const phoneOtpMasked = ref('');
+const phoneOtpResendIn = ref(60);
 
 const form = ref({
   first_name: props.user?.first_name || '',
@@ -303,11 +318,14 @@ const completedDeliveriesCount = computed(() => {
   return (props.medicineRequests || []).filter(r => r.status === 'Completed').length;
 });
 
+const phoneTouched = ref(false);
+const phoneHint = computed(() => hintFor(form.value.phone_number));
+const phoneInvalidOnBlur = computed(() => {
+  return phoneTouched.value && form.value.phone_number && !isValid(form.value.phone_number);
+});
+
 const handlePhoneInput = (e) => {
-  let cleaned = (e.target.value || '').replace(/\D/g, '');
-  if (cleaned.length >= 1 && cleaned[0] !== '0') cleaned = '';
-  if (cleaned.length >= 2 && cleaned.substring(0, 2) !== '09') cleaned = '0';
-  form.value.phone_number = cleaned.slice(0, 11);
+  form.value.phone_number = sanitizeInput(e.target.value);
 };
 
 const handlePhotoSelect = (e) => {
@@ -367,10 +385,33 @@ const submitProfile = async () => {
     if (data.user) {
       emit('profile-updated', data.user);
     }
+    if (data.otp_required) {
+      phoneOtpMasked.value = data.masked || '';
+      phoneOtpResendIn.value = data.resend_available_in || 60;
+      showPhoneOtpModal.value = true;
+    }
   } catch (e) {
     errorMessage.value = 'Network error. Please try again.';
   } finally {
     isSavingProfile.value = false;
+  }
+};
+
+const onPhoneOtpVerified = ({ user, message }) => {
+  showPhoneOtpModal.value = false;
+  successMessage.value = message || 'Phone number verified and updated successfully!';
+  if (user) {
+    form.value.phone_number = user.phone_number || '';
+    emit('profile-updated', user);
+  }
+};
+
+const onPhoneOtpCancelled = ({ user, message }) => {
+  showPhoneOtpModal.value = false;
+  successMessage.value = message || 'Pending phone number change cancelled.';
+  if (user) {
+    form.value.phone_number = user.phone_number || '';
+    emit('profile-updated', user);
   }
 };
 

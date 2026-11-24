@@ -12,7 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE schedules MODIFY COLUMN type ENUM('Immunization', 'Ultrasound', 'Walk-in') NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE schedules MODIFY COLUMN type ENUM('Immunization', 'Ultrasound', 'Walk-in') NOT NULL");
+        } else {
+            Schema::table('schedules', function (Blueprint $table) {
+                $table->string('type', 30)->change();
+            });
+        }
     }
 
     /**
@@ -20,6 +26,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE schedules MODIFY COLUMN type ENUM('Immunization', 'Ultrasound') NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE schedules MODIFY COLUMN type ENUM('Immunization', 'Ultrasound') NOT NULL");
+        }
     }
 };

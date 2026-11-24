@@ -136,7 +136,7 @@
                                 </div>
                             </td>
                             {{-- Phone --}}
-                            <td class="py-3.5 px-4 text-gray-500">{{ $user->phone_number }}</td>
+                            <td class="py-3.5 px-4 text-gray-500">{{ \App\Support\PhoneNumber::isPlaceholder($user->phone_number) ? 'No phone' : $user->phone_number }}</td>
                             {{-- Age / Category --}}
                             <td class="py-3.5 px-4">
                                 @if($user->age !== null)
@@ -285,7 +285,7 @@
                     <div class="grid grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
-                            <input type="tel" name="phone_number" required maxlength="11" pattern="09[0-9]{9}" inputmode="numeric" oninput="validatePhPhone(this)" placeholder="e.g. 09123456789" value="{{ old('phone_number') }}" title="Please enter an 11-digit Philippine number starting with 09 (e.g. 09123456789)"
+                            <input type="tel" name="phone_number" required inputmode="tel" autocomplete="tel" data-ph-phone placeholder="09XXXXXXXXX or +639XXXXXXXXX" value="{{ old('phone_number') }}"
                                 class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
                         </div>
                         <div>
@@ -377,7 +377,7 @@
                     <div class="grid grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
-                            <input type="tel" name="phone_number" id="edit-phone" required maxlength="11" pattern="09[0-9]{9}" inputmode="numeric" oninput="validatePhPhone(this)" placeholder="e.g. 09123456789" title="Please enter an 11-digit Philippine number starting with 09 (e.g. 09123456789)"
+                            <input type="tel" name="phone_number" id="edit-phone" required inputmode="tel" autocomplete="tel" data-ph-phone placeholder="09XXXXXXXXX or +639XXXXXXXXX"
                                 class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
                         </div>
                         <div>
@@ -521,7 +521,7 @@
         document.getElementById('edit-form').action = '/nurse/users/' + id;
         document.getElementById('edit-first-name').value = firstName;
         document.getElementById('edit-last-name').value = lastName;
-        document.getElementById('edit-phone').value = phone;
+        document.getElementById('edit-phone').value = (phone && String(phone).startsWith('WALKIN-')) ? '' : (phone || '');
         document.getElementById('edit-age').value = age !== undefined && age !== null ? age : '';
         document.getElementById('edit-role').value = role;
         document.getElementById('edit-status').value = status;
@@ -559,21 +559,6 @@
         document.getElementById('delete-modal').classList.remove('active');
     }
 
-    function validatePhPhone(input) {
-        let val = input.value.replace(/[^0-9]/g, '');
-        if (val.length >= 1 && val[0] !== '0') {
-            val = '';
-        } else if (val.length >= 2 && val.substring(0, 2) !== '09') {
-            val = '0';
-        }
-        input.value = val.slice(0, 11);
-        if (input.value.length > 0 && (!input.value.startsWith('09') || input.value.length < 11)) {
-            input.setCustomValidity('Must be an 11-digit Philippine phone number starting with 09 (e.g. 09123456789)');
-        } else {
-            input.setCustomValidity('');
-        }
-    }
-
     // Close modals on overlay click
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
         overlay.addEventListener('click', function(e) {
@@ -595,4 +580,5 @@
         openAddModal();
     @endif
 </script>
+<script src="{{ asset('js/ph-phone.js') }}"></script>
 @endsection
