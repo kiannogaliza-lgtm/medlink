@@ -6,6 +6,7 @@ mkdir -p /var/www/html/storage/logs \
          /var/www/html/storage/framework/sessions \
          /var/www/html/storage/framework/views \
          /var/www/html/storage/framework/cache \
+         /var/www/html/storage/app/private/id_photos \
          /var/www/html/storage/app/public/id_photos \
          /var/www/html/storage/app/public/profile_photos
 touch /var/www/html/storage/logs/laravel.log
@@ -50,9 +51,12 @@ echo "Seeding initial accounts and medicine inventory..."
 php artisan db:seed --class=MedicineInventorySeeder --force || true
 mariadb techyknowloadeia1 -e "
 INSERT IGNORE INTO users (id, first_name, last_name, phone_number, email, role, status, password, created_at, updated_at) VALUES
-(1, 'Resident', 'User', '09111111111', NULL, 'resident', 'active', '\$2y\$12\$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NOW(), NOW()),
-(2, 'BHW', 'User', '09222222222', NULL, 'bhw', 'active', '\$2y\$12\$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NOW(), NOW()),
-(3, 'Nurse', 'User', '09333333333', NULL, 'nurse', 'active', '\$2y\$12\$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NOW(), NOW());
+(1, 'Resident', 'User', '09635254960', NULL, 'resident', 'active', '\$2y\$12\$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NOW(), NOW()),
+(2, 'BHW', 'User', '09635707383', NULL, 'bhw', 'active', '\$2y\$12\$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NOW(), NOW()),
+(3, 'Nurse', 'User', '09640935908', NULL, 'nurse', 'active', '\$2y\$12\$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NOW(), NOW());
+UPDATE users SET phone_number = '09635254960', updated_at = NOW() WHERE id = 1 AND phone_number = '09111111111';
+UPDATE users SET phone_number = '09635707383', updated_at = NOW() WHERE id = 2 AND phone_number = '09222222222';
+UPDATE users SET phone_number = '09640935908', updated_at = NOW() WHERE id = 3 AND phone_number = '09333333333';
 " || true
 
 # 6. Start Apache in foreground
