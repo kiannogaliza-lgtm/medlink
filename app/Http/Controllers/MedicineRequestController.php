@@ -295,12 +295,12 @@ class MedicineRequestController extends Controller
             ]
         );
 
-        // Notify the resident to come for consultation first
+        // Notify the resident that their request has been accepted
         AppNotification::create([
             'user_id' => $medicineRequest->user_id,
             'type' => 'info',
-            'title' => 'Medicine Request Accepted - Consultation Required',
-            'message' => "Your request for {$medicineRequest->item_service} has been accepted. Please proceed to the Barangay Health Center for a consultation first before claiming your medicine.",
+            'title' => 'Medicine Request Accepted',
+            'message' => "Your request for {$medicineRequest->item_service} has been accepted. Please wait for approval from the Barangay Health Center.",
         ]);
 
         // If accepted by BHW, notify all active Nurses
@@ -316,7 +316,7 @@ class MedicineRequestController extends Controller
             }
         }
 
-        $msg = "Request accepted. Resident notified to visit the health center for consultation.";
+        $msg = "Request accepted. Resident has been notified.";
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => $msg, 'data' => $medicineRequest->fresh(['user', 'medicine'])]);
         }

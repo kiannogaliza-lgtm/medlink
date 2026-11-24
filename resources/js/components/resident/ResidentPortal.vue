@@ -190,7 +190,7 @@
                   </div>
                 </a>
 
-                <!-- Accepted Medicine Requests (Ready for Consultation) -->
+                <!-- Accepted Medicine Requests -->
                 <a v-if="acceptedMedicineRequestsCount > 0"
                    href="#" @click.prevent="goToTab('medicine')"
                    class="block px-4 py-3.5 hover:bg-blue-50/60 transition-colors">
@@ -200,11 +200,11 @@
                     </div>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center justify-between">
-                        <p class="text-xs font-bold text-gray-800">Ready for Consultation</p>
+                        <p class="text-xs font-bold text-gray-800">Medicine Request Accepted</p>
                         <span class="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.2 rounded font-semibold">{{ acceptedMedicineRequestsCount }}</span>
                       </div>
                       <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                        {{ acceptedMedicineRequestsCount }} request(s) accepted. Please visit the health center for consultation.
+                        {{ acceptedMedicineRequestsCount }} request(s) accepted. Please wait for approval.
                       </p>
                     </div>
                   </div>
