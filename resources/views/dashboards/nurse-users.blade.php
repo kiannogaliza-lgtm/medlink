@@ -199,7 +199,7 @@
                             {{-- Actions --}}
                             <td class="py-3.5 px-4">
                                 <div class="flex items-center gap-2">
-                                    <button onclick="openEditModal({{ $user->id }}, '{{ addslashes($user->first_name) }}', '{{ addslashes($user->last_name) }}', '{{ $user->phone_number }}', '{{ $user->role }}', '{{ $user->status ?? 'active' }}', '{{ $user->profile_photo ? asset('storage/' . $user->profile_photo) : '' }}', {{ $user->age !== null ? $user->age : 'null' }}, {{ $user->is_maintenance ? 1 : 0 }}, {{ $user->can_manage_nurses ? 1 : 0 }})"
+                                    <button onclick="openEditModal({{ $user->id }}, '{{ addslashes($user->first_name) }}', '{{ addslashes($user->last_name) }}', '{{ $user->phone_number }}', '{{ $user->role }}', '{{ $user->status ?? 'active' }}', '{{ $user->profile_photo ? asset('storage/' . $user->profile_photo) : '' }}', {{ $user->age !== null ? $user->age : 'null' }}, {{ $user->is_maintenance ? 1 : 0 }}, {{ $user->can_manage_nurses ? 1 : 0 }}, '{{ $user->dob ? $user->dob->format('Y-m-d') : '' }}')"
                                         class="w-8 h-8 rounded-md bg-blue-50 hover:bg-blue-100 flex items-center justify-center text-blue-600 transition-colors" title="Edit">
                                         <span class="material-icons-outlined" style="font-size:17px;">edit</span>
                                     </button>
@@ -282,15 +282,10 @@
                                 class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
                         </div>
                     </div>
-                    <div class="grid grid-cols-3 gap-4">
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
                             <input type="tel" name="phone_number" required inputmode="tel" autocomplete="tel" data-ph-phone placeholder="09XXXXXXXXX or +639XXXXXXXXX" value="{{ old('phone_number') }}"
-                                class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Age (Optional)</label>
-                            <input type="number" name="age" min="0" max="130" placeholder="e.g. 25" value="{{ old('age') }}"
                                 class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
                         </div>
                         <div>
@@ -301,6 +296,18 @@
                                 <option value="nurse" {{ old('role') == 'nurse' ? 'selected' : '' }}>Nurse</option>
                                 <option value="resident" {{ old('role') == 'resident' ? 'selected' : '' }}>Resident</option>
                             </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Date of Birth (Optional)</label>
+                            <input type="date" name="dob" id="add-dob" max="{{ now()->toDateString() }}" value="{{ old('dob') }}" onchange="syncUserDobToAge('add-dob', 'add-age')"
+                                class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Age (Auto)</label>
+                            <input type="number" name="age" id="add-age" min="0" max="130" placeholder="Auto from DOB" value="{{ old('age') }}"
+                                class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
                         </div>
                     </div>
                     <div id="add-nurse-access-wrap" class="hidden p-3.5 rounded-xl bg-blue-50/70 border border-blue-100">
@@ -374,15 +381,10 @@
                                 class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
                         </div>
                     </div>
-                    <div class="grid grid-cols-3 gap-4">
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
                             <input type="tel" name="phone_number" id="edit-phone" required inputmode="tel" autocomplete="tel" data-ph-phone placeholder="09XXXXXXXXX or +639XXXXXXXXX"
-                                class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Age (Optional)</label>
-                            <input type="number" name="age" id="edit-age" min="0" max="130" placeholder="e.g. 25"
                                 class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
                         </div>
                         <div>
@@ -392,6 +394,18 @@
                                 <option value="nurse">Nurse</option>
                                 <option value="resident">Resident</option>
                             </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Date of Birth (Optional)</label>
+                            <input type="date" name="dob" id="edit-dob" max="{{ now()->toDateString() }}" onchange="syncUserDobToAge('edit-dob', 'edit-age')"
+                                class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Age (Auto)</label>
+                            <input type="number" name="age" id="edit-age" min="0" max="130" placeholder="Auto from DOB"
+                                class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400">
                         </div>
                     </div>
                     <div id="edit-nurse-access-wrap" class="hidden p-3.5 rounded-xl bg-blue-50/70 border border-blue-100">
@@ -516,13 +530,34 @@
         document.getElementById('add-modal').classList.remove('active');
     }
 
+    function syncUserDobToAge(dobId, ageId) {
+        const dobEl = document.getElementById(dobId);
+        const ageEl = document.getElementById(ageId);
+        if (!dobEl || !ageEl || !dobEl.value) return;
+
+        const parts = dobEl.value.split('-').map(Number);
+        if (parts.length !== 3 || parts.some(isNaN)) return;
+
+        const today = new Date();
+        let age = today.getFullYear() - parts[0];
+        const m = (today.getMonth() + 1) - parts[1];
+        if (m < 0 || (m === 0 && today.getDate() < parts[2])) {
+            age--;
+        }
+        if (age >= 0 && age <= 130) {
+            ageEl.value = String(age);
+        }
+    }
+
     // EDIT Modal
-    function openEditModal(id, firstName, lastName, phone, role, status, photoUrl, age, isMaintenance, canManageNurses) {
+    function openEditModal(id, firstName, lastName, phone, role, status, photoUrl, age, isMaintenance, canManageNurses, dob) {
         document.getElementById('edit-form').action = '/nurse/users/' + id;
         document.getElementById('edit-first-name').value = firstName;
         document.getElementById('edit-last-name').value = lastName;
         document.getElementById('edit-phone').value = (phone && String(phone).startsWith('WALKIN-')) ? '' : (phone || '');
+        document.getElementById('edit-dob').value = dob || '';
         document.getElementById('edit-age').value = age !== undefined && age !== null ? age : '';
+        if (dob) syncUserDobToAge('edit-dob', 'edit-age');
         document.getElementById('edit-role').value = role;
         document.getElementById('edit-status').value = status;
         document.getElementById('edit-maintenance').value = isMaintenance ? '1' : '0';

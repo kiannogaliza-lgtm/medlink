@@ -69,10 +69,11 @@ class UserManagementController extends Controller
                 new PhilippineMobile,
                 Rule::unique('users', 'phone_number')->where(fn ($q) => $q->where('registration_unverified', false)),
             ],
+            'dob'           => ['nullable', 'date', 'before_or_equal:today'],
             'age'           => ['nullable', 'integer', 'min:0', 'max:130'],
             'role'          => ['required', 'in:resident,bhw,nurse'],
             'password'      => ['required', 'string', 'min:8', 'confirmed'],
-            'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'profile_photo' => ['nullable', 'file', 'mimetypes:image/*', 'max:51200'],
         ]);
 
         $photoPath = null;
@@ -80,7 +81,10 @@ class UserManagementController extends Controller
             $photoPath = $request->file('profile_photo')->store('profile_photos', 'public');
         }
 
-        $age = isset($validated['age']) && $validated['age'] !== null ? (int) $validated['age'] : null;
+        $dob = !empty($validated['dob']) ? $validated['dob'] : null;
+        $age = $dob !== null
+            ? \Carbon\Carbon::parse($dob)->age
+            : (isset($validated['age']) && $validated['age'] !== null ? (int) $validated['age'] : null);
 
         User::purgeUnverifiedRegistration($validated['phone_number']);
 
@@ -88,6 +92,7 @@ class UserManagementController extends Controller
             'first_name'        => $validated['first_name'],
             'last_name'         => $validated['last_name'],
             'phone_number'      => $validated['phone_number'],
+            'dob'               => $dob,
             'age'               => $age,
             'age_category'      => User::resolveAgeCategory($age),
             'role'              => $validated['role'],
@@ -125,11 +130,12 @@ class UserManagementController extends Controller
                     ->ignore($user->id)
                     ->where(fn ($q) => $q->where('registration_unverified', false)),
             ],
+            'dob'           => ['nullable', 'date', 'before_or_equal:today'],
             'age'           => ['nullable', 'integer', 'min:0', 'max:130'],
             'role'          => ['required', 'in:resident,bhw,nurse'],
             'status'        => ['required', 'in:active,inactive'],
             'is_maintenance'=> ['nullable', 'boolean'],
-            'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'profile_photo' => ['nullable', 'file', 'mimetypes:image/*', 'max:51200'],
         ]);
 
         $validated['is_maintenance'] = $request->boolean('is_maintenance');
@@ -143,7 +149,10 @@ class UserManagementController extends Controller
             $validated['profile_photo'] = $request->file('profile_photo')->store('profile_photos', 'public');
         }
 
-        if (array_key_exists('age', $validated)) {
+        if (!empty($validated['dob'])) {
+            $validated['age'] = \Carbon\Carbon::parse($validated['dob'])->age;
+            $validated['age_category'] = User::resolveAgeCategory($validated['age']);
+        } elseif (array_key_exists('age', $validated)) {
             $validated['age'] = $validated['age'] !== null && $validated['age'] !== '' ? (int) $validated['age'] : null;
             $validated['age_category'] = User::resolveAgeCategory($validated['age']);
         }

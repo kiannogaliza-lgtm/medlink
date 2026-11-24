@@ -352,7 +352,7 @@
                                 </svg>
                             </div>
                             <p class="text-xs sm:text-sm font-bold text-slate-700">Click or drag to upload your ID</p>
-                            <p class="text-[11px] text-slate-400 mt-1">National ID, Driver's License, Passport, etc. &bull; JPG, PNG &bull; max 5MB</p>
+                            <p class="text-[11px] text-slate-400 mt-1">National ID, Driver's License, Passport, etc. &bull; All image formats &bull; max 50MB</p>
                         </div>
                         <input type="file" id="id_photo" name="id_photo" accept="image/*" required
                                class="sr-only"

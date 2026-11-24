@@ -77,7 +77,7 @@ class AuthController extends Controller
             'gender'                 => ['nullable', 'string', 'in:Male,Female,Other'],
             'patient_classification' => ['required', 'in:Regular Patient,PWD,Senior Citizen'],
             'password'               => ['required', 'string', 'min:8', 'confirmed'],
-            'id_photo'               => ['required', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
+            'id_photo'               => ['required', 'file', 'mimetypes:image/*', 'max:51200'],
         ];
 
         $validated = $request->validate($rules, [

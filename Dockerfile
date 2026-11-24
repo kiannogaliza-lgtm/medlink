@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_mysql mbstring bcmath exif gd intl zip opcache
 
-RUN a2enmod rewrite
+RUN a2enmod rewrite \
+    && printf "upload_max_filesize=55M\npost_max_size=60M\n" > /usr/local/etc/php/conf.d/uploads.ini
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
