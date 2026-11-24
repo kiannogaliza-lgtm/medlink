@@ -1,8 +1,8 @@
 -- MEDLINK Database Schema and Seed Data for MySQL / MariaDB (Laragon)
--- Import this file into your database (e.g., 'techyknowloadeia1' or 'medlink') using HeidiSQL, phpMyAdmin, or MySQL CLI.
+-- Import this file into your database (e.g., 'medlink') using HeidiSQL, phpMyAdmin, or MySQL CLI.
 
-CREATE DATABASE IF NOT EXISTS `techyknowloadeia1` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `techyknowloadeia1`;
+CREATE DATABASE IF NOT EXISTS `medlink` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `medlink`;
 
 -- --------------------------------------------------------
 -- Table structure for table `users`

@@ -1,11 +1,11 @@
 ---
 name: "medlink"
-description: "Project guide for MedLink (Laravel 13 + Vue, Barangay Honrado Health Center; folder techyknowloadeia1). Use for any MedLink work: medicine requests, delivery, home service, BHW/nurse portals, SMS/OTP, announcements."
+description: "Project guide for MedLink (Laravel 13 + Vue, Barangay Honrado Health Center; folder medlink). Use for any MedLink work: medicine requests, delivery, home service, BHW/nurse portals, SMS/OTP, announcements."
 ---
 
 # MedLink - project skill
 
-MedLink is a barangay health center system for **Barangay Honrado Health Center** (Philippines). It has three roles: residents request medicine, home service and schedules; BHWs (barangay health workers) handle deliveries, home visits and walk-ins; nurses run inventory, verification, consultations, vaccinations and reports. It's a capstone project deployed on localhost. Team/repo name: **techyknowloadeia1**.
+MedLink is a barangay health center system for **Barangay Honrado Health Center** (Philippines). It has three roles: residents request medicine, home service and schedules; BHWs (barangay health workers) handle deliveries, home visits and walk-ins; nurses run inventory, verification, consultations, vaccinations and reports. It's a capstone project deployed on localhost. Team/repo name: **medlink**.
 
 Facts below reflect the code as of 2026-11-24, after the SMS/OTP phases P0-P9 were implemented and tests passed. When code and this file disagree, the code wins: re-read the file, then tell the user this skill is stale.
 
@@ -13,7 +13,7 @@ Facts below reflect the code as of 2026-11-24, after the SMS/OTP phases P0-P9 we
 
 - **Laravel 13** (`laravel/framework ^13.17`), PHP 8.3, MySQL (`DB_CONNECTION=mysql`), Eloquent, Laravel migrations.
 - Frontend: Blade pages that mount **Vue 3** components (Vite entry `resources/js/medlink.js`), with **Tailwind v4** (both the Vite plugin and the browser CDN `@tailwindcss/browser@4` in page heads), Inter font, Material Icons Outlined.
-- Laragon on Windows. Folder `C:\laragon\www\techyknowloadeia1`. A `Dockerfile` and `docker-entrypoint.sh` also exist.
+- Laragon on Windows. Folder `C:\laragon\www\medlink`. A `Dockerfile` and `docker-entrypoint.sh` also exist.
 - `.env` drivers: `SESSION_DRIVER=database`, `QUEUE_CONNECTION=database`, `CACHE_STORE=database`. Queued jobs only run if `php artisan queue:work` is running, so prefer `dispatch()->afterResponse()` or synchronous sends for anything that must happen.
 - SMS provider is **httpSMS**. Its `.env` keys are `HTTPSMS_API_KEY`, `HTTPSMS_FROM_NUMBER` (`+639...`) and `HTTPSMS_SIM_SLOT`, currently `1` (normalize to `SIM1`/`SIM2`). Never print or commit their values. When checking `.env`, list key names only.
 - Tests: `phpunit.xml` uses SQLite `:memory:`, `SESSION_DRIVER=array`, sync queue. Suites: tests/Unit (PhoneNumberTest, PhilippineMobileRuleTest) and tests/Feature (OtpServiceTest, RegistrationOtpTest, PasswordResetOtpTest, LoginOtpTest, PhoneChangeOtpTest, SmsNotificationTest, AnnouncementSmsTest). Six old enum migrations carry a `DB::getDriverName() === 'mysql'` guard so they run on SQLite; their MySQL branch is unchanged and already applied, so leave them alone.

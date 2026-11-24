@@ -37,7 +37,7 @@ done
 
 # 3. Create database and root user with empty password (matches local Laragon)
 echo "Configuring database..."
-mariadb -e "CREATE DATABASE IF NOT EXISTS \`techyknowloadeia1\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mariadb -e "CREATE DATABASE IF NOT EXISTS \`medlink\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 mariadb -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('') WITH GRANT OPTION;"
 mariadb -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' IDENTIFIED VIA mysql_native_password USING PASSWORD('') WITH GRANT OPTION;"
 mariadb -e "FLUSH PRIVILEGES;"
@@ -49,7 +49,7 @@ php artisan migrate --force
 # 5. Seed default accounts and 42 official inventory medicines
 echo "Seeding initial accounts and medicine inventory..."
 php artisan db:seed --class=MedicineInventorySeeder --force || true
-mariadb techyknowloadeia1 -e "
+mariadb medlink -e "
 INSERT IGNORE INTO users (id, first_name, last_name, phone_number, email, role, status, password, created_at, updated_at) VALUES
 (1, 'Resident', 'User', '09635254960', NULL, 'resident', 'active', '\$2y\$12\$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NOW(), NOW()),
 (2, 'BHW', 'User', '09635707383', NULL, 'bhw', 'active', '\$2y\$12\$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NOW(), NOW()),

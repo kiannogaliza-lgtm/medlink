@@ -2,9 +2,9 @@ import os
 import re
 
 directories = [
-    r"c:\laragon\www\techyknowloadeia1\resources\views\dashboards",
-    r"c:\laragon\www\techyknowloadeia1\resources\js\components\bhw",
-    r"c:\laragon\www\techyknowloadeia1\resources\js\components\resident"
+    r"c:\laragon\www\medlink\resources\views\dashboards",
+    r"c:\laragon\www\medlink\resources\js\components\bhw",
+    r"c:\laragon\www\medlink\resources\js\components\resident"
 ]
 
 def remove_comments(content):
