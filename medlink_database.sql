@@ -29,9 +29,9 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 -- --------------------------------------------------------
 INSERT INTO `users` (`id`, `first_name`, `last_name`, `phone_number`, `email`, `role`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'Resident', 'User', '09111111111', NULL, 'resident', NOW(), '$2y$12$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NULL, NOW(), NOW()),
-(2, 'BHW', 'User', '09222222222', NULL, 'bhw', NOW(), '$2y$12$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NULL, NOW(), NOW()),
-(3, 'Nurse', 'User', '09333333333', NULL, 'nurse', NOW(), '$2y$12$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NULL, NOW(), NOW());
+(1, 'Resident', 'User', '09635254960', NULL, 'resident', NOW(), '$2y$12$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NULL, NOW(), NOW()),
+(2, 'BHW', 'User', '09635707383', NULL, 'bhw', NOW(), '$2y$12$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NULL, NOW(), NOW()),
+(3, 'Nurse', 'User', '09640935908', NULL, 'nurse', NOW(), '$2y$12$yVeokU7cfLE4Ap8KPDYSiulbZPpBmnsKBXp58PSgyyww2lTDynFEG', NULL, NOW(), NOW());
 
 -- --------------------------------------------------------
 -- Table structure for table `password_reset_tokens`
