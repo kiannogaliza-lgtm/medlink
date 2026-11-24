@@ -4,6 +4,30 @@
 @section('page-title', 'Medicine Inventory')
 
 @section('content')
+    {{-- Summary Cards --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5 mb-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-green-500">
+            <p class="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1">In Stock</p>
+            <p class="text-2xl font-extrabold text-gray-900">{{ $inStockCount }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-amber-500">
+            <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">Low Stock</p>
+            <p class="text-2xl font-extrabold text-gray-900">{{ $lowStockCount }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-red-500">
+            <p class="text-xs font-semibold text-red-600 uppercase tracking-wider mb-1">Critical Stock</p>
+            <p class="text-2xl font-extrabold text-gray-900">{{ $criticalCount }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-rose-500">
+            <p class="text-xs font-semibold text-rose-600 uppercase tracking-wider mb-1">Expired</p>
+            <p class="text-2xl font-extrabold text-gray-900">{{ $expiredCount ?? 0 }}</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-blue-500">
+            <p class="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">Total Items</p>
+            <p class="text-2xl font-extrabold text-gray-900">{{ $totalItems }}</p>
+        </div>
+    </div>
+
     {{-- Header --}}
     <div class="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
@@ -142,30 +166,6 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
-    </div>
-
-    {{-- Summary Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
-        <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-green-500">
-            <p class="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1">In Stock</p>
-            <p class="text-2xl font-extrabold text-gray-900">{{ $inStockCount }}</p>
-        </div>
-        <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-amber-500">
-            <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">Low Stock</p>
-            <p class="text-2xl font-extrabold text-gray-900">{{ $lowStockCount }}</p>
-        </div>
-        <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-red-500">
-            <p class="text-xs font-semibold text-red-600 uppercase tracking-wider mb-1">Critical Stock</p>
-            <p class="text-2xl font-extrabold text-gray-900">{{ $criticalCount }}</p>
-        </div>
-        <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-rose-500">
-            <p class="text-xs font-semibold text-rose-600 uppercase tracking-wider mb-1">Expired</p>
-            <p class="text-2xl font-extrabold text-gray-900">{{ $expiredCount ?? 0 }}</p>
-        </div>
-        <div class="bg-white rounded-xl border border-gray-200 p-5 border-l-4 border-l-blue-500">
-            <p class="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">Total Items</p>
-            <p class="text-2xl font-extrabold text-gray-900">{{ $totalItems }}</p>
         </div>
     </div>
 
