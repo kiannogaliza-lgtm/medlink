@@ -156,13 +156,30 @@
                                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
                     </div>
                     <div>
+                        @php
+                            $otherGenderOptions = ['Transgender', 'Transgender Male', 'Transgender Female', 'Non-binary', 'Prefer not to say', 'Other'];
+                            $savedGender = old('gender', $user->gender);
+                            $isOtherGender = $savedGender === 'Other' || ($savedGender && !in_array($savedGender, ['Male', 'Female'], true));
+                            $selectedOtherGender = old('gender_other', $isOtherGender ? $savedGender : '');
+                        @endphp
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Gender</label>
-                        <select name="gender" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+                        <select name="gender" id="nurseGenderSelect" onchange="toggleNurseGenderOther()"
+                                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
                             <option value="">Select Gender</option>
-                            <option value="Female" {{ old('gender', $user->gender) === 'Female' ? 'selected' : '' }}>Female</option>
-                            <option value="Male" {{ old('gender', $user->gender) === 'Male' ? 'selected' : '' }}>Male</option>
-                            <option value="Other" {{ old('gender', $user->gender) === 'Other' ? 'selected' : '' }}>Other</option>
+                            <option value="Female" {{ $savedGender === 'Female' ? 'selected' : '' }}>Female</option>
+                            <option value="Male" {{ $savedGender === 'Male' ? 'selected' : '' }}>Male</option>
+                            <option value="Other" {{ $isOtherGender ? 'selected' : '' }}>Other</option>
                         </select>
+                        <div id="nurseGenderOtherWrap" class="mt-2.5 {{ $isOtherGender ? '' : 'hidden' }}">
+                            <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Please Specify</label>
+                            <select name="gender_other" id="nurseGenderOtherSelect"
+                                    class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+                                <option value="">Select Option</option>
+                                @foreach($otherGenderOptions as $opt)
+                                    <option value="{{ $opt }}" {{ $selectedOtherGender === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -244,6 +261,19 @@
 
 <script src="{{ asset('js/ph-phone.js') }}"></script>
 <script>
+    function toggleNurseGenderOther() {
+        const select = document.getElementById('nurseGenderSelect');
+        const wrap = document.getElementById('nurseGenderOtherWrap');
+        const otherSelect = document.getElementById('nurseGenderOtherSelect');
+        if (!select || !wrap) return;
+        if (select.value === 'Other') {
+            wrap.classList.remove('hidden');
+        } else {
+            wrap.classList.add('hidden');
+            if (otherSelect) otherSelect.value = '';
+        }
+    }
+
     function previewNursePhoto(input) {
         if (!input.files || !input.files[0]) return;
         const reader = new FileReader();

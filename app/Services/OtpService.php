@@ -59,7 +59,7 @@ class OtpService
             }
         }
 
-        $maxPerHour = (int) config('otp.max_sends_per_hour', 5);
+        $maxPerHour = (int) config('otp.max_sends_per_hour', 15);
         $sendsLastHour = OtpCode::where('phone', $normalized)
             ->where('purpose', $purpose)
             ->where('sent_at', '>=', now()->subHour())

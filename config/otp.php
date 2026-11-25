@@ -17,7 +17,7 @@ return [
 
     'resend_cooldown_seconds' => 60,
 
-    'max_sends_per_hour' => 5,
+    'max_sends_per_hour' => 15,
 
     'log_fallback' => (bool) env('OTP_LOG_FALLBACK', false),
 ];

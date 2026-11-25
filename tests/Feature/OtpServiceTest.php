@@ -73,18 +73,18 @@ class OtpServiceTest extends TestCase
         $this->assertSame('cooldown', $second['error']);
         $this->assertGreaterThan(0, $second['retry_after']);
 
-        // Send 4 more spaced 65s apart -> total 5 in an hour succeeds
-        for ($i = 0; $i < 4; $i++) {
+        // Send 14 more spaced 65s apart -> total 15 in an hour succeeds
+        for ($i = 0; $i < 14; $i++) {
             $this->travel(65)->seconds();
             $r = $service->issue('09171234567', 'login');
             $this->assertTrue($r['ok']);
         }
 
-        // 6th within the hour fails with hourly_limit
+        // 16th within the hour fails with hourly_limit
         $this->travel(65)->seconds();
-        $sixth = $service->issue('09171234567', 'login');
-        $this->assertFalse($sixth['ok']);
-        $this->assertSame('hourly_limit', $sixth['error']);
+        $sixteenth = $service->issue('09171234567', 'login');
+        $this->assertFalse($sixteenth['ok']);
+        $this->assertSame('hourly_limit', $sixteenth['error']);
     }
 
     public function test_expiry_per_purpose(): void

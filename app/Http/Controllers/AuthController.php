@@ -75,6 +75,7 @@ class AuthController extends Controller
             'dob'                    => ['required', 'date', 'before_or_equal:today'],
             'age'                    => ['nullable', 'integer', 'min:0', 'max:130'],
             'gender'                 => ['nullable', 'string', 'in:Male,Female,Other'],
+            'gender_other'           => ['nullable', 'string', 'in:Transgender,Transgender Male,Transgender Female,Non-binary,Prefer not to say,Other'],
             'patient_classification' => ['required', 'in:Regular Patient,PWD,Senior Citizen'],
             'password'               => ['required', 'string', 'min:8', 'confirmed'],
             'id_photo'               => ['required', 'file', 'mimetypes:image/*', 'max:51200'],
@@ -96,6 +97,10 @@ class AuthController extends Controller
         $age = \Carbon\Carbon::parse($validated['dob'])->age;
         $ageCategory = User::resolveAgeCategory($age);
 
+        $gender = ($validated['gender'] ?? null) === 'Other' && !empty($validated['gender_other'])
+            ? $validated['gender_other']
+            : ($validated['gender'] ?? null);
+
         $user = User::create([
             'first_name'              => $validated['first_name'],
             'last_name'               => $validated['last_name'],
@@ -105,7 +110,7 @@ class AuthController extends Controller
             'dob'                     => $validated['dob'],
             'age'                     => $age,
             'age_category'            => $ageCategory,
-            'gender'                  => $validated['gender'] ?? null,
+            'gender'                  => $gender,
             'patient_classification'  => $validated['patient_classification'] ?? 'Regular Patient',
             'password'                => Hash::make($validated['password']),
             'role'                    => $role,
@@ -513,21 +518,17 @@ class AuthController extends Controller
 
         $validated = $request->validateWithBag('forgot', [
             'recover_role'         => ['required', 'in:resident,bhw,nurse'],
-            'recover_first_name'   => ['required', 'string', 'max:255'],
-            'recover_last_name'    => ['required', 'string', 'max:255'],
             'recover_phone_number' => ['required', new PhilippineMobile],
         ]);
 
         $user = User::where('phone_number', $validated['recover_phone_number'])
             ->where('role', $validated['recover_role'])
             ->where('registration_unverified', false)
-            ->whereRaw('LOWER(TRIM(first_name)) = ?', [strtolower(trim($validated['recover_first_name']))])
-            ->whereRaw('LOWER(TRIM(last_name)) = ?', [strtolower(trim($validated['recover_last_name']))])
             ->first();
 
         if (!$user) {
             return back()
-                ->withErrors(['forgot' => 'No matching account found. Please check your name, role, and phone number, or contact the Barangay Health Center.'], 'forgot')
+                ->withErrors(['forgot' => 'No matching account found. Please check your role and phone number, or contact the Barangay Health Center.'], 'forgot')
                 ->withInput()
                 ->with('open_forgot_modal', 'reset');
         }

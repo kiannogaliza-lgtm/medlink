@@ -46,8 +46,6 @@ class PasswordResetOtpTest extends TestCase
         // Step 1: Request reset
         $this->post(route('forgot.reset-password'), [
             'recover_role'         => 'resident',
-            'recover_first_name'   => 'Maria',
-            'recover_last_name'    => 'Clara',
             'recover_phone_number' => '+639171234567',
         ])->assertRedirect(route('password.otp'));
 
@@ -93,8 +91,6 @@ class PasswordResetOtpTest extends TestCase
 
         $this->post(route('forgot.reset-password'), [
             'recover_role'         => 'resident',
-            'recover_first_name'   => 'Jose',
-            'recover_last_name'    => 'Rizal',
             'recover_phone_number' => '09178889999',
         ])->assertRedirect(route('password.otp'));
 
@@ -114,8 +110,6 @@ class PasswordResetOtpTest extends TestCase
         // New request from modal is blocked by lockout
         $blocked = $this->from(route('login'))->post(route('forgot.reset-password'), [
             'recover_role'         => 'resident',
-            'recover_first_name'   => 'Jose',
-            'recover_last_name'    => 'Rizal',
             'recover_phone_number' => '09178889999',
         ]);
         $blocked->assertRedirect(route('login'));

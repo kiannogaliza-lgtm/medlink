@@ -274,18 +274,6 @@
                             <option value="nurse" {{ old('recover_role') === 'nurse' ? 'selected' : '' }}>Nurse</option>
                         </select>
                     </div>
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">First Name</label>
-                            <input type="text" name="recover_first_name" required value="{{ old('recover_first_name') }}" placeholder="Juan"
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Last Name</label>
-                            <input type="text" name="recover_last_name" required value="{{ old('recover_last_name') }}" placeholder="Dela Cruz"
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500">
-                        </div>
-                    </div>
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Registered Phone Number</label>
                         <input type="tel" name="recover_phone_number" required value="{{ old('recover_phone_number') }}"

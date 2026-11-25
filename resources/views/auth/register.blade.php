@@ -244,7 +244,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </span>
-                            <select name="gender" id="gender" required
+                            <select name="gender" id="gender" required onchange="toggleRegisterGenderOther()"
                                     class="block w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm text-slate-700 font-medium appearance-none cursor-pointer
                                            focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
                                 <option value="">Select Gender</option>
@@ -256,6 +256,24 @@
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                                 </svg>
+                            </div>
+                        </div>
+                        <div id="register-gender-other-wrap" class="mt-2.5 {{ old('gender') === 'Other' ? '' : 'hidden' }}">
+                            <label for="gender_other" class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Please Specify</label>
+                            <div class="relative">
+                                <select name="gender_other" id="gender_other"
+                                        class="block w-full px-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm text-slate-700 font-medium appearance-none cursor-pointer
+                                               focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
+                                    <option value="">Select Option</option>
+                                    @foreach(['Transgender', 'Transgender Male', 'Transgender Female', 'Non-binary', 'Prefer not to say', 'Other'] as $opt)
+                                        <option value="{{ $opt }}" {{ old('gender_other') === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                         @error('gender')
@@ -554,7 +572,21 @@
             }
         }
 
+        function toggleRegisterGenderOther() {
+            const select = document.getElementById('gender');
+            const wrap = document.getElementById('register-gender-other-wrap');
+            const otherSelect = document.getElementById('gender_other');
+            if (!select || !wrap) return;
+            if (select.value === 'Other') {
+                wrap.classList.remove('hidden');
+            } else {
+                wrap.classList.add('hidden');
+                if (otherSelect) otherSelect.value = '';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            toggleRegisterGenderOther();
             const dobInput = document.getElementById('dob');
             if (dobInput && dobInput.value) {
                 const parts = dobInput.value.split('-');
