@@ -27,6 +27,38 @@ class ChildVaccination extends Model
         'date_administered' => 'date',
     ];
 
+    public const SCHEDULE_TIME_SLOTS = [
+        '08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM',
+        '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
+        '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM',
+        '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM',
+    ];
+
+    public static function extractScheduledTime(?string $notes): ?string
+    {
+        if (!$notes) {
+            return null;
+        }
+        if (preg_match('/\[Scheduled Time:\s*([^\]]+)\]/i', $notes, $m)) {
+            return trim($m[1]);
+        }
+        return null;
+    }
+
+    public function getScheduledTimeAttribute(): ?string
+    {
+        return self::extractScheduledTime($this->notes);
+    }
+
+    public function getCleanNotesAttribute(): ?string
+    {
+        if (!$this->notes) {
+            return null;
+        }
+        $clean = trim((string) preg_replace('/\[Scheduled Time:\s*[^\]]+\]\s*/i', '', $this->notes));
+        return $clean !== '' ? $clean : null;
+    }
+
     /**
      * Parent or guardian resident user.
      */

@@ -1010,7 +1010,6 @@
 </div>
 
 <script>
-    // 1. Sticky header + Back-to-top visibility on scroll
     const mainHeader = document.getElementById('mainHeader');
     const backToTopBtn = document.getElementById('backToTopBtn');
     function updateHeaderOnScroll() {

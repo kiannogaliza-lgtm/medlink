@@ -51,6 +51,25 @@ class ChildVaccinationController extends Controller
 
         $parents = User::where('role', 'resident')->orderBy('first_name')->get();
 
+        // Map of YYYY-MM-DD => [booked time slots] for currently Scheduled vaccinations
+        $bookedSlots = [];
+        $scheduledRecords = ChildVaccination::where('status', 'Scheduled')
+            ->whereNotNull('date_administered')
+            ->get(['date_administered', 'notes']);
+
+        foreach ($scheduledRecords as $rec) {
+            $slot = ChildVaccination::extractScheduledTime($rec->notes);
+            if ($slot && $rec->date_administered) {
+                $dateKey = $rec->date_administered->format('Y-m-d');
+                $bookedSlots[$dateKey][] = $slot;
+            }
+        }
+        foreach ($bookedSlots as $k => $slots) {
+            $bookedSlots[$k] = array_values(array_unique($slots));
+        }
+
+        $timeSlots = ChildVaccination::SCHEDULE_TIME_SLOTS;
+
         return view('dashboards.nurse-vaccinations', compact(
             'vaccinations',
             'totalVaccinations',
@@ -60,7 +79,9 @@ class ChildVaccinationController extends Controller
             'doseFilter',
             'ageCategoryFilter',
             'search',
-            'parents'
+            'parents',
+            'bookedSlots',
+            'timeSlots'
         ));
     }
 
@@ -79,8 +100,35 @@ class ChildVaccinationController extends Controller
             'dose_number'       => 'required|string|in:1st Dose,2nd Dose,3rd Dose,Booster 1,Booster 2',
             'date_administered' => 'required|date',
             'status'            => 'required|string|in:Completed,Scheduled,Missed',
+            'scheduled_time'    => ['nullable', 'required_if:status,Scheduled', 'string', 'in:' . implode(',', ChildVaccination::SCHEDULE_TIME_SLOTS)],
             'notes'             => 'nullable|string',
+        ], [
+            'scheduled_time.required_if' => 'Please select a scheduled time slot when status is Scheduled.',
         ]);
+
+        $scheduledTime = $validated['status'] === 'Scheduled' ? ($validated['scheduled_time'] ?? null) : null;
+        unset($validated['scheduled_time']);
+
+        // Block double-booking the same date + time slot for Scheduled vaccinations
+        if ($scheduledTime) {
+            $dateStr = Carbon::parse($validated['date_administered'])->format('Y-m-d');
+            $existingOnDate = ChildVaccination::where('status', 'Scheduled')
+                ->whereDate('date_administered', $dateStr)
+                ->get(['notes']);
+
+            foreach ($existingOnDate as $existing) {
+                if (ChildVaccination::extractScheduledTime($existing->notes) === $scheduledTime) {
+                    return redirect()->route('nurse.vaccinations')
+                        ->withErrors(['scheduled_time' => "The slot {$dateStr} at {$scheduledTime} is already scheduled. Please select another time."])
+                        ->withInput();
+                }
+            }
+
+            $rawNotes = trim((string) ($validated['notes'] ?? ''));
+            $validated['notes'] = $rawNotes !== ''
+                ? "[Scheduled Time: {$scheduledTime}] {$rawNotes}"
+                : "[Scheduled Time: {$scheduledTime}]";
+        }
 
         $administeredBy = auth()->user() ? (auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'Barangay Health Center';
 
@@ -100,9 +148,11 @@ class ChildVaccinationController extends Controller
                 $adminDate = Carbon::parse($validated['date_administered'])->format('M d, Y');
 
                 $notifTitle = "Vaccination Recorded: {$patientName} ({$vaccine})";
-                $notifMsg = "A vaccination entry has been recorded for {$patientName} ({$ageCat}). Vaccine: {$vaccine} ({$dose}), Status: {$doseStatus}, Date: {$adminDate}.";
-                if (!empty($validated['notes'])) {
-                    $notifMsg .= " Notes: {$validated['notes']}";
+                $datePart = $scheduledTime ? "{$adminDate} at {$scheduledTime}" : $adminDate;
+                $notifMsg = "A vaccination entry has been recorded for {$patientName} ({$ageCat}). Vaccine: {$vaccine} ({$dose}), Status: {$doseStatus}, Date: {$datePart}.";
+                $cleanNotes = trim((string) preg_replace('/\[Scheduled Time:\s*[^\]]+\]\s*/i', '', (string) ($validated['notes'] ?? '')));
+                if ($cleanNotes !== '') {
+                    $notifMsg .= " Notes: {$cleanNotes}";
                 }
 
                 AppNotification::create([

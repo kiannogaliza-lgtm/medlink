@@ -208,8 +208,8 @@
                                 </td>
                                 <td class="py-4 px-5 font-bold text-gray-800">
                                     {{ $v->vaccine_name }}
-                                    @if($v->notes)
-                                        <div class="text-[11px] text-gray-400 font-normal italic mt-0.5">"{{ $v->notes }}"</div>
+                                    @if($v->clean_notes)
+                                        <div class="text-[11px] text-gray-400 font-normal italic mt-0.5">"{{ $v->clean_notes }}"</div>
                                     @endif
                                 </td>
                                 <td class="py-4 px-5 text-center whitespace-nowrap">
@@ -218,7 +218,13 @@
                                     </span>
                                 </td>
                                 <td class="py-4 px-5 text-xs text-gray-600 whitespace-nowrap">
-                                    {{ $v->date_administered ? $v->date_administered->format('M d, Y') : 'Scheduled' }}
+                                    <div>{{ $v->date_administered ? $v->date_administered->format('M d, Y') : 'Scheduled' }}</div>
+                                    @if($v->scheduled_time)
+                                        <div class="inline-flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold">
+                                            <span class="material-icons-outlined" style="font-size:12px;">schedule</span>
+                                            <span>{{ $v->scheduled_time }}</span>
+                                        </div>
+                                    @endif
                                 </td>
                                 <td class="py-4 px-5 text-xs text-gray-600">
                                     {{ $v->administered_by ?? 'Health Center Staff' }}
@@ -374,17 +380,29 @@
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Date Administered *</label>
-                    <input type="date" name="date_administered" required value="{{ now()->toDateString() }}" class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30">
+                    <label id="modal_date_label" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Date Administered *</label>
+                    <input type="date" name="date_administered" id="modal_date_administered" required value="{{ old('date_administered', now()->toDateString()) }}" onchange="refreshBlockedVaccineTimes()" class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Dose Status *</label>
-                    <select name="status" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30">
-                        <option value="Completed">Completed</option>
-                        <option value="Scheduled">Scheduled</option>
-                        <option value="Missed">Missed</option>
+                    <select name="status" id="modal_dose_status" required onchange="toggleVaccineScheduleFields()" class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-blue-500/30">
+                        <option value="Completed" {{ old('status', 'Completed') === 'Completed' ? 'selected' : '' }}>Completed</option>
+                        <option value="Scheduled" {{ old('status') === 'Scheduled' ? 'selected' : '' }}>Scheduled</option>
+                        <option value="Missed" {{ old('status') === 'Missed' ? 'selected' : '' }}>Missed</option>
                     </select>
                 </div>
+            </div>
+
+            {{-- Scheduled Time (only shown when Dose Status = Scheduled) --}}
+            <div id="scheduled_time_wrap" class="hidden p-3.5 rounded-xl bg-blue-50/60 border border-blue-100 space-y-1.5">
+                <label for="modal_scheduled_time" class="block text-xs font-bold text-blue-900 uppercase tracking-wider">Scheduled Time *</label>
+                <select name="scheduled_time" id="modal_scheduled_time" class="w-full bg-white border border-blue-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-gray-800 focus:ring-2 focus:ring-blue-500/30">
+                    <option value="">-- Select Time Slot --</option>
+                    @foreach($timeSlots as $slot)
+                        <option value="{{ $slot }}" {{ old('scheduled_time') === $slot ? 'selected' : '' }}>{{ $slot }}</option>
+                    @endforeach
+                </select>
+                <p id="scheduled_time_hint" class="text-[11px] text-blue-700 font-medium"></p>
             </div>
 
             <div>
@@ -405,14 +423,74 @@
 </div>
 
 <script>
+    const bookedVaccineSlots = @json($bookedSlots ?? []);
+
     function openVaccineModal() {
         document.getElementById('recordVaccineModal').classList.remove('hidden');
         document.getElementById('recordVaccineModal').classList.add('flex');
+        toggleVaccineScheduleFields();
     }
     function closeVaccineModal() {
         document.getElementById('recordVaccineModal').classList.remove('flex');
         document.getElementById('recordVaccineModal').classList.add('hidden');
     }
+
+    function toggleVaccineScheduleFields() {
+        const statusEl = document.getElementById('modal_dose_status');
+        const wrap = document.getElementById('scheduled_time_wrap');
+        const timeEl = document.getElementById('modal_scheduled_time');
+        const dateLabel = document.getElementById('modal_date_label');
+        if (!statusEl || !wrap || !timeEl) return;
+
+        if (statusEl.value === 'Scheduled') {
+            wrap.classList.remove('hidden');
+            timeEl.required = true;
+            if (dateLabel) dateLabel.textContent = 'Scheduled Date *';
+            refreshBlockedVaccineTimes();
+        } else {
+            wrap.classList.add('hidden');
+            timeEl.required = false;
+            timeEl.value = '';
+            if (dateLabel) dateLabel.textContent = 'Date Administered *';
+        }
+    }
+
+    function refreshBlockedVaccineTimes() {
+        const dateEl = document.getElementById('modal_date_administered');
+        const timeEl = document.getElementById('modal_scheduled_time');
+        const hintEl = document.getElementById('scheduled_time_hint');
+        if (!dateEl || !timeEl) return;
+
+        const selectedDate = dateEl.value;
+        const booked = bookedVaccineSlots[selectedDate] || [];
+        let blockedCount = 0;
+
+        Array.from(timeEl.options).forEach(opt => {
+            if (!opt.value) return;
+            const isBooked = booked.includes(opt.value);
+            opt.disabled = isBooked;
+            opt.textContent = isBooked ? `${opt.value} (Already Scheduled)` : opt.value;
+            if (isBooked) blockedCount++;
+        });
+
+        if (timeEl.value && booked.includes(timeEl.value)) {
+            timeEl.value = '';
+        }
+
+        if (hintEl) {
+            if (!selectedDate) {
+                hintEl.textContent = 'Choose a date to see available time slots.';
+            } else if (blockedCount > 0) {
+                hintEl.textContent = `${blockedCount} time slot(s) already scheduled on ${selectedDate} and blocked.`;
+            } else {
+                hintEl.textContent = `All time slots are available on ${selectedDate}.`;
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        toggleVaccineScheduleFields();
+    });
 
     function filterAgeCategory(category) {
         const url = new URL(window.location);

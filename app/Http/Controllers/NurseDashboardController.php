@@ -37,8 +37,12 @@ class NurseDashboardController extends Controller
         // Medicine data for bar chart
         $medicines = Medicine::orderBy('stock', 'desc')->limit(6)->get();
 
-        // Request distribution for pie chart
-        $medicineRequestCount = MedicineRequest::where('type', 'Medicine')->count();
+        // Request distribution for pie chart (real transaction counts)
+        $medicinePickupCount = MedicineRequest::where(function ($q) {
+            $q->where('delivery_method', 'pickup')->orWhereNull('delivery_method');
+        })->count();
+        $medicineDeliveryCount = MedicineRequest::where('delivery_method', 'delivery')->count();
+        $medicineRequestCount = $medicinePickupCount + $medicineDeliveryCount;
         $homeServiceCount = \App\Models\HomeServiceRequest::count();
         $totalRequests = $medicineRequestCount + $homeServiceCount;
 
@@ -60,6 +64,8 @@ class NurseDashboardController extends Controller
             'medicines',
             'totalRequests',
             'medicineRequestCount',
+            'medicinePickupCount',
+            'medicineDeliveryCount',
             'homeServiceCount',
             'verifiedTodayCount',
             'scheduledAppointmentsCount',

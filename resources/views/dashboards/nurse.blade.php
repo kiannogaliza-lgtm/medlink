@@ -5,7 +5,7 @@
 
 @section('content')
     {{-- Stat Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
         {{-- Pending Requests --}}
         <a href="{{ route('nurse.medicine-requests') }}" class="stat-card hover:border-blue-300 hover:shadow-md transition-all cursor-pointer">
             <div>
@@ -47,17 +47,6 @@
             </div>
             <div class="w-11 h-11 rounded-full bg-red-100 flex items-center justify-center">
                 <span class="material-icons-outlined text-red-600" style="font-size:22px;">warning</span>
-            </div>
-        </div>
-
-        {{-- Scheduled Appointments --}}
-        <div class="stat-card">
-            <div>
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Scheduled</p>
-                <p class="text-3xl font-extrabold text-gray-900">{{ $scheduledAppointmentsCount }}</p>
-            </div>
-            <div class="w-11 h-11 rounded-full bg-blue-50 flex items-center justify-center">
-                <span class="material-icons-outlined text-blue-500" style="font-size:22px;">calendar_month</span>
             </div>
         </div>
     </div>
@@ -174,27 +163,25 @@
         }
     });
 
-    // Request Distribution Doughnut Chart
+    // Request Distribution Doughnut Chart (synced to live transactions)
+    const distCounts = [
+        {{ (int) $medicinePickupCount }},
+        {{ (int) $medicineDeliveryCount }},
+        {{ (int) $homeServiceCount }}
+    ];
+    const distTotal = distCounts.reduce((a, b) => a + b, 0);
     const doughnutCtx = document.getElementById('distributionChart').getContext('2d');
     new Chart(doughnutCtx, {
         type: 'doughnut',
         data: {
-            labels: ['Medicine', 'Home Service', 'Immunization', 'Ultrasound'],
+            labels: ['Medicine Pickup', 'Medicine Delivery', 'Home Service'],
             datasets: [{
-                data: [
-                    {{ $medicineRequestCount ?: 45 }},
-                    {{ $homeServiceCount ?: 28 }},
-                    15,
-                    12
-                ],
-                backgroundColor: [
-                    '#2563eb',
-                    '#06b6d4',
-                    '#f59e0b',
-                    '#10b981'
-                ],
+                data: distTotal > 0 ? distCounts : [1],
+                backgroundColor: distTotal > 0
+                    ? ['#2563eb', '#f59e0b', '#06b6d4']
+                    : ['#e2e8f0'],
                 borderWidth: 0,
-                hoverOffset: 8,
+                hoverOffset: distTotal > 0 ? 8 : 0,
             }]
         },
         options: {
@@ -211,14 +198,13 @@
                         font: { family: 'Inter', size: 12, weight: '500' },
                         color: '#475569',
                         generateLabels: function(chart) {
-                            const data = chart.data;
-                            const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-                            return data.labels.map((label, i) => {
-                                const value = data.datasets[0].data[i];
-                                const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+                            const legendColors = ['#2563eb', '#f59e0b', '#06b6d4'];
+                            return chart.data.labels.map((label, i) => {
+                                const value = distCounts[i] || 0;
+                                const pct = distTotal > 0 ? Math.round((value / distTotal) * 100) : 0;
                                 return {
-                                    text: label + ' ' + pct + '%',
-                                    fillStyle: data.datasets[0].backgroundColor[i],
+                                    text: label + ' ' + pct + '% (' + value + ')',
+                                    fillStyle: legendColors[i],
                                     hidden: false,
                                     index: i,
                                     pointStyle: 'circle',
@@ -228,11 +214,19 @@
                     }
                 },
                 tooltip: {
+                    enabled: distTotal > 0,
                     backgroundColor: '#0c2d48',
                     titleFont: { family: 'Inter', size: 12 },
                     bodyFont: { family: 'Inter', size: 12 },
                     padding: 12,
                     cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            const value = distCounts[context.dataIndex] || 0;
+                            const pct = distTotal > 0 ? Math.round((value / distTotal) * 100) : 0;
+                            return ' ' + context.label + ': ' + value + ' (' + pct + '%)';
+                        }
+                    }
                 }
             }
         }
