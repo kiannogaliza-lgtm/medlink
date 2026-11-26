@@ -75,7 +75,7 @@ class AuthController extends Controller
             'dob'                    => ['required', 'date', 'before_or_equal:today'],
             'age'                    => ['nullable', 'integer', 'min:0', 'max:130'],
             'gender'                 => ['nullable', 'string', 'in:Male,Female,Other'],
-            'gender_other'           => ['nullable', 'string', 'in:Transgender,Transgender Male,Transgender Female,Non-binary,Prefer not to say,Other'],
+            'gender_other'           => ['nullable', 'string', 'in:Transgender,Transgender Male,Transgender Female,Non-binary,Prefer not to say'],
             'patient_classification' => ['required', 'in:Regular Patient,PWD,Senior Citizen'],
             'password'               => ['required', 'string', 'min:8', 'confirmed'],
             'id_photo'               => ['required', 'file', 'mimetypes:image/*', 'max:51200'],

@@ -157,12 +157,21 @@
             <div>
               <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Gender</label>
               <select v-model="form.gender"
+                      @change="form.gender !== 'Other' && (form.gender_other = '')"
                       class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600">
                 <option value="">Select Gender</option>
                 <option value="Female">Female</option>
                 <option value="Male">Male</option>
                 <option value="Other">Other</option>
               </select>
+              <div v-if="form.gender === 'Other'" class="mt-2.5">
+                <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Specify</label>
+                <select v-model="form.gender_other"
+                        class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-600">
+                  <option value="">Select Option</option>
+                  <option v-for="opt in otherGenderOptions" :key="opt" :value="opt">{{ opt }}</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -285,20 +294,35 @@ const showPhoneOtpModal = ref(false);
 const phoneOtpMasked = ref('');
 const phoneOtpResendIn = ref(60);
 
+const otherGenderOptions = ['Transgender', 'Transgender Male', 'Transgender Female', 'Non-binary', 'Prefer not to say'];
+
+const splitGender = (val) => {
+  const g = val || '';
+  if (g !== '' && g !== 'Male' && g !== 'Female') {
+    return { gender: 'Other', gender_other: otherGenderOptions.includes(g) ? g : '' };
+  }
+  return { gender: g, gender_other: '' };
+};
+
+const initialGender = splitGender(props.user?.gender);
+
 const form = ref({
   first_name: props.user?.first_name || '',
   last_name: props.user?.last_name || '',
   phone_number: props.user?.phone_number || '',
-  gender: props.user?.gender || '',
+  gender: initialGender.gender,
+  gender_other: initialGender.gender_other,
   address: props.user?.address || ''
 });
 
 watch(() => props.user, (u) => {
   if (!u) return;
+  const parsed = splitGender(u.gender);
   form.value.first_name = u.first_name || '';
   form.value.last_name = u.last_name || '';
   form.value.phone_number = u.phone_number || '';
-  form.value.gender = u.gender || '';
+  form.value.gender = parsed.gender;
+  form.value.gender_other = parsed.gender_other;
   form.value.address = u.address || '';
 }, { deep: true });
 
@@ -353,6 +377,7 @@ const submitProfile = async () => {
     fd.append('last_name', form.value.last_name);
     fd.append('phone_number', form.value.phone_number);
     fd.append('gender', form.value.gender || '');
+    fd.append('gender_other', form.value.gender === 'Other' ? (form.value.gender_other || '') : '');
     fd.append('address', form.value.address || '');
     if (selectedPhotoFile.value) {
       fd.append('profile_photo', selectedPhotoFile.value);

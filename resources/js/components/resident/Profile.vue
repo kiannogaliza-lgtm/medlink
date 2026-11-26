@@ -397,6 +397,7 @@
             <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Gender</label>
             <select 
               v-model="form.gender" 
+              @change="form.gender !== 'Other' && (form.gender_other = '')"
               class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5a89]/30 focus:border-[#1a5a89] transition-all"
             >
               <option value="">Select Gender</option>
@@ -404,6 +405,16 @@
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
+            <div v-if="form.gender === 'Other'" class="mt-2.5">
+              <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Specify</label>
+              <select
+                v-model="form.gender_other"
+                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1a5a89]/30 focus:border-[#1a5a89] transition-all"
+              >
+                <option value="">Select Option</option>
+                <option v-for="opt in otherGenderOptions" :key="opt" :value="opt">{{ opt }}</option>
+              </select>
+            </div>
             <span v-if="errors.gender" class="text-xs text-red-500 mt-1 block">{{ errors.gender[0] }}</span>
           </div>
 
@@ -627,6 +638,7 @@ const form = ref({
   age: null,
   dob: '',
   gender: '',
+  gender_other: '',
   blood_type: '',
   address: '',
   allergies: '',
@@ -636,6 +648,8 @@ const form = ref({
   emergency_contact_relation: '',
   emergency_contact_phone: ''
 });
+
+const otherGenderOptions = ['Transgender', 'Transgender Male', 'Transgender Female', 'Non-binary', 'Prefer not to say'];
 
 const startEditing = () => {
   // Format dob & last_checkup to YYYY-MM-DD for date inputs
@@ -649,6 +663,9 @@ const startEditing = () => {
     }
   };
 
+  const savedGender = props.user.gender || '';
+  const isOtherGender = savedGender !== '' && savedGender !== 'Male' && savedGender !== 'Female';
+
   form.value = {
     first_name: props.user.first_name || '',
     last_name: props.user.last_name || '',
@@ -656,7 +673,8 @@ const startEditing = () => {
     email: props.user.email || '',
     age: props.user.age !== null && props.user.age !== undefined ? Number(props.user.age) : null,
     dob: formatInputDate(props.user.dob),
-    gender: props.user.gender || '',
+    gender: isOtherGender ? 'Other' : savedGender,
+    gender_other: isOtherGender && otherGenderOptions.includes(savedGender) ? savedGender : '',
     blood_type: props.user.blood_type || '',
     address: props.user.address || '',
     allergies: props.user.allergies || '',
@@ -774,7 +792,7 @@ const submitProfile = async () => {
       first_name: form.value.first_name,
       last_name: form.value.last_name,
       phone_number: form.value.phone_number,
-      gender: form.value.gender,
+      gender: form.value.gender === 'Other' && form.value.gender_other ? form.value.gender_other : form.value.gender,
       blood_type: form.value.blood_type,
       address: form.value.address,
       allergies: form.value.allergies,

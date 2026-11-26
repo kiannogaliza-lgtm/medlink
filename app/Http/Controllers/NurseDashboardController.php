@@ -419,7 +419,7 @@ class NurseDashboardController extends Controller
                     ->where(fn ($q) => $q->where('registration_unverified', false)),
             ],
             'gender'        => ['nullable', 'string', 'in:Male,Female,Other'],
-            'gender_other'  => ['nullable', 'string', 'in:Transgender,Transgender Male,Transgender Female,Non-binary,Prefer not to say,Other'],
+            'gender_other'  => ['nullable', 'string', 'in:Transgender,Transgender Male,Transgender Female,Non-binary,Prefer not to say'],
             'address'       => ['nullable', 'string', 'max:500'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
         ]);

@@ -259,13 +259,13 @@
                             </div>
                         </div>
                         <div id="register-gender-other-wrap" class="mt-2.5 {{ old('gender') === 'Other' ? '' : 'hidden' }}">
-                            <label for="gender_other" class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Please Specify</label>
+                            <label for="gender_other" class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Specify</label>
                             <div class="relative">
                                 <select name="gender_other" id="gender_other"
                                         class="block w-full px-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-sm text-slate-700 font-medium appearance-none cursor-pointer
                                                focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all">
                                     <option value="">Select Option</option>
-                                    @foreach(['Transgender', 'Transgender Male', 'Transgender Female', 'Non-binary', 'Prefer not to say', 'Other'] as $opt)
+                                    @foreach(['Transgender', 'Transgender Male', 'Transgender Female', 'Non-binary', 'Prefer not to say'] as $opt)
                                         <option value="{{ $opt }}" {{ old('gender_other') === $opt ? 'selected' : '' }}>{{ $opt }}</option>
                                     @endforeach
                                 </select>

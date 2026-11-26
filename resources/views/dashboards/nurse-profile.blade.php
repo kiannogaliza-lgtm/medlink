@@ -157,7 +157,7 @@
                     </div>
                     <div>
                         @php
-                            $otherGenderOptions = ['Transgender', 'Transgender Male', 'Transgender Female', 'Non-binary', 'Prefer not to say', 'Other'];
+                            $otherGenderOptions = ['Transgender', 'Transgender Male', 'Transgender Female', 'Non-binary', 'Prefer not to say'];
                             $savedGender = old('gender', $user->gender);
                             $isOtherGender = $savedGender === 'Other' || ($savedGender && !in_array($savedGender, ['Male', 'Female'], true));
                             $selectedOtherGender = old('gender_other', $isOtherGender ? $savedGender : '');
@@ -171,7 +171,7 @@
                             <option value="Other" {{ $isOtherGender ? 'selected' : '' }}>Other</option>
                         </select>
                         <div id="nurseGenderOtherWrap" class="mt-2.5 {{ $isOtherGender ? '' : 'hidden' }}">
-                            <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Please Specify</label>
+                            <label class="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Specify</label>
                             <select name="gender_other" id="nurseGenderOtherSelect"
                                     class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
                                 <option value="">Select Option</option>

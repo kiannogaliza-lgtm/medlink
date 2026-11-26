@@ -661,9 +661,15 @@ class BhwDashboardController extends Controller
                     ->where(fn ($q) => $q->where('registration_unverified', false)),
             ],
             'gender'        => ['nullable', 'string', 'in:Male,Female,Other'],
+            'gender_other'  => ['nullable', 'string', 'in:Transgender,Transgender Male,Transgender Female,Non-binary,Prefer not to say'],
             'address'       => ['nullable', 'string', 'max:500'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
         ]);
+
+        if (($validated['gender'] ?? null) === 'Other' && !empty($validated['gender_other'])) {
+            $validated['gender'] = $validated['gender_other'];
+        }
+        unset($validated['gender_other']);
 
         if ($request->hasFile('profile_photo')) {
             if ($user->profile_photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_photo)) {
